@@ -22,5 +22,5 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
             System.Diagnostics.Debug.WriteLine("Vodafone otp is send");
         }
-    }1
+    }
 }

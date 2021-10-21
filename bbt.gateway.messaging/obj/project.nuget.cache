@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "Ci6WRRTogSuSl+JrrcMFt0MhWUd1y4k2WIfRdVIbPcHGuxW8rZiR+TT1SxbGzkVaEHKAv6VxWSxOsPL9bsrosQ==",
+  "dgSpecHash": "Y/NyqnIALK1Ioy3+JvRqx51bsaMTRH82ur5RYY4/rB+azTA+0+sc6W1dvFGwiEO9wgjZ6TUFayD/f5Mpz+Y70A==",
   "success": true,
   "projectFilePath": "/Users/ukaratas/Documents/GitHub/bbt.gateway.messaging/bbt.gateway.messaging/bbt.gateway.messaging.csproj",
   "expectedPackageFiles": [
@@ -39,10 +39,7 @@
     "/Users/ukaratas/.nuget/packages/system.collections.immutable/5.0.0/system.collections.immutable.5.0.0.nupkg.sha512",
     "/Users/ukaratas/.nuget/packages/system.componentmodel.annotations/5.0.0/system.componentmodel.annotations.5.0.0.nupkg.sha512",
     "/Users/ukaratas/.nuget/packages/system.diagnostics.diagnosticsource/5.0.1/system.diagnostics.diagnosticsource.5.0.1.nupkg.sha512",
-    "/Users/ukaratas/.nuget/packages/system.memory/4.5.3/system.memory.4.5.3.nupkg.sha512",
-    "/Users/ukaratas/.nuget/packages/microsoft.netcore.app.ref/5.0.0/microsoft.netcore.app.ref.5.0.0.nupkg.sha512",
-    "/Users/ukaratas/.nuget/packages/microsoft.aspnetcore.app.ref/5.0.0/microsoft.aspnetcore.app.ref.5.0.0.nupkg.sha512",
-    "/Users/ukaratas/.nuget/packages/microsoft.netcore.app.host.osx-x64/5.0.11/microsoft.netcore.app.host.osx-x64.5.0.11.nupkg.sha512"
+    "/Users/ukaratas/.nuget/packages/system.memory/4.5.3/system.memory.4.5.3.nupkg.sha512"
   ],
   "logs": []
 }
