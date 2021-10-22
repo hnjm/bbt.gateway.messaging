@@ -51,10 +51,11 @@ namespace bbt.gateway.messaging
                 app.UseSwagger();
                 app.UseSwaggerUI(c => {
                     c.SwaggerEndpoint("/swagger/v1/swagger.json", "bbt.gateway.messaging v1");
+                    c.RoutePrefix = "";
                     });
             }
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
 
             app.UseRouting();
 

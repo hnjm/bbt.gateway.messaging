@@ -10,6 +10,6 @@ namespace bbt.gateway.messaging.Models
         Private = 1,
         Public = 2,
         Legal = 3,
-        OTP = 4
+        Otp = 4
     }
 }

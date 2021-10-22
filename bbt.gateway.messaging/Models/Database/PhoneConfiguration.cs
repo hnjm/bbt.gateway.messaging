@@ -7,8 +7,8 @@ namespace bbt.gateway.messaging.Models
 {
     public class PhoneConfiguration
     {
-        public Guid Id { get; set; }
-        public Phone Phone { get; set; }
+        public Guid Id { get; set; } = Guid.NewGuid();
+        public Phone Phone { get; set; } 
         public OperatorType Operator { get; set; }
         public ICollection<PhoneConfigurationLog> Logs { get; set; }
         public ICollection<SendOtpRequestLog> OtpLogs {get;set;}

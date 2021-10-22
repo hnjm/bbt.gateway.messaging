@@ -34,12 +34,15 @@ namespace bbt.gateway.messaging
             builder.Entity<PhoneConfiguration>().OwnsOne(i => i.Phone);
             builder.Entity<PhoneConfigurationLog>().OwnsOne(i => i.CreatedBy);
             builder.Entity<SendOtpRequestLog>().OwnsOne(i => i.CreatedBy);
+            builder.Entity<SendOtpRequestLog>().OwnsOne(i => i.Phone);
             builder.Entity<SendSmsLog>().OwnsOne(i => i.CreatedBy);
             builder.Entity<OtpBlackListEntry>().OwnsOne(i => i.CreatedBy);
             builder.Entity<OtpBlackListEntry>().OwnsOne(i => i.ResolvedBy);
             builder.Entity<OtpBlackListEntry>().OwnsOne(i => i.Phone);
             builder.Entity<OtpBlackListEntryLog>().OwnsOne(i => i.CreatedBy);
             builder.Entity<OtpOperatorException>().OwnsOne(i => i.CreatedBy);
+
+            
 
             //builder.Entity<PhoneConfiguration>().HasKey(c => c.Id).ForSqlServerIsClustered(false);
             //builder.Entity<PhoneConfiguration>().HasIndex("Id").HasName("ClusteredId").ForSqlServerIsClustered(true);

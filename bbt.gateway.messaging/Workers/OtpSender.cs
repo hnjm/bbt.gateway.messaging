@@ -14,17 +14,27 @@ namespace bbt.gateway.messaging.Workers
     {
         SendMessageSmsRequest _data;
 
+        SendOtpRequestLog _requestLog;
+
         Type[] operators = new Type[] { typeof(OperatorTurkcell), typeof(OperatorVodafone), typeof(OperatorTurkTelekom) };
 
         public OtpSender(SendMessageSmsRequest data)
         {
-            _data = data;
+             _data = data;
+
+            _requestLog = new SendOtpRequestLog
+            {
+                CreatedBy = _data.Process,
+                Phone = _data.Phone
+            };
         }
 
         public SendSmsResponse SendMessage()
         {
             using (var db = new DatabaseContext())
             {
+                db.Add(_requestLog);
+
                 // Telefon bilgisi ve aktif olan tum kara liste kayitlari getirilir.
                 var phoneConfiguration = db.PhoneConfigurations.Where(i =>
                     i.Phone.CountryCode == _data.Phone.CountryCode &&
@@ -36,10 +46,26 @@ namespace bbt.gateway.messaging.Workers
 
                 if (phoneConfiguration == null)
                 {
-                    SendMessageToUnknown();
+                    var newConfig = new PhoneConfiguration
+                    {
+                        Phone = _data.Phone
+                    };
 
+                    _requestLog.PhoneConfiguration = newConfig;
+                    db.Add(newConfig);
+                    //db.SaveChanges();
+
+                    var responseLogs = SendMessageToUnknown();
+                    responseLogs.ForEach(l => {
+                        _requestLog.ResponseLogs.Add(l);
+                    });
+
+                    db.SaveChanges();
                 }
-                else {
+                else
+                {
+                    _requestLog.PhoneConfiguration = phoneConfiguration;
+                    db.SaveChanges();
 
                     SendMessageToKnown(phoneConfiguration);
                 }
@@ -48,29 +74,22 @@ namespace bbt.gateway.messaging.Workers
             }
         }
 
-
-        private SendSmsResponse SendMessageToUnknown()
+        private List<SendOtpResponseLog> SendMessageToUnknown()
         {
-
             ConcurrentBag<SendOtpResponseLog> responses = new ConcurrentBag<SendOtpResponseLog>();
 
             Parallel.ForEach(operators, currentElement =>
             {
-                IOperatorGateway gateway =  (IOperatorGateway)Activator.CreateInstance(currentElement);
+                IOperatorGateway gateway = (IOperatorGateway)Activator.CreateInstance(currentElement);
                 gateway.SendOtp(_data.Phone, "test", responses);
             });
 
-
-
-            return null; 
-
+            return responses.ToList();
         }
 
         private SendSmsResponse SendMessageToKnown(PhoneConfiguration phoneConfiguration)
         {
             return null;
         }
-
-
     }
 }

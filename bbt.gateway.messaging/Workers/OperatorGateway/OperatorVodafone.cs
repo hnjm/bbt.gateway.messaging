@@ -11,16 +11,14 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
     {
         public void SendOtp(Phone phone, string content, ConcurrentBag<SendOtpResponseLog> responses)
         {
-            responses.Add(new SendOtpResponseLog { 
+            var response = new SendOtpResponseLog { 
                 Operator = OperatorType.Vodafone,
-                Topic = "Otp Sending over service"
-
-               
-            
-            });
-
+                Topic = "Vodafone otp sending"
+            };
 
             System.Diagnostics.Debug.WriteLine("Vodafone otp is send");
+
+            responses.Add(response);
         }
     }
 }

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using bbt.gateway.messaging;
 
@@ -10,9 +11,10 @@ using bbt.gateway.messaging;
 namespace bbt.gateway.messaging.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20211022054856_test")]
+    partial class test
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.0-rc.2.21480.5");
@@ -206,12 +208,12 @@ namespace bbt.gateway.messaging.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid?>("PhoneConfigurationId")
+                    b.Property<Guid?>("PhoneId")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PhoneConfigurationId");
+                    b.HasIndex("PhoneId");
 
                     b.ToTable("SendOtpRequestLog");
                 });
@@ -502,9 +504,9 @@ namespace bbt.gateway.messaging.Migrations
 
             modelBuilder.Entity("bbt.gateway.messaging.Models.SendOtpRequestLog", b =>
                 {
-                    b.HasOne("bbt.gateway.messaging.Models.PhoneConfiguration", "PhoneConfiguration")
+                    b.HasOne("bbt.gateway.messaging.Models.PhoneConfiguration", "Phone")
                         .WithMany("OtpLogs")
-                        .HasForeignKey("PhoneConfigurationId");
+                        .HasForeignKey("PhoneId");
 
                     b.OwnsOne("bbt.gateway.messaging.Models.Process", "CreatedBy", b1 =>
                         {
@@ -531,33 +533,9 @@ namespace bbt.gateway.messaging.Migrations
                                 .HasForeignKey("SendOtpRequestLogId");
                         });
 
-                    b.OwnsOne("bbt.gateway.messaging.Models.Phone", "Phone", b1 =>
-                        {
-                            b1.Property<Guid>("SendOtpRequestLogId")
-                                .HasColumnType("TEXT");
-
-                            b1.Property<int>("CountryCode")
-                                .HasColumnType("INTEGER");
-
-                            b1.Property<int>("Number")
-                                .HasColumnType("INTEGER");
-
-                            b1.Property<int>("Prefix")
-                                .HasColumnType("INTEGER");
-
-                            b1.HasKey("SendOtpRequestLogId");
-
-                            b1.ToTable("SendOtpRequestLog");
-
-                            b1.WithOwner()
-                                .HasForeignKey("SendOtpRequestLogId");
-                        });
-
                     b.Navigation("CreatedBy");
 
                     b.Navigation("Phone");
-
-                    b.Navigation("PhoneConfiguration");
                 });
 
             modelBuilder.Entity("bbt.gateway.messaging.Models.SendOtpResponseLog", b =>
