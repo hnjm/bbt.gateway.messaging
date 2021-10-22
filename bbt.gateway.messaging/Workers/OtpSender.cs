@@ -20,7 +20,7 @@ namespace bbt.gateway.messaging.Workers
 
         public OtpSender(SendMessageSmsRequest data)
         {
-             _data = data;
+            _data = data;
 
             _requestLog = new SendOtpRequestLog
             {
@@ -51,12 +51,21 @@ namespace bbt.gateway.messaging.Workers
                         Phone = _data.Phone
                     };
 
+                    newConfig.Logs.Add(new PhoneConfigurationLog
+                    {
+                        Type = "Initialization",
+                        Action = "Send Otp Request",
+                        ParameterMaster = _requestLog.Id.ToString(),
+                        CreatedBy = _data.Process
+                    });
+
                     _requestLog.PhoneConfiguration = newConfig;
                     db.Add(newConfig);
-                    //db.SaveChanges();
 
                     var responseLogs = SendMessageToUnknown();
-                    responseLogs.ForEach(l => {
+
+                    responseLogs.ForEach(l =>
+                    {
                         _requestLog.ResponseLogs.Add(l);
                     });
 
@@ -65,9 +74,11 @@ namespace bbt.gateway.messaging.Workers
                 else
                 {
                     _requestLog.PhoneConfiguration = phoneConfiguration;
-                    db.SaveChanges();
+                  
 
-                    SendMessageToKnown(phoneConfiguration);
+                    var responseLog = SendMessageToKnown(phoneConfiguration);
+
+                    db.SaveChanges();
                 }
 
                 return null;
@@ -87,9 +98,33 @@ namespace bbt.gateway.messaging.Workers
             return responses.ToList();
         }
 
-        private SendSmsResponse SendMessageToKnown(PhoneConfiguration phoneConfiguration)
+        private SendOtpResponseLog SendMessageToKnown(PhoneConfiguration phoneConfiguration)
         {
-            return null;
+            IOperatorGateway gateway = null;
+
+            switch (phoneConfiguration.Operator)
+            {
+                case OperatorType.Turkcell:
+                    gateway = new OperatorTurkcell();
+                    break;
+                case OperatorType.Vodafone:
+                    gateway = new OperatorVodafone();
+                    break;
+
+                case OperatorType.TurkTelekom:
+                    gateway = new OperatorTurkTelekom();
+                    break;
+                case OperatorType.IVN:
+                    gateway = new OperatorIVN();
+                    break;
+                default:
+                    // Serious Exception
+                    break;
+            }
+
+            var result = gateway.SendOtp(_data.Phone, _data.Content);
+
+            return result;
         }
     }
 }

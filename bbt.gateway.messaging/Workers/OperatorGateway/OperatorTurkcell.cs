@@ -11,7 +11,29 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
     {
         public void SendOtp(Phone phone, string content, ConcurrentBag<SendOtpResponseLog> responses)
         {
+             var response = new SendOtpResponseLog { 
+                Operator = OperatorType.Turkcell,
+                Topic = "Turkcell otp sending"
+            };
+
             System.Diagnostics.Debug.WriteLine("Turkcell otp is send");
+
+            response.OperatorResponseCode = OperatorResponseType.Success;
+
+            responses.Add(response);
+        }
+
+        public SendOtpResponseLog SendOtp(Phone phone, string content)
+        {
+             var response = new SendOtpResponseLog { 
+                Operator = OperatorType.Turkcell,
+                Topic = "Turkcell otp sending"
+            };
+
+            System.Diagnostics.Debug.WriteLine("Turkcell otp is send");
+            response.OperatorResponseCode = OperatorResponseType.Success;
+
+            return response;
         }
     }
 }

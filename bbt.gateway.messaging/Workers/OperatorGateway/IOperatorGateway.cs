@@ -10,5 +10,6 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
     public interface IOperatorGateway
     {
         void SendOtp(Phone phone, string content, ConcurrentBag<SendOtpResponseLog> responses);
+        SendOtpResponseLog SendOtp(Phone phone, string content);
     }
 }

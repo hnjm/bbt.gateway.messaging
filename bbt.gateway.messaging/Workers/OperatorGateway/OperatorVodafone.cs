@@ -17,8 +17,26 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             };
 
             System.Diagnostics.Debug.WriteLine("Vodafone otp is send");
+            response.OperatorResponseCode = OperatorResponseType.Success;
 
             responses.Add(response);
         }
+
+
+        public SendOtpResponseLog SendOtp(Phone phone, string content)
+        {
+             var response = new SendOtpResponseLog { 
+                Operator = OperatorType.Vodafone,
+                Topic = "Vodafone otp sending"
+            };
+
+            System.Diagnostics.Debug.WriteLine("Vodafone otp is send");
+            response.OperatorResponseCode = OperatorResponseType.Success;
+
+            return response;
+        }
+
+
+        
     }
 }

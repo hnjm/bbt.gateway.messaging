@@ -7,14 +7,14 @@ namespace bbt.gateway.messaging.Models
 {
     public class PhoneConfigurationLog
     {
-        public Guid Id { get; set; }
+        public Guid Id { get; set; } = Guid.NewGuid();
         public PhoneConfiguration Phone { get; set; }
         public string Type { get; set; }
         public string Action { get; set; }
         public string ParameterMaster { get; set; }
         public string ParameterSlave { get; set; }
         public Process CreatedBy { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
 
 
     }
