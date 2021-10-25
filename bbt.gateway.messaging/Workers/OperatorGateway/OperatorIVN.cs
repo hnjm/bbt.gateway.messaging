@@ -20,27 +20,33 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             var response = new SendOtpResponseLog { 
                 Operator = OperatorType.Turkcell,
                 Topic = "IVN otp sending",
-                TrackingStatus = SmsTrackingStatus.Pending
+                TrackingStatus = SmsTrackingStatus.Delivered
             };
 
             System.Diagnostics.Debug.WriteLine("IVN otp is send");
             response.ResponseCode = SendSmsResponseStatus.NotSubscriber;
-
             responses.Add(response);
         }
+
+      
 
         public SendOtpResponseLog SendOtp(Phone phone, string content, Header header)
         {
            var response = new SendOtpResponseLog { 
                 Operator = OperatorType.IVN,
                 Topic = "IVN otp sending",
-                TrackingStatus = SmsTrackingStatus.Pending
+                TrackingStatus = SmsTrackingStatus.Delivered
             };
 
             System.Diagnostics.Debug.WriteLine("IVN otp is send");
             response.ResponseCode = SendSmsResponseStatus.NotSubscriber;
 
             return response;
+        }
+
+        public override SmsTrackingLog CheckMessageStatus(SendOtpResponseLog response)
+        {
+           throw new NotSupportedException();
         }
     }
 }

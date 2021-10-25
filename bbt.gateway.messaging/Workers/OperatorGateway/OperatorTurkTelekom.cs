@@ -30,6 +30,8 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
             response.ResponseCode = SendSmsResponseStatus.NotSubscriber;
 
+            Task.Run(() => TrackMessageStatus(response));
+
             responses.Add(response);
         }
         public SendOtpResponseLog SendOtp(Phone phone, string content, Header header)
@@ -38,14 +40,23 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             {
                 Operator = OperatorType.TurkTelekom,
                 Topic = "TurkTelekom otp sending",
-                TrackingStatus = SmsTrackingStatus.Pending        
+                TrackingStatus = SmsTrackingStatus.Pending
             };
 
             System.Diagnostics.Debug.WriteLine("TurkTelekom otp is send");
 
             response.ResponseCode = SendSmsResponseStatus.NotSubscriber;
 
+            Task.Run(() => TrackMessageStatus(response));
+
+
             return response;
+        }
+
+
+        public override SmsTrackingLog CheckMessageStatus(SendOtpResponseLog response)
+        {
+            return new SmsTrackingLog { SendOtpResponseLogId = response.Id, Status = SmsTrackingStatus.Pending, Detail = "No details" };
         }
     }
 }

@@ -26,8 +26,11 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             System.Diagnostics.Debug.WriteLine("Turkcell otp is send");
 
             response.ResponseCode = SendSmsResponseStatus.Success;
+            response.StatusQueryId = "1254";
 
             responses.Add(response);
+
+            Task.Run(() => TrackMessageStatus(response));
         }
 
         public SendOtpResponseLog SendOtp(Phone phone, string content, Header header)
@@ -42,7 +45,14 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             System.Diagnostics.Debug.WriteLine("Turkcell otp is send");
             response.ResponseCode = SendSmsResponseStatus.Success;
 
+            Task.Run(() => TrackMessageStatus(response));
+
             return response;
+        }
+
+        public override SmsTrackingLog CheckMessageStatus(SendOtpResponseLog response)
+        {
+            return new SmsTrackingLog { SendOtpResponseLogId = response.Id, Status = SmsTrackingStatus.Pending, Detail = "No details" };
         }
     }
 }

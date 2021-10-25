@@ -27,6 +27,8 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             response.ResponseCode = SendSmsResponseStatus.NotSubscriber;
 
             responses.Add(response);
+
+            Task.Run(() => TrackMessageStatus(response));
         }
 
         public SendOtpResponseLog SendOtp(Phone phone, string content, Header header)
@@ -40,8 +42,13 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
             System.Diagnostics.Debug.WriteLine("Vodafone otp is send");
             response.ResponseCode = SendSmsResponseStatus.NotSubscriber;
+            Task.Run(() => TrackMessageStatus(response));
 
             return response;
+        }
+        public override SmsTrackingLog CheckMessageStatus(SendOtpResponseLog response)
+        {
+           return new SmsTrackingLog { SendOtpResponseLogId = response.Id, Status = SmsTrackingStatus.Pending, Detail = "No details" };
         }
     }
 }

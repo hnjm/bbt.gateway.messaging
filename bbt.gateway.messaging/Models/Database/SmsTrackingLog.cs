@@ -8,6 +8,7 @@ namespace bbt.gateway.messaging.Models
     public class SmsTrackingLog
     {
         public Guid Id { get; set; } = Guid.NewGuid();
+        public Guid SendOtpResponseLogId { get; set; }
         public SmsTrackingStatus Status { get; set; }
         public string Detail { get; set; }
         public DateTime QueriedAt { get; set; } = DateTime.Now;

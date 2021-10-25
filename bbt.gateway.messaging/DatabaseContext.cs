@@ -25,7 +25,7 @@ namespace bbt.gateway.messaging
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
-            options.UseSqlite($"Data Source={DbPath}");
+            options.UseSqlite($"Data Source={DbPath}; Foreign Keys = False");
         }
 
         protected override void OnModelCreating(ModelBuilder builder)

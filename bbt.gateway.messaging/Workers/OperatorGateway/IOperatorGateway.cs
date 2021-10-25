@@ -11,5 +11,6 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
     {
         void SendOtp(Phone phone, string content, ConcurrentBag<SendOtpResponseLog> responses, Header header, bool useControlDays);
         SendOtpResponseLog SendOtp(Phone phone, string content, Header header);
+
     }
 }

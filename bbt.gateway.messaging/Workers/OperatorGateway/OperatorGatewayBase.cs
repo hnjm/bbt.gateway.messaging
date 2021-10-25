@@ -20,5 +20,39 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             }
         }
         protected Operator OperatorConfig { get; set; }
+
+        public abstract SmsTrackingLog CheckMessageStatus(SendOtpResponseLog response);
+
+        public void TrackMessageStatus(SendOtpResponseLog response)
+        {
+            System.Diagnostics.Debug.WriteLine($"{Type} tracking otp is started");
+
+            List<SmsTrackingLog> logs = new List<SmsTrackingLog>();
+
+            var maxRetryCount = 5;
+            while (maxRetryCount-- > 0)
+            {
+                Task.Delay(1000);
+                var log = CheckMessageStatus(response);
+                logs.Add(log);
+
+                if (log.Status == SmsTrackingStatus.Delivered || log.Status == SmsTrackingStatus.DeviceRejected || log.Status == SmsTrackingStatus.Expired)
+                    break;
+
+
+                System.Diagnostics.Debug.WriteLine($"{Type} is tracking otp status. Times : {maxRetryCount}");
+            }
+
+            using (var db = new DatabaseContext())
+            {
+                db.AddRange(logs);
+                db.SaveChanges();
+            }
+
+            System.Diagnostics.Debug.WriteLine($"{Type} tracking otp is finished");
+        }
     }
+
+
+
 }
