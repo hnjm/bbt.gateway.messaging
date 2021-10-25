@@ -7,11 +7,10 @@ namespace bbt.gateway.messaging.Models
 {
     public enum OperatorType
     {
-        Unknown = 0,        
         Turkcell = 1,
         Vodafone = 2,
         TurkTelekom = 3,
-        dEngage = 4,
+        MarketingChannel = 4,
         IVN = 5,
     }
 }

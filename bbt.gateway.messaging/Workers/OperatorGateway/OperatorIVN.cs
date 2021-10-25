@@ -7,9 +7,15 @@ using System.Threading.Tasks;
 
 namespace bbt.gateway.messaging.Workers.OperatorGateway
 {
-    public class OperatorIVN : IOperatorGateway
+    public class OperatorIVN : OperatorGatewayBase, IOperatorGateway
     {
-        public void SendOtp(Phone phone, string content, ConcurrentBag<SendOtpResponseLog> responses, Header header)
+        public OperatorIVN()
+        {
+            Type = OperatorType.IVN;
+        }
+
+
+        public void SendOtp(Phone phone, string content, ConcurrentBag<SendOtpResponseLog> responses, Header header, bool useControlDays)
         {
             var response = new SendOtpResponseLog { 
                 Operator = OperatorType.Turkcell,
@@ -17,7 +23,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             };
 
             System.Diagnostics.Debug.WriteLine("IVN otp is send");
-            response.ResponseCode = SendSmsResponseStatus.Success;
+            response.ResponseCode = SendSmsResponseStatus.NotSubscriber;
 
             responses.Add(response);
         }
@@ -30,7 +36,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             };
 
             System.Diagnostics.Debug.WriteLine("IVN otp is send");
-            response.ResponseCode = SendSmsResponseStatus.Success;
+            response.ResponseCode = SendSmsResponseStatus.NotSubscriber;
 
             return response;
         }

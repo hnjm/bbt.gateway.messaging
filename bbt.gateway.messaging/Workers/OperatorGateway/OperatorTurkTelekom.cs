@@ -7,31 +7,41 @@ using System.Threading.Tasks;
 
 namespace bbt.gateway.messaging.Workers.OperatorGateway
 {
-    public class OperatorTurkTelekom : IOperatorGateway
+
+
+    public class OperatorTurkTelekom : OperatorGatewayBase, IOperatorGateway
     {
-        public void SendOtp(Phone phone, string content, ConcurrentBag<SendOtpResponseLog> responses, Header header)
+
+        public OperatorTurkTelekom()
         {
-             var response = new SendOtpResponseLog { 
+            Type = OperatorType.TurkTelekom;
+        }
+
+        public void SendOtp(Phone phone, string content, ConcurrentBag<SendOtpResponseLog> responses, Header header, bool useControlDays)
+        {
+            var response = new SendOtpResponseLog
+            {
                 Operator = OperatorType.TurkTelekom,
                 Topic = "TT otp sending"
             };
 
             System.Diagnostics.Debug.WriteLine("TT otp is send");
 
-            response.ResponseCode = SendSmsResponseStatus.Success;
+            response.ResponseCode = SendSmsResponseStatus.NotSubscriber;
 
             responses.Add(response);
         }
         public SendOtpResponseLog SendOtp(Phone phone, string content, Header header)
         {
-             var response = new SendOtpResponseLog { 
+            var response = new SendOtpResponseLog
+            {
                 Operator = OperatorType.TurkTelekom,
                 Topic = "TurkTelekom otp sending"
             };
 
             System.Diagnostics.Debug.WriteLine("TurkTelekom otp is send");
 
-            response.ResponseCode = SendSmsResponseStatus.Success;
+            response.ResponseCode = SendSmsResponseStatus.NotSubscriber;
 
             return response;
         }

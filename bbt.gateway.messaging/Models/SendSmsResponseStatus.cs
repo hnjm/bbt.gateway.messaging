@@ -13,8 +13,7 @@ namespace bbt.gateway.messaging.Models
         OperatorChange = 462,
         RejectedByOperator = 463,
         NotSubscriber = 464,
-        OperatorRejected = 465,
-        ClientError = 466,
-        ServerError = 465,
+        ClientError = 465,
+        ServerError = 466,
     }
 }

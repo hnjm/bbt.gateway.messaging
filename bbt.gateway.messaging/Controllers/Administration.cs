@@ -1,4 +1,5 @@
 ﻿using bbt.gateway.messaging.Models;
+using bbt.gateway.messaging.Workers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Swashbuckle.AspNetCore.Annotations;
@@ -41,6 +42,7 @@ namespace bbt.gateway.messaging.Controllers
 
         public IActionResult SaveHeader([FromBody] Header data)
         {
+            HeaderManager.Instance.SaveHeader(data);
             return Ok();
         }
 

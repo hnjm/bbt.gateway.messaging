@@ -11,8 +11,8 @@ using bbt.gateway.messaging;
 namespace bbt.gateway.messaging.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20211022054856_test")]
-    partial class test
+    [Migration("20211025131502_reset2")]
+    partial class reset2
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -25,8 +25,8 @@ namespace bbt.gateway.messaging.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Branch")
-                        .HasColumnType("TEXT");
+                    b.Property<int?>("Branch")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("BusinessLine")
                         .HasColumnType("TEXT");
@@ -58,6 +58,71 @@ namespace bbt.gateway.messaging.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Headers");
+                });
+
+            modelBuilder.Entity("bbt.gateway.messaging.Models.Operator", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ControlDaysForOtp")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("UseIvnWhenDeactive")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Operators");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            ControlDaysForOtp = 60,
+                            Status = 1,
+                            Type = 1,
+                            UseIvnWhenDeactive = false
+                        },
+                        new
+                        {
+                            Id = 2,
+                            ControlDaysForOtp = 60,
+                            Status = 1,
+                            Type = 2,
+                            UseIvnWhenDeactive = false
+                        },
+                        new
+                        {
+                            Id = 3,
+                            ControlDaysForOtp = 60,
+                            Status = 1,
+                            Type = 3,
+                            UseIvnWhenDeactive = false
+                        },
+                        new
+                        {
+                            Id = 4,
+                            ControlDaysForOtp = 60,
+                            Status = 1,
+                            Type = 4,
+                            UseIvnWhenDeactive = false
+                        },
+                        new
+                        {
+                            Id = 5,
+                            ControlDaysForOtp = 60,
+                            Status = 1,
+                            Type = 5,
+                            UseIvnWhenDeactive = false
+                        });
                 });
 
             modelBuilder.Entity("bbt.gateway.messaging.Models.OtpBlackListEntry", b =>
@@ -125,39 +190,16 @@ namespace bbt.gateway.messaging.Migrations
                     b.ToTable("OtpBlackListEntryLog");
                 });
 
-            modelBuilder.Entity("bbt.gateway.messaging.Models.OtpOperatorException", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Operator")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("ReplaceWith")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Status")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("ValidTo")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("OtpOperatorExceptions");
-                });
-
             modelBuilder.Entity("bbt.gateway.messaging.Models.PhoneConfiguration", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Operator")
+                    b.Property<int?>("CustomerNo")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("Operator")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
@@ -208,12 +250,12 @@ namespace bbt.gateway.messaging.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid?>("PhoneId")
+                    b.Property<Guid?>("PhoneConfigurationId")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PhoneId");
+                    b.HasIndex("PhoneConfigurationId");
 
                     b.ToTable("SendOtpRequestLog");
                 });
@@ -230,20 +272,20 @@ namespace bbt.gateway.messaging.Migrations
                     b.Property<int>("Operator")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("OperatorResponseCode")
+                    b.Property<int>("ResponseCode")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("OperatorResponseMessage")
+                    b.Property<string>("ResponseMessage")
                         .HasColumnType("TEXT");
 
                     b.Property<Guid?>("SendOtpRequestLogId")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Status")
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("Topic")
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("TrackingStatus")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
@@ -286,6 +328,31 @@ namespace bbt.gateway.messaging.Migrations
                     b.ToTable("SendSmsLog");
                 });
 
+            modelBuilder.Entity("bbt.gateway.messaging.Models.SmsTrackingLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Detail")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("QueriedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("SendOtpResponseLogId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SendOtpResponseLogId");
+
+                    b.ToTable("SmsTrackingLog");
+                });
+
             modelBuilder.Entity("bbt.gateway.messaging.Models.OtpBlackListEntry", b =>
                 {
                     b.HasOne("bbt.gateway.messaging.Models.PhoneConfiguration", "PhoneConfiguration")
@@ -308,28 +375,6 @@ namespace bbt.gateway.messaging.Migrations
 
                             b1.Property<string>("Name")
                                 .HasColumnType("TEXT");
-
-                            b1.HasKey("OtpBlackListEntryId");
-
-                            b1.ToTable("OtpBlackListEntries");
-
-                            b1.WithOwner()
-                                .HasForeignKey("OtpBlackListEntryId");
-                        });
-
-                    b.OwnsOne("bbt.gateway.messaging.Models.Phone", "Phone", b1 =>
-                        {
-                            b1.Property<Guid>("OtpBlackListEntryId")
-                                .HasColumnType("TEXT");
-
-                            b1.Property<int>("CountryCode")
-                                .HasColumnType("INTEGER");
-
-                            b1.Property<int>("Number")
-                                .HasColumnType("INTEGER");
-
-                            b1.Property<int>("Prefix")
-                                .HasColumnType("INTEGER");
 
                             b1.HasKey("OtpBlackListEntryId");
 
@@ -365,8 +410,6 @@ namespace bbt.gateway.messaging.Migrations
                         });
 
                     b.Navigation("CreatedBy");
-
-                    b.Navigation("Phone");
 
                     b.Navigation("PhoneConfiguration");
 
@@ -405,36 +448,6 @@ namespace bbt.gateway.messaging.Migrations
                         });
 
                     b.Navigation("BlackListEntry");
-
-                    b.Navigation("CreatedBy");
-                });
-
-            modelBuilder.Entity("bbt.gateway.messaging.Models.OtpOperatorException", b =>
-                {
-                    b.OwnsOne("bbt.gateway.messaging.Models.Process", "CreatedBy", b1 =>
-                        {
-                            b1.Property<Guid>("OtpOperatorExceptionId")
-                                .HasColumnType("TEXT");
-
-                            b1.Property<string>("Action")
-                                .HasColumnType("TEXT");
-
-                            b1.Property<string>("Identity")
-                                .HasColumnType("TEXT");
-
-                            b1.Property<string>("ItemId")
-                                .HasColumnType("TEXT");
-
-                            b1.Property<string>("Name")
-                                .HasColumnType("TEXT");
-
-                            b1.HasKey("OtpOperatorExceptionId");
-
-                            b1.ToTable("OtpOperatorExceptions");
-
-                            b1.WithOwner()
-                                .HasForeignKey("OtpOperatorExceptionId");
-                        });
 
                     b.Navigation("CreatedBy");
                 });
@@ -504,9 +517,9 @@ namespace bbt.gateway.messaging.Migrations
 
             modelBuilder.Entity("bbt.gateway.messaging.Models.SendOtpRequestLog", b =>
                 {
-                    b.HasOne("bbt.gateway.messaging.Models.PhoneConfiguration", "Phone")
+                    b.HasOne("bbt.gateway.messaging.Models.PhoneConfiguration", "PhoneConfiguration")
                         .WithMany("OtpLogs")
-                        .HasForeignKey("PhoneId");
+                        .HasForeignKey("PhoneConfigurationId");
 
                     b.OwnsOne("bbt.gateway.messaging.Models.Process", "CreatedBy", b1 =>
                         {
@@ -533,9 +546,33 @@ namespace bbt.gateway.messaging.Migrations
                                 .HasForeignKey("SendOtpRequestLogId");
                         });
 
+                    b.OwnsOne("bbt.gateway.messaging.Models.Phone", "Phone", b1 =>
+                        {
+                            b1.Property<Guid>("SendOtpRequestLogId")
+                                .HasColumnType("TEXT");
+
+                            b1.Property<int>("CountryCode")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<int>("Number")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<int>("Prefix")
+                                .HasColumnType("INTEGER");
+
+                            b1.HasKey("SendOtpRequestLogId");
+
+                            b1.ToTable("SendOtpRequestLog");
+
+                            b1.WithOwner()
+                                .HasForeignKey("SendOtpRequestLogId");
+                        });
+
                     b.Navigation("CreatedBy");
 
                     b.Navigation("Phone");
+
+                    b.Navigation("PhoneConfiguration");
                 });
 
             modelBuilder.Entity("bbt.gateway.messaging.Models.SendOtpResponseLog", b =>
@@ -581,6 +618,13 @@ namespace bbt.gateway.messaging.Migrations
                     b.Navigation("Phone");
                 });
 
+            modelBuilder.Entity("bbt.gateway.messaging.Models.SmsTrackingLog", b =>
+                {
+                    b.HasOne("bbt.gateway.messaging.Models.SendOtpResponseLog", null)
+                        .WithMany("TrackingLogs")
+                        .HasForeignKey("SendOtpResponseLogId");
+                });
+
             modelBuilder.Entity("bbt.gateway.messaging.Models.OtpBlackListEntry", b =>
                 {
                     b.Navigation("Logs");
@@ -600,6 +644,11 @@ namespace bbt.gateway.messaging.Migrations
             modelBuilder.Entity("bbt.gateway.messaging.Models.SendOtpRequestLog", b =>
                 {
                     b.Navigation("ResponseLogs");
+                });
+
+            modelBuilder.Entity("bbt.gateway.messaging.Models.SendOtpResponseLog", b =>
+                {
+                    b.Navigation("TrackingLogs");
                 });
 #pragma warning restore 612, 618
         }

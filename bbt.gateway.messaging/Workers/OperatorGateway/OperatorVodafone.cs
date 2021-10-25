@@ -7,30 +7,37 @@ using System.Threading.Tasks;
 
 namespace bbt.gateway.messaging.Workers.OperatorGateway
 {
-    public class OperatorVodafone : IOperatorGateway
+    public class OperatorVodafone : OperatorGatewayBase, IOperatorGateway
     {
-        public void SendOtp(Phone phone, string content, ConcurrentBag<SendOtpResponseLog> responses, Header header)
+        public OperatorVodafone()
         {
-            var response = new SendOtpResponseLog { 
+            Type = OperatorType.Vodafone;
+        }
+        public void SendOtp(Phone phone, string content, ConcurrentBag<SendOtpResponseLog> responses, Header header, bool useControlDays)
+        {
+
+            var response = new SendOtpResponseLog
+            {
                 Operator = OperatorType.Vodafone,
                 Topic = "Vodafone otp sending"
             };
 
             System.Diagnostics.Debug.WriteLine("Vodafone otp is send");
-            response.ResponseCode = SendSmsResponseStatus.Success;
+            response.ResponseCode = SendSmsResponseStatus.NotSubscriber;
 
             responses.Add(response);
         }
-        
+
         public SendOtpResponseLog SendOtp(Phone phone, string content, Header header)
         {
-             var response = new SendOtpResponseLog { 
+            var response = new SendOtpResponseLog
+            {
                 Operator = OperatorType.Vodafone,
                 Topic = "Vodafone otp sending"
             };
 
             System.Diagnostics.Debug.WriteLine("Vodafone otp is send");
-            response.ResponseCode = SendSmsResponseStatus.Success;
+            response.ResponseCode = SendSmsResponseStatus.NotSubscriber;
 
             return response;
         }

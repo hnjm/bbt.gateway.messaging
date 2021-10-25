@@ -12,7 +12,7 @@ namespace bbt.gateway.messaging
             {
                 public const string Active = "active";
                 public const string Expired = "expired";
-                public const string resolved = "resolved";
+                public const string Resolved = "resolved";
             }
         }
     }

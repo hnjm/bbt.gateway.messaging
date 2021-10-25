@@ -43,73 +43,65 @@ namespace bbt.gateway.messaging.Workers
                     i.Phone.Prefix == _data.Phone.Prefix &&
                     i.Phone.Number == _data.Phone.Number
                     )
-                    .Include(c => c.BlacklistEntries.Where(b => b.ValidTo > DateTime.Now && b.Status == Constants.Status.Blacklist.Active))
+                    .Include(c => c.BlacklistEntries.Where(b => b.ValidTo > DateTime.Now && (b.Status == Constants.Status.Blacklist.Active || b.Status == Constants.Status.Blacklist.Resolved)))
                     .FirstOrDefault();
 
-                if (phoneConfiguration == null)
+                if (phoneConfiguration == null
+                    || phoneConfiguration.Operator == null
+                    || phoneConfiguration.BlacklistEntries.All(b => b.Status == Constants.Status.Blacklist.Resolved))
                 {
-                    var newConfig = new PhoneConfiguration
-                    {
-                        Phone = _data.Phone
-                    };
+                    if (phoneConfiguration == null) phoneConfiguration = createNewPhoneConfiguration(db);
 
-                    newConfig.Logs.Add(new PhoneConfigurationLog
-                    {
-                        Type = "Initialization",
-                        Action = "Send Otp Request",
-                        ParameterMaster = _requestLog.Id.ToString(),
-                        CreatedBy = _data.Process
-                    });
 
-                    _requestLog.PhoneConfiguration = newConfig;
-                    db.Add(newConfig);
-
-                    var responseLogs = SendMessageToUnknown(newConfig);
+                    var responseLogs = SendMessageToUnknown(
+                        phoneConfiguration, 
+                        phoneConfiguration.BlacklistEntries?.Count > 0);
 
                     returnValue = responseLogs.UnifyResponse();
-
                     responseLogs.ForEach(l => _requestLog.ResponseLogs.Add(l));
                 }
                 else
                 {
-                    _requestLog.PhoneConfiguration = phoneConfiguration;
-
-                    if (phoneConfiguration.BlacklistEntries.HasBlock())
+                    if (phoneConfiguration.BlacklistEntries.Any(b => b.Status == Constants.Status.Blacklist.Active))
                     {
                         returnValue = SendSmsResponseStatus.HasBlacklistRecord;
                     }
                     else
                     {
                         var responseLog = SendMessageToKnown(phoneConfiguration);
+
                         _requestLog.ResponseLogs.Add(responseLog);
                         returnValue = SendSmsResponseStatus.Success;
                     }
-                    db.SaveChanges();
-                }
 
-                return returnValue;
+                }
+                _requestLog.PhoneConfiguration = phoneConfiguration;
+                db.SaveChanges();
             }
+            return returnValue;
         }
 
-        private List<SendOtpResponseLog> SendMessageToUnknown(PhoneConfiguration phoneConfiguration)
+        private List<SendOtpResponseLog> SendMessageToUnknown(PhoneConfiguration phoneConfiguration, bool useControlDays)
         {
-            var header = HeaderManager.Instance.GetHeader(phoneConfiguration);
+            Header header = loadHeader(phoneConfiguration);
 
             ConcurrentBag<SendOtpResponseLog> responses = new ConcurrentBag<SendOtpResponseLog>();
 
             Parallel.ForEach(operators, currentElement =>
             {
                 IOperatorGateway gateway = (IOperatorGateway)Activator.CreateInstance(currentElement);
-                gateway.SendOtp(_data.Phone, "test", responses, header);
+                gateway.SendOtp(_data.Phone, "test", responses, header, useControlDays);
             });
 
             return responses.ToList();
         }
 
+
+
         private SendOtpResponseLog SendMessageToKnown(PhoneConfiguration phoneConfiguration)
         {
             IOperatorGateway gateway = null;
-            var header = HeaderManager.Instance.GetHeader(phoneConfiguration);
+            Header header = loadHeader(phoneConfiguration);
 
             switch (phoneConfiguration.Operator)
             {
@@ -134,6 +126,39 @@ namespace bbt.gateway.messaging.Workers
             var result = gateway.SendOtp(_data.Phone, _data.Content, header);
 
             return result;
+        }
+
+        private Header loadHeader(PhoneConfiguration phoneConfiguration)
+        {
+            var header = HeaderManager.Instance.GetHeader(phoneConfiguration, _data.ContentType);
+
+            //Update request log to persisting content
+            _requestLog.Content = header.BuildContentForLog(_data.Content);
+
+            return header;
+        }
+
+
+        private PhoneConfiguration createNewPhoneConfiguration(DatabaseContext db)
+        {
+            var newConfig = new PhoneConfiguration
+            {
+                Phone = _data.Phone,
+                Logs = new List<PhoneConfigurationLog>()
+            };
+
+            newConfig.Logs.Add(new PhoneConfigurationLog
+            {
+                Type = "Initialization",
+                Action = "Send Otp Request",
+                ParameterMaster = _requestLog.Id.ToString(),
+                CreatedBy = _data.Process
+            });
+
+            _requestLog.PhoneConfiguration = newConfig;
+
+            db.Add(newConfig);
+            return newConfig;
         }
     }
 }

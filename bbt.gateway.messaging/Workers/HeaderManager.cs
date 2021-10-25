@@ -1,4 +1,5 @@
 ﻿using bbt.gateway.messaging.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,7 +25,7 @@ namespace bbt.gateway.messaging.Workers
             }
         }
 
-        public Header GetHeader(PhoneConfiguration config)
+        public Header GetHeader(PhoneConfiguration config, MessageContentType contentType)
         {
             Header header = null;
 
@@ -35,7 +36,7 @@ namespace bbt.gateway.messaging.Workers
             {
                 // TODO: Find related headear record from customer no 
                 // Assumption! using querying with customer no is better than phone number.
-                 header = GetHeader(businessLine, branch);
+                header = getHeader(contentType, businessLine, branch);
 
 
             }
@@ -47,11 +48,50 @@ namespace bbt.gateway.messaging.Workers
                 // set customer no of phone configruation for future save
                 config.CustomerNo = customerNo;
 
-                header = GetHeader(businessLine, branch);
+                header = getHeader(contentType, businessLine, branch);
             }
             return header;
         }
 
+        public void SaveHeader(Header header)
+        {
+            using (var db = new DatabaseContext())
+            {
+
+                if (header.Id == Guid.Empty)
+                {
+                    header.Id = Guid.NewGuid();
+                    db.Headers.Add(header);
+                }
+                else
+                {
+                    db.Headers.Update(header);
+                }
+                db.SaveChanges();
+            }
+            
+            //TODO: Meanwhile, dont forget to inform other pods to invalidate headers cahce.
+            loadHeaders();
+        }
+
+        private Header getHeader(MessageContentType contentType, string businessLine, int? branch)
+        {
+            var firstPass = headers.Where(h => h.BusinessLine == businessLine && h.Branch == branch && h.ContentType == contentType).FirstOrDefault();
+            if (firstPass != null) return firstPass;
+
+            // Check branch first
+            var secondPass = headers.Where(h => h.BusinessLine == null && h.Branch == branch && h.ContentType == contentType).FirstOrDefault();
+            if (secondPass != null) return secondPass;
+
+            var thirdPass = headers.Where(h => h.BusinessLine == businessLine && h.Branch == null && h.ContentType == contentType).FirstOrDefault();
+            if (thirdPass != null) return thirdPass;
+
+            var lastPass = headers.Where(h => h.BusinessLine == null && h.Branch == null && h.ContentType == contentType).FirstOrDefault();
+            if (lastPass != null) return lastPass;
+
+            // If db is not consistent, return firt value. Consider firing an enception 
+            return headers.First();
+        }
 
         private void loadHeaders()
         {
@@ -59,37 +99,6 @@ namespace bbt.gateway.messaging.Workers
             {
                 headers = db.Headers.ToList();
             }
-        }
-
-        private void saveHeader(Header header)
-        {
-            using (var db = new DatabaseContext())
-            {
-                //TODO: Meanwhile, dont forget to inform other pods to invalidate headers cahce.
-                db.Headers.Add(header);
-                db.SaveChanges();
-                loadHeaders();
-            }
-        }
-
-
-        private Header GetHeader(string businessLine, int? branch)
-        {
-            var firstPass = headers.Where(h => h.BusinessLine == businessLine && h.Branch == branch).FirstOrDefault();
-            if (firstPass != null) return firstPass;
-
-            // Check branch first
-            var secondPass = headers.Where(h => h.BusinessLine == null && h.Branch == branch).FirstOrDefault();
-            if (secondPass != null) return secondPass;
-
-            var thirdPass = headers.Where(h => h.BusinessLine == businessLine && h.Branch == null).FirstOrDefault();
-            if (thirdPass != null) return thirdPass;
-
-            var lastPass = headers.Where(h => h.BusinessLine == null && h.Branch == null).FirstOrDefault();
-            if (lastPass != null) return lastPass;
-
-            // If db is not consistent, return firt value. Consider firing an enception 
-            return headers.First();
         }
 
 
