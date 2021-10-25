@@ -49,8 +49,8 @@ namespace bbt.gateway.messaging
             builder.Entity<Operator>().HasData(new Operator { Id = 5, Type = OperatorType.IVN, ControlDaysForOtp = 60, Status = OperatorStatus.Active });
 
 
-            builder.Entity<Header>().HasData(new Header { Id = Guid.NewGuid(), SmsSender = "BATMAN", SmsPrefix = "Dear Honey,", SmsSuffix = ":)", EmailTemplatePrefix = "generic" });
-            builder.Entity<Header>().HasData(new Header { Id = Guid.NewGuid(), Branch = 2000,  SmsSender = "ZEUS", SmsPrefix = "OBEY:", EmailTemplatePrefix = "generic" });
+            builder.Entity<Header>().HasData(new Header { Id = Guid.NewGuid(), SmsSender = "BATMAN", SmsPrefix = "Dear Honey,", SmsSuffix = ":)", EmailTemplatePrefix = "generic", SmsTemplatePrefix = "generic" });
+            builder.Entity<Header>().HasData(new Header { Id = Guid.NewGuid(), Branch = 2000, SmsSender = "ZEUS", SmsPrefix = "OBEY:", EmailTemplatePrefix = "on", SmsTemplatePrefix = "on" });
         }
 
     }

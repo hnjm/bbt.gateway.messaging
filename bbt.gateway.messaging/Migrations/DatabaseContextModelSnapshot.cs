@@ -60,21 +60,23 @@ namespace bbt.gateway.messaging.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("8f42ae7d-171f-4a37-bdff-de30453b2267"),
+                            Id = new Guid("51625a13-4ce6-4408-a61a-3fb3952a014f"),
                             ContentType = 0,
                             EmailTemplatePrefix = "generic",
                             SmsPrefix = "Dear Honey,",
                             SmsSender = "BATMAN",
-                            SmsSuffix = ":)"
+                            SmsSuffix = ":)",
+                            SmsTemplatePrefix = "generic"
                         },
                         new
                         {
-                            Id = new Guid("fbdbf98f-0073-4538-86a1-6f34775cca33"),
+                            Id = new Guid("cc5df148-8d31-4b23-ac59-7c3d3fe0bbcc"),
                             Branch = 2000,
                             ContentType = 0,
-                            EmailTemplatePrefix = "generic",
+                            EmailTemplatePrefix = "on",
                             SmsPrefix = "OBEY:",
-                            SmsSender = "ZEUS"
+                            SmsSender = "ZEUS",
+                            SmsTemplatePrefix = "on"
                         });
                 });
 
@@ -237,13 +239,10 @@ namespace bbt.gateway.messaging.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("ParameterMaster")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("ParameterSlave")
-                        .HasColumnType("TEXT");
-
                     b.Property<Guid?>("PhoneId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("RelatedId")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Type")
@@ -297,6 +296,9 @@ namespace bbt.gateway.messaging.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<Guid?>("SendOtpRequestLogId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("StatusQueryId")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Topic")

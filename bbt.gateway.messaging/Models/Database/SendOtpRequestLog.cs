@@ -14,5 +14,6 @@ namespace bbt.gateway.messaging.Models
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public Process CreatedBy { get; set; }
         public ICollection<SendOtpResponseLog> ResponseLogs { get; set; } = new List<SendOtpResponseLog>();
+        
     }
 }

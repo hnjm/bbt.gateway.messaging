@@ -39,6 +39,8 @@ namespace bbt.gateway.messaging
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "bbt.gateway.messaging", Version = "v1" });
                 c.EnableAnnotations();
+                //TODO: is process info came from header or body ? Decide
+                //c.OperationFilter<AddRequiredHeaderParameter>();
             });
         }
 

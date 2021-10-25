@@ -11,7 +11,7 @@ using bbt.gateway.messaging;
 namespace bbt.gateway.messaging.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20211025123131_reset")]
+    [Migration("20211025141249_reset")]
     partial class reset
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -58,13 +58,35 @@ namespace bbt.gateway.messaging.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Headers");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("a216b033-c23e-4bbd-9db4-e34e4fc3f274"),
+                            ContentType = 0,
+                            EmailTemplatePrefix = "generic",
+                            SmsPrefix = "Dear Honey,",
+                            SmsSender = "BATMAN",
+                            SmsSuffix = ":)",
+                            SmsTemplatePrefix = "generic"
+                        },
+                        new
+                        {
+                            Id = new Guid("d97bcdfa-3469-4dd3-85a6-b8ff9021af8f"),
+                            Branch = 2000,
+                            ContentType = 0,
+                            EmailTemplatePrefix = "on",
+                            SmsPrefix = "OBEY:",
+                            SmsSender = "ZEUS",
+                            SmsTemplatePrefix = "on"
+                        });
                 });
 
             modelBuilder.Entity("bbt.gateway.messaging.Models.Operator", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("ControlDaysForOtp")
                         .HasColumnType("INTEGER");
@@ -81,6 +103,48 @@ namespace bbt.gateway.messaging.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Operators");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            ControlDaysForOtp = 60,
+                            Status = 1,
+                            Type = 1,
+                            UseIvnWhenDeactive = false
+                        },
+                        new
+                        {
+                            Id = 2,
+                            ControlDaysForOtp = 60,
+                            Status = 1,
+                            Type = 2,
+                            UseIvnWhenDeactive = false
+                        },
+                        new
+                        {
+                            Id = 3,
+                            ControlDaysForOtp = 60,
+                            Status = 1,
+                            Type = 3,
+                            UseIvnWhenDeactive = false
+                        },
+                        new
+                        {
+                            Id = 4,
+                            ControlDaysForOtp = 60,
+                            Status = 1,
+                            Type = 4,
+                            UseIvnWhenDeactive = false
+                        },
+                        new
+                        {
+                            Id = 5,
+                            ControlDaysForOtp = 60,
+                            Status = 1,
+                            Type = 5,
+                            UseIvnWhenDeactive = false
+                        });
                 });
 
             modelBuilder.Entity("bbt.gateway.messaging.Models.OtpBlackListEntry", b =>
@@ -237,6 +301,9 @@ namespace bbt.gateway.messaging.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<Guid?>("SendOtpRequestLogId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("StatusQueryId")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Topic")

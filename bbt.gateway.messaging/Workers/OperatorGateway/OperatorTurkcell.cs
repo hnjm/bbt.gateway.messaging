@@ -19,12 +19,13 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             var response = new SendOtpResponseLog
             {
                 Operator = OperatorType.Turkcell,
-                Topic = "Turkcell otp sending"
+                Topic = "Turkcell otp sending",
+                TrackingStatus = SmsTrackingStatus.Pending
             };
 
             System.Diagnostics.Debug.WriteLine("Turkcell otp is send");
 
-            response.ResponseCode = SendSmsResponseStatus.NotSubscriber;
+            response.ResponseCode = SendSmsResponseStatus.Success;
 
             responses.Add(response);
         }
@@ -34,11 +35,12 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             var response = new SendOtpResponseLog
             {
                 Operator = OperatorType.Turkcell,
-                Topic = "Turkcell otp sending"
+                Topic = "Turkcell otp sending",
+                TrackingStatus = SmsTrackingStatus.Pending
             };
 
             System.Diagnostics.Debug.WriteLine("Turkcell otp is send");
-            response.ResponseCode = SendSmsResponseStatus.NotSubscriber;
+            response.ResponseCode = SendSmsResponseStatus.Success;
 
             return response;
         }

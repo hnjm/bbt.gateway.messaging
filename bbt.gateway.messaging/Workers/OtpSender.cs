@@ -1,6 +1,5 @@
 ﻿using bbt.gateway.messaging.Models;
 using bbt.gateway.messaging.Workers.OperatorGateway;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Concurrent;
@@ -31,53 +30,66 @@ namespace bbt.gateway.messaging.Workers
 
         public SendSmsResponseStatus SendMessage()
         {
-            SendSmsResponseStatus returnValue;
+            SendSmsResponseStatus returnValue = SendSmsResponseStatus.ClientError;
 
             using (var db = new DatabaseContext())
             {
-                db.Add(_requestLog);
-
-                // Telefon bilgisi ve aktif olan tum kara liste kayitlari getirilir.
+                // Load Phone configuration and related active blacklist entiries.
                 var phoneConfiguration = db.PhoneConfigurations.Where(i =>
                     i.Phone.CountryCode == _data.Phone.CountryCode &&
                     i.Phone.Prefix == _data.Phone.Prefix &&
                     i.Phone.Number == _data.Phone.Number
                     )
-                    .Include(c => c.BlacklistEntries.Where(b => b.ValidTo > DateTime.Now && (b.Status == Constants.Status.Blacklist.Active || b.Status == Constants.Status.Blacklist.Resolved)))
+                    .Include(c => c.BlacklistEntries.Where(b => b.ValidTo > DateTime.Now))
                     .FirstOrDefault();
 
-                if (phoneConfiguration == null
-                    || phoneConfiguration.Operator == null
-                    || phoneConfiguration.BlacklistEntries.All(b => b.Status == Constants.Status.Blacklist.Resolved))
+                // if known number without blacklist entry 
+                if (
+                    phoneConfiguration != null &&
+                    phoneConfiguration.Operator != null &&
+                    !phoneConfiguration.BlacklistEntries.Any(b => b.Status == BlacklistStatus.NotResolved)
+                )
                 {
-                    if (phoneConfiguration == null) phoneConfiguration = createNewPhoneConfiguration(db);
-
-
-                    var responseLogs = SendMessageToUnknown(
-                        phoneConfiguration, 
-                        phoneConfiguration.BlacklistEntries?.Count > 0);
-
-                    returnValue = responseLogs.UnifyResponse();
-                    responseLogs.ForEach(l => _requestLog.ResponseLogs.Add(l));
+                    var responseLog = SendMessageToKnown(phoneConfiguration);
+                    _requestLog.ResponseLogs.Add(responseLog);
+                    returnValue = SendSmsResponseStatus.Success;
                 }
                 else
                 {
-                    if (phoneConfiguration.BlacklistEntries.Any(b => b.Status == Constants.Status.Blacklist.Active))
+                    //If configuration is not available then create clean phone configuration to phone number   
+                    if (phoneConfiguration == null)
                     {
-                        returnValue = SendSmsResponseStatus.HasBlacklistRecord;
-                    }
-                    else
-                    {
-                        var responseLog = SendMessageToKnown(phoneConfiguration);
-
-                        _requestLog.ResponseLogs.Add(responseLog);
-                        returnValue = SendSmsResponseStatus.Success;
+                        phoneConfiguration = createNewPhoneConfiguration();
+                        db.Add(phoneConfiguration);
                     }
 
+
+                    // If phone is enter to blacklist and reason is resolved, then do not apply black list control.
+                    var useControlDays = !(
+                        phoneConfiguration.BlacklistEntries != null && 
+                        phoneConfiguration.BlacklistEntries.Count > 0 && 
+                        phoneConfiguration.BlacklistEntries.All(b => b.Status == BlacklistStatus.Resolved)
+                        );
+
+                    var responseLogs = SendMessageToUnknown(phoneConfiguration, useControlDays);
+
+                    // Decide method return code    
+                    returnValue = responseLogs.UnifyResponse();
+
+                    // Update with valid operator if any otp sending 
+                    var successAttempt = responseLogs.FirstOrDefault(l => l.ResponseCode == SendSmsResponseStatus.Success);
+                    if (successAttempt != null)
+                        phoneConfiguration.Operator = successAttempt.Operator;
+
+                    // Add all response logs to request log
+                    responseLogs.ForEach(l => _requestLog.ResponseLogs.Add(l));
                 }
+
                 _requestLog.PhoneConfiguration = phoneConfiguration;
+                db.Add(_requestLog);
                 db.SaveChanges();
             }
+
             return returnValue;
         }
 
@@ -95,8 +107,6 @@ namespace bbt.gateway.messaging.Workers
 
             return responses.ToList();
         }
-
-
 
         private SendOtpResponseLog SendMessageToKnown(PhoneConfiguration phoneConfiguration)
         {
@@ -139,7 +149,7 @@ namespace bbt.gateway.messaging.Workers
         }
 
 
-        private PhoneConfiguration createNewPhoneConfiguration(DatabaseContext db)
+        private PhoneConfiguration createNewPhoneConfiguration()
         {
             var newConfig = new PhoneConfiguration
             {
@@ -151,13 +161,11 @@ namespace bbt.gateway.messaging.Workers
             {
                 Type = "Initialization",
                 Action = "Send Otp Request",
-                ParameterMaster = _requestLog.Id.ToString(),
+                RelatedId = _requestLog.Id,
                 CreatedBy = _data.Process
             });
 
             _requestLog.PhoneConfiguration = newConfig;
-
-            db.Add(newConfig);
             return newConfig;
         }
     }

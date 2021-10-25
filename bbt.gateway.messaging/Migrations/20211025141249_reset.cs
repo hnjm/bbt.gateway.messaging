@@ -34,7 +34,8 @@ namespace bbt.gateway.messaging.Migrations
                 name: "Operators",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
                     Type = table.Column<int>(type: "INTEGER", nullable: false),
                     ControlDaysForOtp = table.Column<int>(type: "INTEGER", nullable: false),
                     UseIvnWhenDeactive = table.Column<bool>(type: "INTEGER", nullable: false),
@@ -206,6 +207,7 @@ namespace bbt.gateway.messaging.Migrations
                     Topic = table.Column<string>(type: "TEXT", nullable: true),
                     ResponseCode = table.Column<int>(type: "INTEGER", nullable: false),
                     ResponseMessage = table.Column<string>(type: "TEXT", nullable: true),
+                    StatusQueryId = table.Column<string>(type: "TEXT", nullable: true),
                     TrackingStatus = table.Column<int>(type: "INTEGER", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     SendOtpRequestLogId = table.Column<Guid>(type: "TEXT", nullable: true)
@@ -239,6 +241,41 @@ namespace bbt.gateway.messaging.Migrations
                         principalTable: "SendOtpResponseLog",
                         principalColumn: "Id");
                 });
+
+            migrationBuilder.InsertData(
+                table: "Headers",
+                columns: new[] { "Id", "Branch", "BusinessLine", "ContentType", "EmailTemplatePrefix", "EmailTemplateSuffix", "SmsPrefix", "SmsSender", "SmsSuffix", "SmsTemplatePrefix", "SmsTemplateSuffix" },
+                values: new object[] { new Guid("a216b033-c23e-4bbd-9db4-e34e4fc3f274"), null, null, 0, "generic", null, "Dear Honey,", "BATMAN", ":)", "generic", null });
+
+            migrationBuilder.InsertData(
+                table: "Headers",
+                columns: new[] { "Id", "Branch", "BusinessLine", "ContentType", "EmailTemplatePrefix", "EmailTemplateSuffix", "SmsPrefix", "SmsSender", "SmsSuffix", "SmsTemplatePrefix", "SmsTemplateSuffix" },
+                values: new object[] { new Guid("d97bcdfa-3469-4dd3-85a6-b8ff9021af8f"), 2000, null, 0, "on", null, "OBEY:", "ZEUS", null, "on", null });
+
+            migrationBuilder.InsertData(
+                table: "Operators",
+                columns: new[] { "Id", "ControlDaysForOtp", "Status", "Type", "UseIvnWhenDeactive" },
+                values: new object[] { 1, 60, 1, 1, false });
+
+            migrationBuilder.InsertData(
+                table: "Operators",
+                columns: new[] { "Id", "ControlDaysForOtp", "Status", "Type", "UseIvnWhenDeactive" },
+                values: new object[] { 2, 60, 1, 2, false });
+
+            migrationBuilder.InsertData(
+                table: "Operators",
+                columns: new[] { "Id", "ControlDaysForOtp", "Status", "Type", "UseIvnWhenDeactive" },
+                values: new object[] { 3, 60, 1, 3, false });
+
+            migrationBuilder.InsertData(
+                table: "Operators",
+                columns: new[] { "Id", "ControlDaysForOtp", "Status", "Type", "UseIvnWhenDeactive" },
+                values: new object[] { 4, 60, 1, 4, false });
+
+            migrationBuilder.InsertData(
+                table: "Operators",
+                columns: new[] { "Id", "ControlDaysForOtp", "Status", "Type", "UseIvnWhenDeactive" },
+                values: new object[] { 5, 60, 1, 5, false });
 
             migrationBuilder.CreateIndex(
                 name: "IX_OtpBlackListEntries_PhoneConfigurationId",

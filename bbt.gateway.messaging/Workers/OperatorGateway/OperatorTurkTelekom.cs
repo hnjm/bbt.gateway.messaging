@@ -22,7 +22,8 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             var response = new SendOtpResponseLog
             {
                 Operator = OperatorType.TurkTelekom,
-                Topic = "TT otp sending"
+                Topic = "TT otp sending",
+                TrackingStatus = SmsTrackingStatus.Pending
             };
 
             System.Diagnostics.Debug.WriteLine("TT otp is send");
@@ -36,7 +37,8 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             var response = new SendOtpResponseLog
             {
                 Operator = OperatorType.TurkTelekom,
-                Topic = "TurkTelekom otp sending"
+                Topic = "TurkTelekom otp sending",
+                TrackingStatus = SmsTrackingStatus.Pending        
             };
 
             System.Diagnostics.Debug.WriteLine("TurkTelekom otp is send");

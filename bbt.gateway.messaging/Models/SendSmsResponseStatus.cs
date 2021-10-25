@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace bbt.gateway.messaging.Models
 {
-    public enum SendSmsResponseStatus
+    public enum SendSmsResponseStatus 
     {
         Success = 200,        
         HasBlacklistRecord = 460,

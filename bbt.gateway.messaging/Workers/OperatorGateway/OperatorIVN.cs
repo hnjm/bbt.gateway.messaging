@@ -19,7 +19,8 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
         {
             var response = new SendOtpResponseLog { 
                 Operator = OperatorType.Turkcell,
-                Topic = "IVN otp sending"
+                Topic = "IVN otp sending",
+                TrackingStatus = SmsTrackingStatus.Pending
             };
 
             System.Diagnostics.Debug.WriteLine("IVN otp is send");
@@ -32,7 +33,8 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
         {
            var response = new SendOtpResponseLog { 
                 Operator = OperatorType.IVN,
-                Topic = "IVN otp sending"
+                Topic = "IVN otp sending",
+                TrackingStatus = SmsTrackingStatus.Pending
             };
 
             System.Diagnostics.Debug.WriteLine("IVN otp is send");

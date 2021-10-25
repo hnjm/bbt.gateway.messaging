@@ -11,7 +11,7 @@ namespace bbt.gateway.messaging.Models
         public PhoneConfiguration PhoneConfiguration { get; set; }
         public string Reason { get; set; }
         public string Source { get; set; }
-        public string Status { get; set; }
+        public BlacklistStatus Status { get; set; }
         public DateTime ValidTo { get; set; }
         public Process CreatedBy { get; set; }
         public DateTime CreatedAt { get; set; }

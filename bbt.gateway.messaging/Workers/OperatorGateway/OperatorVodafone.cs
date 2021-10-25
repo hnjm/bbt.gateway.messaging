@@ -19,7 +19,8 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             var response = new SendOtpResponseLog
             {
                 Operator = OperatorType.Vodafone,
-                Topic = "Vodafone otp sending"
+                Topic = "Vodafone otp sending",
+                TrackingStatus = SmsTrackingStatus.Pending
             };
 
             System.Diagnostics.Debug.WriteLine("Vodafone otp is send");
@@ -33,7 +34,8 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             var response = new SendOtpResponseLog
             {
                 Operator = OperatorType.Vodafone,
-                Topic = "Vodafone otp sending"
+                Topic = "Vodafone otp sending",
+                TrackingStatus = SmsTrackingStatus.Pending
             };
 
             System.Diagnostics.Debug.WriteLine("Vodafone otp is send");
