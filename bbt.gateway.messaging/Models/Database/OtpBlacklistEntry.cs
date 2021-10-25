@@ -9,7 +9,6 @@ namespace bbt.gateway.messaging.Models
     {
         public Guid Id { get; set; }
         public PhoneConfiguration PhoneConfiguration { get; set; }
-        public Phone Phone { get; set; }
         public string Reason { get; set; }
         public string Source { get; set; }
         public string Status { get; set; }

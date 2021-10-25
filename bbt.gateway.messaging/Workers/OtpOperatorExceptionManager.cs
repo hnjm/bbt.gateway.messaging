@@ -15,8 +15,6 @@ namespace bbt.gateway.messaging.Workers
             loadExceptions();
         }
 
-           
-
         private static readonly Lazy<OtpOperatorExceptionManager> lazy = new Lazy<OtpOperatorExceptionManager>(() => new OtpOperatorExceptionManager());
         public static OtpOperatorExceptionManager Instance
         {
@@ -34,15 +32,15 @@ namespace bbt.gateway.messaging.Workers
             }
         }
 
-
         private void saveExceptions(OtpOperatorException exception)
         {
             using (var db = new DatabaseContext())
             {
+                //TODO: Meanwhile, dont forget to inform other pods to invalidate Exceptions cahce.
                 db.OtpOperatorExceptions.Add(exception);
                 db.SaveChanges();
+                loadExceptions();
             }
         }
-
     }
 }

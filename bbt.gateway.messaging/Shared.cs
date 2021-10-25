@@ -3,15 +3,21 @@ using bbt.gateway.messaging.Models;
 namespace bbt.gateway.messaging
 {
 
-    public class Constants
+    public static class Constants
     {
-        static Process DefaultProcessInfo = new Process { 
-            Name = "",  
-            ItemId = "",
-            Action = "",
-            Identity = "",
-            };
+
+        public static class Status
+        {
+            public static class Blacklist
+            {
+                public const string Active = "active";
+                public const string Expired = "expired";
+                public const string resolved = "resolved";
+            }
+        }
     }
 
-    
+    //
 }
+
+

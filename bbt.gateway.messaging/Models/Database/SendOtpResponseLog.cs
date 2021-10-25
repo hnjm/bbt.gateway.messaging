@@ -10,8 +10,8 @@ namespace bbt.gateway.messaging.Models
         public Guid Id { get; set; } = Guid.NewGuid();
         public OperatorType Operator { get; set; }
         public string Topic { get; set; }
-        public OperatorResponseType OperatorResponseCode { get; set; }
-        public string OperatorResponseMessage { get; set; }
+        public SendSmsResponseStatus ResponseCode { get; set; }
+        public string ResponseMessage { get; set; }
         public string Status { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
     }

@@ -8,8 +8,6 @@ namespace bbt.gateway.messaging.Models
     public class SendSmsResponse
     {
         public Guid Id { get; set; }
-
-        public string Status { get; set; }
     }
 }
 

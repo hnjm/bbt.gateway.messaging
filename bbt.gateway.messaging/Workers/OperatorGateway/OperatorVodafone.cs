@@ -9,7 +9,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 {
     public class OperatorVodafone : IOperatorGateway
     {
-        public void SendOtp(Phone phone, string content, ConcurrentBag<SendOtpResponseLog> responses)
+        public void SendOtp(Phone phone, string content, ConcurrentBag<SendOtpResponseLog> responses, Header header)
         {
             var response = new SendOtpResponseLog { 
                 Operator = OperatorType.Vodafone,
@@ -17,13 +17,12 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             };
 
             System.Diagnostics.Debug.WriteLine("Vodafone otp is send");
-            response.OperatorResponseCode = OperatorResponseType.Success;
+            response.ResponseCode = SendSmsResponseStatus.Success;
 
             responses.Add(response);
         }
-
-
-        public SendOtpResponseLog SendOtp(Phone phone, string content)
+        
+        public SendOtpResponseLog SendOtp(Phone phone, string content, Header header)
         {
              var response = new SendOtpResponseLog { 
                 Operator = OperatorType.Vodafone,
@@ -31,12 +30,9 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             };
 
             System.Diagnostics.Debug.WriteLine("Vodafone otp is send");
-            response.OperatorResponseCode = OperatorResponseType.Success;
+            response.ResponseCode = SendSmsResponseStatus.Success;
 
             return response;
         }
-
-
-        
     }
 }

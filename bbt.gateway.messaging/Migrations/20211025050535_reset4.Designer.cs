@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using bbt.gateway.messaging;
 
@@ -10,9 +11,10 @@ using bbt.gateway.messaging;
 namespace bbt.gateway.messaging.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20211025050535_reset4")]
+    partial class reset4
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.0-rc.2.21480.5");
@@ -23,8 +25,8 @@ namespace bbt.gateway.messaging.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<int?>("Branch")
-                        .HasColumnType("INTEGER");
+                    b.Property<string>("Branch")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("BusinessLine")
                         .HasColumnType("TEXT");
@@ -155,9 +157,6 @@ namespace bbt.gateway.messaging.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<int?>("CustomerNo")
-                        .HasColumnType("INTEGER");
-
                     b.Property<int>("Operator")
                         .HasColumnType("INTEGER");
 
@@ -231,10 +230,10 @@ namespace bbt.gateway.messaging.Migrations
                     b.Property<int>("Operator")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("ResponseCode")
+                    b.Property<int>("OperatorResponseCode")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("ResponseMessage")
+                    b.Property<string>("OperatorResponseMessage")
                         .HasColumnType("TEXT");
 
                     b.Property<Guid?>("SendOtpRequestLogId")

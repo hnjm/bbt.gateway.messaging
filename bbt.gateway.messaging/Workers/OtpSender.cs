@@ -29,8 +29,10 @@ namespace bbt.gateway.messaging.Workers
             };
         }
 
-        public SendSmsResponse SendMessage()
+        public SendSmsResponseStatus SendMessage()
         {
+            SendSmsResponseStatus returnValue;
+
             using (var db = new DatabaseContext())
             {
                 db.Add(_requestLog);
@@ -41,7 +43,7 @@ namespace bbt.gateway.messaging.Workers
                     i.Phone.Prefix == _data.Phone.Prefix &&
                     i.Phone.Number == _data.Phone.Number
                     )
-                    .Include(c => c.BlacklistEntries)
+                    .Include(c => c.BlacklistEntries.Where(b => b.ValidTo > DateTime.Now && b.Status == Constants.Status.Blacklist.Active))
                     .FirstOrDefault();
 
                 if (phoneConfiguration == null)
@@ -62,37 +64,43 @@ namespace bbt.gateway.messaging.Workers
                     _requestLog.PhoneConfiguration = newConfig;
                     db.Add(newConfig);
 
-                    var responseLogs = SendMessageToUnknown();
+                    var responseLogs = SendMessageToUnknown(newConfig);
 
-                    responseLogs.ForEach(l =>
-                    {
-                        _requestLog.ResponseLogs.Add(l);
-                    });
+                    returnValue = responseLogs.UnifyResponse();
 
-                    db.SaveChanges();
+                    responseLogs.ForEach(l => _requestLog.ResponseLogs.Add(l));
                 }
                 else
                 {
                     _requestLog.PhoneConfiguration = phoneConfiguration;
-                  
 
-                    var responseLog = SendMessageToKnown(phoneConfiguration);
-
+                    if (phoneConfiguration.BlacklistEntries.HasBlock())
+                    {
+                        returnValue = SendSmsResponseStatus.HasBlacklistRecord;
+                    }
+                    else
+                    {
+                        var responseLog = SendMessageToKnown(phoneConfiguration);
+                        _requestLog.ResponseLogs.Add(responseLog);
+                        returnValue = SendSmsResponseStatus.Success;
+                    }
                     db.SaveChanges();
                 }
 
-                return null;
+                return returnValue;
             }
         }
 
-        private List<SendOtpResponseLog> SendMessageToUnknown()
+        private List<SendOtpResponseLog> SendMessageToUnknown(PhoneConfiguration phoneConfiguration)
         {
+            var header = HeaderManager.Instance.GetHeader(phoneConfiguration);
+
             ConcurrentBag<SendOtpResponseLog> responses = new ConcurrentBag<SendOtpResponseLog>();
 
             Parallel.ForEach(operators, currentElement =>
             {
                 IOperatorGateway gateway = (IOperatorGateway)Activator.CreateInstance(currentElement);
-                gateway.SendOtp(_data.Phone, "test", responses);
+                gateway.SendOtp(_data.Phone, "test", responses, header);
             });
 
             return responses.ToList();
@@ -101,6 +109,7 @@ namespace bbt.gateway.messaging.Workers
         private SendOtpResponseLog SendMessageToKnown(PhoneConfiguration phoneConfiguration)
         {
             IOperatorGateway gateway = null;
+            var header = HeaderManager.Instance.GetHeader(phoneConfiguration);
 
             switch (phoneConfiguration.Operator)
             {
@@ -122,7 +131,7 @@ namespace bbt.gateway.messaging.Workers
                     break;
             }
 
-            var result = gateway.SendOtp(_data.Phone, _data.Content);
+            var result = gateway.SendOtp(_data.Phone, _data.Content, header);
 
             return result;
         }

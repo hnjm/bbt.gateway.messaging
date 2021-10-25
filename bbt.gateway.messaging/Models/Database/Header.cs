@@ -10,7 +10,7 @@ namespace bbt.gateway.messaging.Models
         public Guid Id { get; set; }
         public MessageContentType ContentType { get; set; }
         public string BusinessLine { get; set; }
-        public string Branch { get; set; }
+        public int? Branch { get; set; }
         public string SmsSender { get; set; }
         public string SmsPrefix { get; set; }
         public string SmsSuffix { get; set; }

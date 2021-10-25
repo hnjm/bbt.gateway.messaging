@@ -38,7 +38,6 @@ namespace bbt.gateway.messaging
             builder.Entity<SendSmsLog>().OwnsOne(i => i.CreatedBy);
             builder.Entity<OtpBlackListEntry>().OwnsOne(i => i.CreatedBy);
             builder.Entity<OtpBlackListEntry>().OwnsOne(i => i.ResolvedBy);
-            builder.Entity<OtpBlackListEntry>().OwnsOne(i => i.Phone);
             builder.Entity<OtpBlackListEntryLog>().OwnsOne(i => i.CreatedBy);
             builder.Entity<OtpOperatorException>().OwnsOne(i => i.CreatedBy);
 
