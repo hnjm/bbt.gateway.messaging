@@ -9,7 +9,7 @@ namespace bbt.gateway.messaging.Workers
 {
     public class HeaderManager
     {
-        List<Header> headers = new List<Header>();
+        public List<Header> Headers = new List<Header>();
 
         private HeaderManager()
         {
@@ -25,7 +25,7 @@ namespace bbt.gateway.messaging.Workers
             }
         }
 
-        public Header GetHeader(PhoneConfiguration config, MessageContentType contentType)
+        public Header Get(PhoneConfiguration config, MessageContentType contentType)
         {
             Header header = null;
 
@@ -36,7 +36,7 @@ namespace bbt.gateway.messaging.Workers
             {
                 // TODO: Find related headear record from customer no 
                 // Assumption! using querying with customer no is better than phone number.
-                header = getHeader(contentType, businessLine, branch);
+                header = get(contentType, businessLine, branch);
 
 
             }
@@ -48,12 +48,12 @@ namespace bbt.gateway.messaging.Workers
                 // set customer no of phone configruation for future save
                 config.CustomerNo = customerNo;
 
-                header = getHeader(contentType, businessLine, branch);
+                header = get(contentType, businessLine, branch);
             }
             return header;
         }
 
-        public void SaveHeader(Header header)
+        public void Save(Header header)
         {
             using (var db = new DatabaseContext())
             {
@@ -74,30 +74,43 @@ namespace bbt.gateway.messaging.Workers
             loadHeaders();
         }
 
-        private Header getHeader(MessageContentType contentType, string businessLine, int? branch)
+        public void Delete(Guid id)
         {
-            var firstPass = headers.Where(h => h.BusinessLine == businessLine && h.Branch == branch && h.ContentType == contentType).FirstOrDefault();
+            using (var db = new DatabaseContext())
+            {
+                var itemToDelete = new Header {Id = id};
+                db.Remove(itemToDelete);
+                db.SaveChanges();
+            }
+            
+            //TODO: Meanwhile, dont forget to inform other pods to invalidate headers cahce.
+            loadHeaders();
+        }
+
+        private Header get(MessageContentType contentType, string businessLine, int? branch)
+        {
+            var firstPass = Headers.Where(h => h.BusinessLine == businessLine && h.Branch == branch && h.ContentType == contentType).FirstOrDefault();
             if (firstPass != null) return firstPass;
 
             // Check branch first
-            var secondPass = headers.Where(h => h.BusinessLine == null && h.Branch == branch && h.ContentType == contentType).FirstOrDefault();
+            var secondPass = Headers.Where(h => h.BusinessLine == null && h.Branch == branch && h.ContentType == contentType).FirstOrDefault();
             if (secondPass != null) return secondPass;
 
-            var thirdPass = headers.Where(h => h.BusinessLine == businessLine && h.Branch == null && h.ContentType == contentType).FirstOrDefault();
+            var thirdPass = Headers.Where(h => h.BusinessLine == businessLine && h.Branch == null && h.ContentType == contentType).FirstOrDefault();
             if (thirdPass != null) return thirdPass;
 
-            var lastPass = headers.Where(h => h.BusinessLine == null && h.Branch == null && h.ContentType == contentType).FirstOrDefault();
+            var lastPass = Headers.Where(h => h.BusinessLine == null && h.Branch == null && h.ContentType == contentType).FirstOrDefault();
             if (lastPass != null) return lastPass;
 
-            // If db is not consistent, return firt value. Consider firing an enception 
-            return headers.First();
+            //TODO: If db is not consistent, return firt value. Consider firing an enception 
+            return Headers.First();
         }
 
         private void loadHeaders()
         {
             using (var db = new DatabaseContext())
             {
-                headers = db.Headers.ToList();
+                Headers = db.Headers.ToList();
             }
         }
 

@@ -29,6 +29,28 @@ namespace bbt.gateway.messaging.Workers
             return operators.FirstOrDefault(o => o.Type == type);
         }
 
+        public void Save(Operator data)
+        {
+            using (var db = new DatabaseContext())
+            {
+                if (!operators.Any(o => o.Id == data.Id))
+                {
+                    throw new NotSupportedException("Adding new operator is not allowed.");
+                }
+                else
+                {
+                    db.Operators.Update(data);
+                }
+                db.SaveChanges();
+            }
+
+            //TODO: Meanwhile, dont forget to inform other pods to invalidate headers cahce.
+            loadOperators();
+        }
+
+
+
+
         private void loadOperators()
         {
             using (var db = new DatabaseContext())

@@ -140,7 +140,7 @@ namespace bbt.gateway.messaging.Workers
 
         private Header loadHeader(PhoneConfiguration phoneConfiguration)
         {
-            var header = HeaderManager.Instance.GetHeader(phoneConfiguration, _data.ContentType);
+            var header = HeaderManager.Instance.Get(phoneConfiguration, _data.ContentType);
 
             //Update request log to persisting content
             _requestLog.Content = header.BuildContentForLog(_data.Content);

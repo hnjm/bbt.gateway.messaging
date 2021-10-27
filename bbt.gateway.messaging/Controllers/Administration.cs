@@ -1,12 +1,11 @@
 ﻿using bbt.gateway.messaging.Models;
 using bbt.gateway.messaging.Workers;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Swashbuckle.AspNetCore.Annotations;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace bbt.gateway.messaging.Controllers
 {
@@ -27,22 +26,31 @@ namespace bbt.gateway.messaging.Controllers
             )]
         [HttpGet("/admin/headers")]
         [SwaggerResponse(200, "Headers was returned successfully", typeof(Header[]))]
-
         public IActionResult GetHeaders([FromQuery] int page = 0, [FromQuery] int pageSize = 20)
         {
-            return Ok();
+            Header[] returnValue = null;
+
+            // Always use database as source for responding external queries
+            using (var db = new DatabaseContext())
+            {
+                returnValue = db.Headers
+                    .Skip(page * pageSize)
+                    .Take(pageSize)
+                    .ToArray();
+            }
+            return Ok(returnValue);
         }
 
         [SwaggerOperation(
-           Summary = "Save header configuration",
-           Description = "Save header configuration"
+           Summary = "Save or update header configuration",
+           Description = "If id not suplied creates new, if id suplied updates existing header configuration"
            )]
         [HttpPost("/admin/headers")]
         [SwaggerResponse(200, "Header has saved successfully", typeof(Header[]))]
 
         public IActionResult SaveHeader([FromBody] Header data)
         {
-            HeaderManager.Instance.SaveHeader(data);
+            HeaderManager.Instance.Save(data);
             return Ok();
         }
 
@@ -55,19 +63,101 @@ namespace bbt.gateway.messaging.Controllers
 
         public IActionResult DeleteHeader([FromQuery] Guid id)
         {
+            HeaderManager.Instance.Delete(id);
+            return Ok();
+        }
+
+        [SwaggerOperation(
+            Summary = "Returns operator configurations",
+            Description = "Returns operator configurations"
+            )]
+        [HttpGet("/admin/operators")]
+        [SwaggerResponse(200, "Operators was returned successfully", typeof(Operator[]))]
+        public IActionResult GetOperators()
+        {
+            Operator[] returnValue = null;
+
+            // Always use database as source for responding external queries
+            using (var db = new DatabaseContext())
+            {
+                returnValue = db.Operators.ToArray();
+            }
+            return Ok(returnValue);
+        }
+
+        [SwaggerOperation(
+           Summary = "Update operator configuration",
+           Description = "Updates existing operator configuration. Adding new one is not allowed."
+           )]
+        [HttpPost("/admin/operators")]
+        [SwaggerResponse(200, "operator has saved successfully", typeof(void))]
+        public IActionResult SaveOperator([FromBody] Operator data)
+        {
+            OperatorManager.Instance.Save(data);
             return Ok();
         }
 
 
         [SwaggerOperation(
-          Summary = "Returns blacklist records and sms log for specific phone",
-          Description = "Returns blacklist records for specific phone"
+          Summary = "Returns phone activities",
+          Description = "Returns phone activities with logs. Logs are limited with last 10 records."
           )]
-        [HttpGet("/admin/phone-monitor/{countryCode}/{prefix}/{suffix}")]
+        [HttpGet("/admin/phone-monitor/{countryCode}/{prefix}/{number}")]
         [SwaggerResponse(200, "Records was returned successfully", typeof(PhoneConfiguration))]
 
-        public IActionResult GetPhoneMonitorRecords(int countryCode, int prefix, int suffix, [FromQuery] int smsSentLogSize = 20)
+        public IActionResult GetPhoneMonitorRecords(int countryCode, int prefix, int number)
         {
+
+            PhoneConfiguration[] returnValue = null;
+
+            using (var db = new DatabaseContext())
+            {
+                returnValue = db.PhoneConfigurations
+                    .Where(c => c.Phone.CountryCode == countryCode && c.Phone.Prefix == prefix && c.Phone.Number == number)
+                    .Include(c => c.BlacklistEntries.Take(10).OrderBy(l => l.CreatedAt))
+                    .Include(c => c.OtpLogs.Take(10).OrderBy(l => l.CreatedAt))
+                    .Include(c => c.Logs.Take(10).OrderBy(l => l.CreatedAt))
+                    .Include(c => c.SmsLogs.Take(10).OrderBy(l => l.CreatedAt))
+                    .ToArray();
+            }
+            return Ok(returnValue);
+        }
+
+
+        [SwaggerOperation(
+         Summary = "Returns phone blacklist records",
+         Description = "Returns phone blacklist records."
+         )]
+        [HttpGet("/admin/blacklist/{countryCode}/{prefix}/{number}")]
+        [SwaggerResponse(200, "Records was returned successfully", typeof(OtpBlackListEntry))]
+
+        public IActionResult GetPhoneBlacklistRecords(int countryCode, int prefix, int number, int page = 0, int pageSize = 20)
+        {
+            OtpBlackListEntry[] returnValue = null;
+
+            using (var db = new DatabaseContext())
+            {
+                returnValue = db.OtpBlackListEntries
+                    .Where(c => c.PhoneConfiguration.Phone.CountryCode == countryCode && c.PhoneConfiguration.Phone.Prefix == prefix && c.PhoneConfiguration.Phone.Number == number)
+                    .Skip(page * pageSize)
+                    .Take(pageSize)
+                    .ToArray();
+            }
+
+            return Ok(returnValue);
+        }
+
+
+        [SwaggerOperation(
+         Summary = "Adds phone to blacklist records",
+         Description = "Adds phone to blacklist records."
+         )]
+        [HttpPost("/admin/blacklist/{countryCode}/{prefix}/{number}")]
+        [SwaggerResponse(200, "Record was created successfully", typeof(void))]
+
+        public IActionResult AddPhoneToBlacklist(int countryCode, int prefix, int number, int days)
+        {
+            
             return Ok();
         }
 

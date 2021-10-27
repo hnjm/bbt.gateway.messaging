@@ -7,6 +7,6 @@ namespace bbt.gateway.messaging.Models
 {
     public enum OperatorStatus {
         Active = 1,
-        Deactives = 2
+        Deactive = 2
     }
 }
