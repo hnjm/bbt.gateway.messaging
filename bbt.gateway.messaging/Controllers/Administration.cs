@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Swashbuckle.AspNetCore.Annotations;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace bbt.gateway.messaging.Controllers
@@ -152,13 +153,54 @@ namespace bbt.gateway.messaging.Controllers
          Summary = "Adds phone to blacklist records",
          Description = "Adds phone to blacklist records."
          )]
-        [HttpPost("/admin/blacklist/{countryCode}/{prefix}/{number}")]
-        [SwaggerResponse(200, "Record was created successfully", typeof(void))]
-
-        public IActionResult AddPhoneToBlacklist(int countryCode, int prefix, int number, int days)
+        [HttpPost("/admin/blacklist")]
+        [SwaggerResponse(201, "Record was created successfully", typeof(void))]
+        public IActionResult AddPhoneToBlacklist([FromBody] AddPhoneToBlacklistRequest data)
         {
-            
-            return Ok();
+
+            Guid newOtpBlackListEntryId = Guid.NewGuid();
+
+            using (var db = new DatabaseContext())
+            {
+                var config = db.PhoneConfigurations
+                    .Where(c => c.Phone.CountryCode == data.Phone.CountryCode && c.Phone.Prefix == data.Phone.Prefix && c.Phone.Number == data.Phone.Number)
+                    .FirstOrDefault();
+
+                if (config == null)
+                {
+                    config = new PhoneConfiguration
+                    {
+                        Phone = data.Phone,
+                        Logs = new List<PhoneConfigurationLog>(),
+                        BlacklistEntries = new List<OtpBlackListEntry>()
+                    };
+
+                    config.Logs.Add(new PhoneConfigurationLog
+                    {
+                        Type = "Initialization",
+                        Action = "Blacklist Entry",
+                        CreatedBy = data.Process,
+                        RelatedId = newOtpBlackListEntryId
+                    });
+
+                    db.Add(config);
+                }
+
+                var newOtpBlackListEntry = new OtpBlackListEntry
+                {
+                    Id = newOtpBlackListEntryId,
+                    PhoneConfigurationId = config.Id,
+                    Reason = data.Reason,
+                    Source = data.Source,
+                    ValidTo = DateTime.Now.AddDays(data.Days),
+                    CreatedBy = data.Process
+                };
+
+                db.Add(newOtpBlackListEntry);
+                db.SaveChanges();
+            }
+
+            return Created("", newOtpBlackListEntryId);
         }
 
     }
