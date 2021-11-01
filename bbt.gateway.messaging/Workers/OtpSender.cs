@@ -40,10 +40,10 @@ namespace bbt.gateway.messaging.Workers
                     i.Phone.Prefix == _data.Phone.Prefix &&
                     i.Phone.Number == _data.Phone.Number
                     )
-                    .Include(c => c.BlacklistEntries.Where(b => b.ValidTo > DateTime.Now))
+                    .Include(c => c.BlacklistEntries.Where(b => b.ValidTo > DateTime.Today))
                     .FirstOrDefault();
 
-                // if known number without blacklist entry 
+                // if known number without any blacklist entry 
                 if (
                     phoneConfiguration != null &&
                     phoneConfiguration.Operator != null &&
@@ -52,7 +52,7 @@ namespace bbt.gateway.messaging.Workers
                 {
                     var responseLog = SendMessageToKnown(phoneConfiguration);
                     _requestLog.ResponseLogs.Add(responseLog);
-                    returnValue = SendSmsResponseStatus.Success;
+                    returnValue = responseLog.ResponseCode;
                 }
                 else
                 {
@@ -64,16 +64,16 @@ namespace bbt.gateway.messaging.Workers
                     }
 
 
-                    // If phone is enter to blacklist and reason is resolved, then do not apply black list control.
+                    // If phone is in blacklist and reason is resolved, then do not apply black list control.
                     var useControlDays = !(
-                        phoneConfiguration.BlacklistEntries != null && 
-                        phoneConfiguration.BlacklistEntries.Count > 0 && 
+                        phoneConfiguration.BlacklistEntries != null &&
+                        phoneConfiguration.BlacklistEntries.Count > 0 &&
                         phoneConfiguration.BlacklistEntries.All(b => b.Status == BlacklistStatus.Resolved)
                         );
 
                     var responseLogs = SendMessageToUnknown(phoneConfiguration, useControlDays);
 
-                    // Decide method return code    
+                    // Decide which response code will be returned
                     returnValue = responseLogs.UnifyResponse();
 
                     // Update with valid operator if any otp sending 
@@ -95,14 +95,15 @@ namespace bbt.gateway.messaging.Workers
 
         private List<OtpResponseLog> SendMessageToUnknown(PhoneConfiguration phoneConfiguration, bool useControlDays)
         {
-            Header header = loadHeader(phoneConfiguration);
+            var header = HeaderManager.Instance.Get(phoneConfiguration, _data.ContentType);
+            _requestLog.Content = header.BuildContentForLog(_data.Content);
 
             ConcurrentBag<OtpResponseLog> responses = new ConcurrentBag<OtpResponseLog>();
 
             Parallel.ForEach(operators, currentElement =>
             {
                 IOperatorGateway gateway = (IOperatorGateway)Activator.CreateInstance(currentElement);
-                gateway.SendOtp(_data.Phone, "test", responses, header, useControlDays);
+                gateway.SendOtp(_data.Phone, header.BuildContentForSms(_data.Content), responses, header, useControlDays);
             });
 
             return responses.ToList();
@@ -111,7 +112,8 @@ namespace bbt.gateway.messaging.Workers
         private OtpResponseLog SendMessageToKnown(PhoneConfiguration phoneConfiguration)
         {
             IOperatorGateway gateway = null;
-            Header header = loadHeader(phoneConfiguration);
+             var header = HeaderManager.Instance.Get(phoneConfiguration, _data.ContentType);
+            _requestLog.Content = header.BuildContentForLog(_data.Content);
 
             switch (phoneConfiguration.Operator)
             {
@@ -133,39 +135,26 @@ namespace bbt.gateway.messaging.Workers
                     break;
             }
 
-            var result = gateway.SendOtp(_data.Phone, _data.Content, header);
+            var result = gateway.SendOtp(_data.Phone, header.BuildContentForSms(_data.Content), header);
 
             return result;
         }
-
-        private Header loadHeader(PhoneConfiguration phoneConfiguration)
-        {
-            var header = HeaderManager.Instance.Get(phoneConfiguration, _data.ContentType);
-
-            //Update request log to persisting content
-            _requestLog.Content = header.BuildContentForLog(_data.Content);
-
-            return header;
-        }
-
 
         private PhoneConfiguration createNewPhoneConfiguration()
         {
             var newConfig = new PhoneConfiguration
             {
                 Phone = _data.Phone,
-                Logs = new List<PhoneConfigurationLog>()
+                Logs = new List<PhoneConfigurationLog>{
+                    new PhoneConfigurationLog
+                    {
+                        Type = "Initialization",
+                        Action = "Send Otp Request",
+                        RelatedId = _requestLog.Id,
+                        CreatedBy = _data.Process
+                    }}
             };
 
-            newConfig.Logs.Add(new PhoneConfigurationLog
-            {
-                Type = "Initialization",
-                Action = "Send Otp Request",
-                RelatedId = _requestLog.Id,
-                CreatedBy = _data.Process
-            });
-
-            _requestLog.PhoneConfiguration = newConfig;
             return newConfig;
         }
     }

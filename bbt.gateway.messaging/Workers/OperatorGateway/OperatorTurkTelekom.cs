@@ -44,15 +44,10 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             };
 
             System.Diagnostics.Debug.WriteLine("TurkTelekom otp is send");
-
             response.ResponseCode = SendSmsResponseStatus.NotSubscriber;
-
             Task.Run(() => TrackMessageStatus(response));
-
-
             return response;
         }
-
 
         public override OtpTrackingLog CheckMessageStatus(OtpResponseLog response)
         {
