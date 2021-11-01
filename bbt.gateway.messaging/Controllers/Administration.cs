@@ -129,16 +129,16 @@ namespace bbt.gateway.messaging.Controllers
          Summary = "Returns phone blacklist records",
          Description = "Returns phone blacklist records."
          )]
-        [HttpGet("/admin/blacklist/{countryCode}/{prefix}/{number}")]
-        [SwaggerResponse(200, "Records was returned successfully", typeof(OtpBlackListEntry))]
+        [HttpGet("/admin/blacklists/{countryCode}/{prefix}/{number}")]
+        [SwaggerResponse(200, "Records was returned successfully", typeof(BlackListEntry))]
 
         public IActionResult GetPhoneBlacklistRecords(int countryCode, int prefix, int number, int page = 0, int pageSize = 20)
         {
-            OtpBlackListEntry[] returnValue = null;
+            BlackListEntry[] returnValue = null;
 
             using (var db = new DatabaseContext())
             {
-                returnValue = db.OtpBlackListEntries
+                returnValue = db.BlackListEntries
                     .Where(c => c.PhoneConfiguration.Phone.CountryCode == countryCode && c.PhoneConfiguration.Phone.Prefix == prefix && c.PhoneConfiguration.Phone.Number == number)
                     .Skip(page * pageSize)
                     .Take(pageSize)
@@ -153,7 +153,7 @@ namespace bbt.gateway.messaging.Controllers
          Summary = "Adds phone to blacklist records",
          Description = "Adds phone to blacklist records."
          )]
-        [HttpPost("/admin/blacklist")]
+        [HttpPost("/admin/blacklists")]
         [SwaggerResponse(201, "Record was created successfully", typeof(void))]
         public IActionResult AddPhoneToBlacklist([FromBody] AddPhoneToBlacklistRequest data)
         {
@@ -172,7 +172,7 @@ namespace bbt.gateway.messaging.Controllers
                     {
                         Phone = data.Phone,
                         Logs = new List<PhoneConfigurationLog>(),
-                        BlacklistEntries = new List<OtpBlackListEntry>()
+                        BlacklistEntries = new List<BlackListEntry>()
                     };
 
                     config.Logs.Add(new PhoneConfigurationLog
@@ -186,7 +186,7 @@ namespace bbt.gateway.messaging.Controllers
                     db.Add(config);
                 }
 
-                var newOtpBlackListEntry = new OtpBlackListEntry
+                var newOtpBlackListEntry = new BlackListEntry
                 {
                     Id = newOtpBlackListEntryId,
                     PhoneConfigurationId = config.Id,
@@ -201,6 +201,62 @@ namespace bbt.gateway.messaging.Controllers
             }
 
             return Created("", newOtpBlackListEntryId);
+        }
+
+        [SwaggerOperation(
+         Summary = "Resolve blacklist item",
+         Description = "Resolve blacklist item"
+         )]
+        [HttpPatch("/admin/blacklists/{blacklist-entry-id}/resolve")]
+        [SwaggerResponse(201, "Record was created successfully", typeof(void))]
+        public IActionResult ResolveBlacklistItem([FromRoute(Name = "blacklist-entry-id")] Guid entryId, [FromBody] ResolveBlacklistEntryRequest data)
+        {
+            using (var db = new DatabaseContext())
+            {
+                var config = db.BlackListEntries.FirstOrDefault(b => b.Id == entryId);
+                config.ResolvedBy = data.ResolvedBy;
+                config.Status = BlacklistStatus.Resolved;
+                db.SaveChanges();
+            }
+            return Ok();
+        }
+
+        [SwaggerOperation(Summary = "Returns phones otp sending logs")]
+        [HttpGet("/admin/otp-log/{countryCode}/{prefix}/{number}")]
+        [SwaggerResponse(200, "Records was returned successfully", typeof(OtpRequestLog[]))]
+        public IActionResult GetOtpLog(int countryCode, int prefix, int number, int page = 0, int pageSize = 20)
+        {
+            OtpRequestLog[] returnValue = null;
+
+            using (var db = new DatabaseContext())
+            {
+                returnValue = db.OtpRequestLogs
+                    .Where(c => c.PhoneConfiguration.Phone.CountryCode == countryCode && c.PhoneConfiguration.Phone.Prefix == prefix && c.PhoneConfiguration.Phone.Number == number)
+                    .Skip(page * pageSize)
+                    .Take(pageSize)
+                    .ToArray();
+            }
+
+            return Ok(returnValue);
+        }
+
+        [SwaggerOperation(Summary = "Returns phones sms sending logs")]
+        [HttpGet("/admin/sms-log/{countryCode}/{prefix}/{number}")]
+        [SwaggerResponse(200, "Records was returned successfully", typeof(SmsLog[]))]
+        public IActionResult GetSmsLog(int countryCode, int prefix, int number, int page = 0, int pageSize = 20)
+        {
+            SmsLog[] returnValue = null;
+
+            using (var db = new DatabaseContext())
+            {
+                returnValue = db.SmsLogs
+                    .Where(c => c.PhoneConfiguration.Phone.CountryCode == countryCode && c.PhoneConfiguration.Phone.Prefix == prefix && c.PhoneConfiguration.Phone.Number == number)
+                    .Skip(page * pageSize)
+                    .Take(pageSize)
+                    .ToArray();
+            }
+
+            return Ok(returnValue);
         }
 
     }

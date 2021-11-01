@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace bbt.gateway.messaging.Models
 {
-    public class OtpBlackListEntry
+    public class BlackListEntry
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public Guid PhoneConfigurationId { get; set; }
@@ -18,6 +18,6 @@ namespace bbt.gateway.messaging.Models
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public Process ResolvedBy { get; set; }
         public DateTime? ResolvedAt { get; set; }
-        public ICollection<OtpBlackListEntryLog> Logs { get; set; }
+        public ICollection<BlackListEntryLog> Logs { get; set; }
     }
 }

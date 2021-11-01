@@ -52,6 +52,7 @@ namespace bbt.gateway.messaging.Controllers
             return Ok();
         }
 
+        /* For Future development
 
         [SwaggerOperation(
            Summary = "Send templated Email message",
@@ -76,7 +77,7 @@ namespace bbt.gateway.messaging.Controllers
         {
             return Ok();
         }
-
+        */
 
        
      

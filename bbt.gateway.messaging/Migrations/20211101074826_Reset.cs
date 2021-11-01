@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace bbt.gateway.messaging.Migrations
 {
-    public partial class reset : Migration
+    public partial class Reset : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -63,14 +63,14 @@ namespace bbt.gateway.messaging.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "OtpBlackListEntries",
+                name: "BlackListEntries",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    PhoneConfigurationId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    PhoneConfigurationId = table.Column<Guid>(type: "TEXT", nullable: false),
                     Reason = table.Column<string>(type: "TEXT", nullable: true),
                     Source = table.Column<string>(type: "TEXT", nullable: true),
-                    Status = table.Column<string>(type: "TEXT", nullable: true),
+                    Status = table.Column<int>(type: "INTEGER", nullable: false),
                     ValidTo = table.Column<DateTime>(type: "TEXT", nullable: false),
                     CreatedBy_Name = table.Column<string>(type: "TEXT", nullable: true),
                     CreatedBy_ItemId = table.Column<string>(type: "TEXT", nullable: true),
@@ -81,13 +81,40 @@ namespace bbt.gateway.messaging.Migrations
                     ResolvedBy_ItemId = table.Column<string>(type: "TEXT", nullable: true),
                     ResolvedBy_Action = table.Column<string>(type: "TEXT", nullable: true),
                     ResolvedBy_Identity = table.Column<string>(type: "TEXT", nullable: true),
-                    ResolvedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    ResolvedAt = table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_OtpBlackListEntries", x => x.Id);
+                    table.PrimaryKey("PK_BlackListEntries", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_OtpBlackListEntries_PhoneConfigurations_PhoneConfigurationId",
+                        name: "FK_BlackListEntries_PhoneConfigurations_PhoneConfigurationId",
+                        column: x => x.PhoneConfigurationId,
+                        principalTable: "PhoneConfigurations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "OtpRequestLogs",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    PhoneConfigurationId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    Phone_CountryCode = table.Column<int>(type: "INTEGER", nullable: true),
+                    Phone_Prefix = table.Column<int>(type: "INTEGER", nullable: true),
+                    Phone_Number = table.Column<int>(type: "INTEGER", nullable: true),
+                    Content = table.Column<string>(type: "TEXT", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    CreatedBy_Name = table.Column<string>(type: "TEXT", nullable: true),
+                    CreatedBy_ItemId = table.Column<string>(type: "TEXT", nullable: true),
+                    CreatedBy_Action = table.Column<string>(type: "TEXT", nullable: true),
+                    CreatedBy_Identity = table.Column<string>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OtpRequestLogs", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_OtpRequestLogs_PhoneConfigurations_PhoneConfigurationId",
                         column: x => x.PhoneConfigurationId,
                         principalTable: "PhoneConfigurations",
                         principalColumn: "Id");
@@ -101,8 +128,7 @@ namespace bbt.gateway.messaging.Migrations
                     PhoneId = table.Column<Guid>(type: "TEXT", nullable: true),
                     Type = table.Column<string>(type: "TEXT", nullable: true),
                     Action = table.Column<string>(type: "TEXT", nullable: true),
-                    ParameterMaster = table.Column<string>(type: "TEXT", nullable: true),
-                    ParameterSlave = table.Column<string>(type: "TEXT", nullable: true),
+                    RelatedId = table.Column<Guid>(type: "TEXT", nullable: false),
                     CreatedBy_Name = table.Column<string>(type: "TEXT", nullable: true),
                     CreatedBy_ItemId = table.Column<string>(type: "TEXT", nullable: true),
                     CreatedBy_Action = table.Column<string>(type: "TEXT", nullable: true),
@@ -120,37 +146,11 @@ namespace bbt.gateway.messaging.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "SendOtpRequestLog",
+                name: "SmsLogs",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
                     PhoneConfigurationId = table.Column<Guid>(type: "TEXT", nullable: true),
-                    Phone_CountryCode = table.Column<int>(type: "INTEGER", nullable: true),
-                    Phone_Prefix = table.Column<int>(type: "INTEGER", nullable: true),
-                    Phone_Number = table.Column<int>(type: "INTEGER", nullable: true),
-                    Content = table.Column<string>(type: "TEXT", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    CreatedBy_Name = table.Column<string>(type: "TEXT", nullable: true),
-                    CreatedBy_ItemId = table.Column<string>(type: "TEXT", nullable: true),
-                    CreatedBy_Action = table.Column<string>(type: "TEXT", nullable: true),
-                    CreatedBy_Identity = table.Column<string>(type: "TEXT", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_SendOtpRequestLog", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_SendOtpRequestLog_PhoneConfigurations_PhoneConfigurationId",
-                        column: x => x.PhoneConfigurationId,
-                        principalTable: "PhoneConfigurations",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "SendSmsLog",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    PhoneId = table.Column<Guid>(type: "TEXT", nullable: true),
                     Content = table.Column<string>(type: "TEXT", nullable: true),
                     Operator = table.Column<int>(type: "INTEGER", nullable: false),
                     OperatorResponseCode = table.Column<int>(type: "INTEGER", nullable: false),
@@ -164,16 +164,16 @@ namespace bbt.gateway.messaging.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SendSmsLog", x => x.Id);
+                    table.PrimaryKey("PK_SmsLogs", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_SendSmsLog_PhoneConfigurations_PhoneId",
-                        column: x => x.PhoneId,
+                        name: "FK_SmsLogs_PhoneConfigurations_PhoneConfigurationId",
+                        column: x => x.PhoneConfigurationId,
                         principalTable: "PhoneConfigurations",
                         principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
-                name: "OtpBlackListEntryLog",
+                name: "BlackListEntryLog",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
@@ -190,16 +190,16 @@ namespace bbt.gateway.messaging.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_OtpBlackListEntryLog", x => x.Id);
+                    table.PrimaryKey("PK_BlackListEntryLog", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_OtpBlackListEntryLog_OtpBlackListEntries_BlackListEntryId",
+                        name: "FK_BlackListEntryLog_BlackListEntries_BlackListEntryId",
                         column: x => x.BlackListEntryId,
-                        principalTable: "OtpBlackListEntries",
+                        principalTable: "BlackListEntries",
                         principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
-                name: "SendOtpResponseLog",
+                name: "OtpResponseLog",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
@@ -210,47 +210,48 @@ namespace bbt.gateway.messaging.Migrations
                     StatusQueryId = table.Column<string>(type: "TEXT", nullable: true),
                     TrackingStatus = table.Column<int>(type: "INTEGER", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    SendOtpRequestLogId = table.Column<Guid>(type: "TEXT", nullable: true)
+                    OtpRequestLogId = table.Column<Guid>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SendOtpResponseLog", x => x.Id);
+                    table.PrimaryKey("PK_OtpResponseLog", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_SendOtpResponseLog_SendOtpRequestLog_SendOtpRequestLogId",
-                        column: x => x.SendOtpRequestLogId,
-                        principalTable: "SendOtpRequestLog",
+                        name: "FK_OtpResponseLog_OtpRequestLogs_OtpRequestLogId",
+                        column: x => x.OtpRequestLogId,
+                        principalTable: "OtpRequestLogs",
                         principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
-                name: "SmsTrackingLog",
+                name: "OtpTrackingLog",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    LogId = table.Column<Guid>(type: "TEXT", nullable: false),
                     Status = table.Column<int>(type: "INTEGER", nullable: false),
                     Detail = table.Column<string>(type: "TEXT", nullable: true),
                     QueriedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    SendOtpResponseLogId = table.Column<Guid>(type: "TEXT", nullable: true)
+                    OtpResponseLogId = table.Column<Guid>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SmsTrackingLog", x => x.Id);
+                    table.PrimaryKey("PK_OtpTrackingLog", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_SmsTrackingLog_SendOtpResponseLog_SendOtpResponseLogId",
-                        column: x => x.SendOtpResponseLogId,
-                        principalTable: "SendOtpResponseLog",
+                        name: "FK_OtpTrackingLog_OtpResponseLog_OtpResponseLogId",
+                        column: x => x.OtpResponseLogId,
+                        principalTable: "OtpResponseLog",
                         principalColumn: "Id");
                 });
 
             migrationBuilder.InsertData(
                 table: "Headers",
                 columns: new[] { "Id", "Branch", "BusinessLine", "ContentType", "EmailTemplatePrefix", "EmailTemplateSuffix", "SmsPrefix", "SmsSender", "SmsSuffix", "SmsTemplatePrefix", "SmsTemplateSuffix" },
-                values: new object[] { new Guid("a216b033-c23e-4bbd-9db4-e34e4fc3f274"), null, null, 0, "generic", null, "Dear Honey,", "BATMAN", ":)", "generic", null });
+                values: new object[] { new Guid("e787a54d-740d-456d-8db7-ae6c84207ce0"), 2000, null, 0, "on", null, "OBEY:", "ZEUS", null, "on", null });
 
             migrationBuilder.InsertData(
                 table: "Headers",
                 columns: new[] { "Id", "Branch", "BusinessLine", "ContentType", "EmailTemplatePrefix", "EmailTemplateSuffix", "SmsPrefix", "SmsSender", "SmsSuffix", "SmsTemplatePrefix", "SmsTemplateSuffix" },
-                values: new object[] { new Guid("d97bcdfa-3469-4dd3-85a6-b8ff9021af8f"), 2000, null, 0, "on", null, "OBEY:", "ZEUS", null, "on", null });
+                values: new object[] { new Guid("f388d07e-a8f5-4be0-8892-f6a163895a13"), null, null, 0, "generic", null, "Dear Honey,", "BATMAN", ":)", "generic", null });
 
             migrationBuilder.InsertData(
                 table: "Operators",
@@ -278,14 +279,29 @@ namespace bbt.gateway.messaging.Migrations
                 values: new object[] { 5, 60, 1, 5, false });
 
             migrationBuilder.CreateIndex(
-                name: "IX_OtpBlackListEntries_PhoneConfigurationId",
-                table: "OtpBlackListEntries",
+                name: "IX_BlackListEntries_PhoneConfigurationId",
+                table: "BlackListEntries",
                 column: "PhoneConfigurationId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_OtpBlackListEntryLog_BlackListEntryId",
-                table: "OtpBlackListEntryLog",
+                name: "IX_BlackListEntryLog_BlackListEntryId",
+                table: "BlackListEntryLog",
                 column: "BlackListEntryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OtpRequestLogs_PhoneConfigurationId",
+                table: "OtpRequestLogs",
+                column: "PhoneConfigurationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OtpResponseLog_OtpRequestLogId",
+                table: "OtpResponseLog",
+                column: "OtpRequestLogId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OtpTrackingLog_OtpResponseLogId",
+                table: "OtpTrackingLog",
+                column: "OtpResponseLogId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PhoneConfigurationLog_PhoneId",
@@ -293,28 +309,16 @@ namespace bbt.gateway.messaging.Migrations
                 column: "PhoneId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SendOtpRequestLog_PhoneConfigurationId",
-                table: "SendOtpRequestLog",
+                name: "IX_SmsLogs_PhoneConfigurationId",
+                table: "SmsLogs",
                 column: "PhoneConfigurationId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_SendOtpResponseLog_SendOtpRequestLogId",
-                table: "SendOtpResponseLog",
-                column: "SendOtpRequestLogId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_SendSmsLog_PhoneId",
-                table: "SendSmsLog",
-                column: "PhoneId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_SmsTrackingLog_SendOtpResponseLogId",
-                table: "SmsTrackingLog",
-                column: "SendOtpResponseLogId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "BlackListEntryLog");
+
             migrationBuilder.DropTable(
                 name: "Headers");
 
@@ -322,25 +326,22 @@ namespace bbt.gateway.messaging.Migrations
                 name: "Operators");
 
             migrationBuilder.DropTable(
-                name: "OtpBlackListEntryLog");
+                name: "OtpTrackingLog");
 
             migrationBuilder.DropTable(
                 name: "PhoneConfigurationLog");
 
             migrationBuilder.DropTable(
-                name: "SendSmsLog");
+                name: "SmsLogs");
 
             migrationBuilder.DropTable(
-                name: "SmsTrackingLog");
+                name: "BlackListEntries");
 
             migrationBuilder.DropTable(
-                name: "OtpBlackListEntries");
+                name: "OtpResponseLog");
 
             migrationBuilder.DropTable(
-                name: "SendOtpResponseLog");
-
-            migrationBuilder.DropTable(
-                name: "SendOtpRequestLog");
+                name: "OtpRequestLogs");
 
             migrationBuilder.DropTable(
                 name: "PhoneConfigurations");

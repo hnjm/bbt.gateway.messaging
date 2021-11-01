@@ -9,7 +9,7 @@ namespace bbt.gateway.messaging
     public static class Extensions
     {
 
-        public static SendSmsResponseStatus UnifyResponse(this ICollection<SendOtpResponseLog> logs)
+        public static SendSmsResponseStatus UnifyResponse(this ICollection<OtpResponseLog> logs)
         {
             if (logs.Any(l => l.ResponseCode == SendSmsResponseStatus.Success))
                 return SendSmsResponseStatus.Success;

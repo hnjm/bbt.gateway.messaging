@@ -12,8 +12,8 @@ namespace bbt.gateway.messaging.Models
         public int? CustomerNo { get; set; } 
         public OperatorType? Operator { get; set; }
         public ICollection<PhoneConfigurationLog> Logs { get; set; }
-        public ICollection<SendOtpRequestLog> OtpLogs {get;set;}
-        public ICollection<SendSmsLog> SmsLogs { get; set; }
-        public ICollection<OtpBlackListEntry> BlacklistEntries { get; set; }
+        public ICollection<OtpRequestLog> OtpLogs {get;set;}
+        public ICollection<SmsLog> SmsLogs { get; set; }
+        public ICollection<BlackListEntry> BlacklistEntries { get; set; }
     }
 }

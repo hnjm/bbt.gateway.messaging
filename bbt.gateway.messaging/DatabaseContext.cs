@@ -11,8 +11,11 @@ namespace bbt.gateway.messaging
     {
         public DbSet<PhoneConfiguration> PhoneConfigurations { get; set; }
         public DbSet<Header> Headers { get; set; }
-        public DbSet<OtpBlackListEntry> OtpBlackListEntries { get; set; }
         public DbSet<Operator> Operators { get; set; }
+        public DbSet<BlackListEntry> BlackListEntries { get; set; }
+        public DbSet<OtpRequestLog> OtpRequestLogs { get; set; }
+        public DbSet<SmsLog> SmsLogs { get; set; }
+        
 
 
         public string DbPath { get; set; }
@@ -32,12 +35,12 @@ namespace bbt.gateway.messaging
         {
             builder.Entity<PhoneConfiguration>().OwnsOne(i => i.Phone);
             builder.Entity<PhoneConfigurationLog>().OwnsOne(i => i.CreatedBy);
-            builder.Entity<SendOtpRequestLog>().OwnsOne(i => i.CreatedBy);
-            builder.Entity<SendOtpRequestLog>().OwnsOne(i => i.Phone);
-            builder.Entity<SendSmsLog>().OwnsOne(i => i.CreatedBy);
-            builder.Entity<OtpBlackListEntry>().OwnsOne(i => i.CreatedBy);
-            builder.Entity<OtpBlackListEntry>().OwnsOne(i => i.ResolvedBy);
-            builder.Entity<OtpBlackListEntryLog>().OwnsOne(i => i.CreatedBy);
+            builder.Entity<OtpRequestLog>().OwnsOne(i => i.CreatedBy);
+            builder.Entity<OtpRequestLog>().OwnsOne(i => i.Phone);
+            builder.Entity<SmsLog>().OwnsOne(i => i.CreatedBy);
+            builder.Entity<BlackListEntry>().OwnsOne(i => i.CreatedBy);
+            builder.Entity<BlackListEntry>().OwnsOne(i => i.ResolvedBy);
+            builder.Entity<BlackListEntryLog>().OwnsOne(i => i.CreatedBy);
 
             //builder.Entity<PhoneConfiguration>().HasKey(c => c.Id).ForSqlServerIsClustered(false);
             //builder.Entity<PhoneConfiguration>().HasIndex("Id").HasName("ClusteredId").ForSqlServerIsClustered(true);

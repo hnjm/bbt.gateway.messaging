@@ -15,9 +15,9 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
         }
 
 
-        public void SendOtp(Phone phone, string content, ConcurrentBag<SendOtpResponseLog> responses, Header header, bool useControlDays)
+        public void SendOtp(Phone phone, string content, ConcurrentBag<OtpResponseLog> responses, Header header, bool useControlDays)
         {
-            var response = new SendOtpResponseLog { 
+            var response = new OtpResponseLog { 
                 Operator = OperatorType.Turkcell,
                 Topic = "IVN otp sending",
                 TrackingStatus = SmsTrackingStatus.Delivered
@@ -30,9 +30,9 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
       
 
-        public SendOtpResponseLog SendOtp(Phone phone, string content, Header header)
+        public OtpResponseLog SendOtp(Phone phone, string content, Header header)
         {
-           var response = new SendOtpResponseLog { 
+           var response = new OtpResponseLog { 
                 Operator = OperatorType.IVN,
                 Topic = "IVN otp sending",
                 TrackingStatus = SmsTrackingStatus.Delivered
@@ -44,7 +44,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             return response;
         }
 
-        public override SmsTrackingLog CheckMessageStatus(SendOtpResponseLog response)
+        public override OtpTrackingLog CheckMessageStatus(OtpResponseLog response)
         {
            throw new NotSupportedException();
         }

@@ -5,15 +5,16 @@ using System.Threading.Tasks;
 
 namespace bbt.gateway.messaging.Models
 {
-    public class SendOtpRequestLog
+    public class SmsLog
     {
-        public Guid Id { get; set; } = Guid.NewGuid();
+        public Guid Id { get; set; }
         public PhoneConfiguration PhoneConfiguration { get; set; }
-        public Phone Phone { get; set; }
         public string Content { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public OperatorType Operator { get; set; }
+        public int OperatorResponseCode { get; set; }
+        public string OperatorResponseMessage { get; set; }
+        public string Status { get; set; }
         public Process CreatedBy { get; set; }
-        public ICollection<SendOtpResponseLog> ResponseLogs { get; set; } = new List<SendOtpResponseLog>();
-        
+        public DateTime CreatedAt { get; set; }
     }
 }

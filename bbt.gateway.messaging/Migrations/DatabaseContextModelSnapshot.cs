@@ -17,6 +17,71 @@ namespace bbt.gateway.messaging.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.0-rc.2.21480.5");
 
+            modelBuilder.Entity("bbt.gateway.messaging.Models.BlackListEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("PhoneConfigurationId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("ResolvedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Source")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("ValidTo")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PhoneConfigurationId");
+
+                    b.ToTable("BlackListEntries");
+                });
+
+            modelBuilder.Entity("bbt.gateway.messaging.Models.BlackListEntryLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Action")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("BlackListEntryId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ParameterMaster")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ParameterSlave")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Type")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BlackListEntryId");
+
+                    b.ToTable("BlackListEntryLog");
+                });
+
             modelBuilder.Entity("bbt.gateway.messaging.Models.Header", b =>
                 {
                     b.Property<Guid>("Id")
@@ -60,7 +125,7 @@ namespace bbt.gateway.messaging.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("745afc79-4fae-4215-9bef-05878b4746b7"),
+                            Id = new Guid("f388d07e-a8f5-4be0-8892-f6a163895a13"),
                             ContentType = 0,
                             EmailTemplatePrefix = "generic",
                             SmsPrefix = "Dear Honey,",
@@ -70,7 +135,7 @@ namespace bbt.gateway.messaging.Migrations
                         },
                         new
                         {
-                            Id = new Guid("11b559cd-6030-4972-8b2d-f1b39fbbc402"),
+                            Id = new Guid("e787a54d-740d-456d-8db7-ae6c84207ce0"),
                             Branch = 2000,
                             ContentType = 0,
                             EmailTemplatePrefix = "on",
@@ -145,69 +210,91 @@ namespace bbt.gateway.messaging.Migrations
                         });
                 });
 
-            modelBuilder.Entity("bbt.gateway.messaging.Models.OtpBlackListEntry", b =>
+            modelBuilder.Entity("bbt.gateway.messaging.Models.OtpRequestLog", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Content")
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("PhoneConfigurationId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Reason")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime?>("ResolvedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Source")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("ValidTo")
+                    b.Property<Guid?>("PhoneConfigurationId")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
                     b.HasIndex("PhoneConfigurationId");
 
-                    b.ToTable("OtpBlackListEntries");
+                    b.ToTable("OtpRequestLogs");
                 });
 
-            modelBuilder.Entity("bbt.gateway.messaging.Models.OtpBlackListEntryLog", b =>
+            modelBuilder.Entity("bbt.gateway.messaging.Models.OtpResponseLog", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Action")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid?>("BlackListEntryId")
-                        .HasColumnType("TEXT");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("ParameterMaster")
+                    b.Property<int>("Operator")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid?>("OtpRequestLogId")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("ParameterSlave")
+                    b.Property<int>("ResponseCode")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ResponseMessage")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Type")
+                    b.Property<string>("StatusQueryId")
                         .HasColumnType("TEXT");
+
+                    b.Property<string>("Topic")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("TrackingStatus")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BlackListEntryId");
+                    b.HasIndex("OtpRequestLogId");
 
-                    b.ToTable("OtpBlackListEntryLog");
+                    b.ToTable("OtpResponseLog");
+                });
+
+            modelBuilder.Entity("bbt.gateway.messaging.Models.OtpTrackingLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Detail")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("LogId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("OtpResponseLogId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("QueriedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OtpResponseLogId");
+
+                    b.ToTable("OtpTrackingLog");
                 });
 
             modelBuilder.Entity("bbt.gateway.messaging.Models.PhoneConfiguration", b =>
@@ -255,66 +342,7 @@ namespace bbt.gateway.messaging.Migrations
                     b.ToTable("PhoneConfigurationLog");
                 });
 
-            modelBuilder.Entity("bbt.gateway.messaging.Models.SendOtpRequestLog", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Content")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid?>("PhoneConfigurationId")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PhoneConfigurationId");
-
-                    b.ToTable("SendOtpRequestLog");
-                });
-
-            modelBuilder.Entity("bbt.gateway.messaging.Models.SendOtpResponseLog", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Operator")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("ResponseCode")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("ResponseMessage")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid?>("SendOtpRequestLogId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("StatusQueryId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Topic")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("TrackingStatus")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SendOtpRequestLogId");
-
-                    b.ToTable("SendOtpResponseLog");
-                });
-
-            modelBuilder.Entity("bbt.gateway.messaging.Models.SendSmsLog", b =>
+            modelBuilder.Entity("bbt.gateway.messaging.Models.SmsLog", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -335,7 +363,7 @@ namespace bbt.gateway.messaging.Migrations
                     b.Property<string>("OperatorResponseMessage")
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid?>("PhoneId")
+                    b.Property<Guid?>("PhoneConfigurationId")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Status")
@@ -343,37 +371,12 @@ namespace bbt.gateway.messaging.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PhoneId");
+                    b.HasIndex("PhoneConfigurationId");
 
-                    b.ToTable("SendSmsLog");
+                    b.ToTable("SmsLogs");
                 });
 
-            modelBuilder.Entity("bbt.gateway.messaging.Models.SmsTrackingLog", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Detail")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("QueriedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("SendOtpResponseLogId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SendOtpResponseLogId");
-
-                    b.ToTable("SmsTrackingLog");
-                });
-
-            modelBuilder.Entity("bbt.gateway.messaging.Models.OtpBlackListEntry", b =>
+            modelBuilder.Entity("bbt.gateway.messaging.Models.BlackListEntry", b =>
                 {
                     b.HasOne("bbt.gateway.messaging.Models.PhoneConfiguration", "PhoneConfiguration")
                         .WithMany("BlacklistEntries")
@@ -383,7 +386,7 @@ namespace bbt.gateway.messaging.Migrations
 
                     b.OwnsOne("bbt.gateway.messaging.Models.Process", "CreatedBy", b1 =>
                         {
-                            b1.Property<Guid>("OtpBlackListEntryId")
+                            b1.Property<Guid>("BlackListEntryId")
                                 .HasColumnType("TEXT");
 
                             b1.Property<string>("Action")
@@ -398,17 +401,17 @@ namespace bbt.gateway.messaging.Migrations
                             b1.Property<string>("Name")
                                 .HasColumnType("TEXT");
 
-                            b1.HasKey("OtpBlackListEntryId");
+                            b1.HasKey("BlackListEntryId");
 
-                            b1.ToTable("OtpBlackListEntries");
+                            b1.ToTable("BlackListEntries");
 
                             b1.WithOwner()
-                                .HasForeignKey("OtpBlackListEntryId");
+                                .HasForeignKey("BlackListEntryId");
                         });
 
                     b.OwnsOne("bbt.gateway.messaging.Models.Process", "ResolvedBy", b1 =>
                         {
-                            b1.Property<Guid>("OtpBlackListEntryId")
+                            b1.Property<Guid>("BlackListEntryId")
                                 .HasColumnType("TEXT");
 
                             b1.Property<string>("Action")
@@ -423,12 +426,12 @@ namespace bbt.gateway.messaging.Migrations
                             b1.Property<string>("Name")
                                 .HasColumnType("TEXT");
 
-                            b1.HasKey("OtpBlackListEntryId");
+                            b1.HasKey("BlackListEntryId");
 
-                            b1.ToTable("OtpBlackListEntries");
+                            b1.ToTable("BlackListEntries");
 
                             b1.WithOwner()
-                                .HasForeignKey("OtpBlackListEntryId");
+                                .HasForeignKey("BlackListEntryId");
                         });
 
                     b.Navigation("CreatedBy");
@@ -438,15 +441,15 @@ namespace bbt.gateway.messaging.Migrations
                     b.Navigation("ResolvedBy");
                 });
 
-            modelBuilder.Entity("bbt.gateway.messaging.Models.OtpBlackListEntryLog", b =>
+            modelBuilder.Entity("bbt.gateway.messaging.Models.BlackListEntryLog", b =>
                 {
-                    b.HasOne("bbt.gateway.messaging.Models.OtpBlackListEntry", "BlackListEntry")
+                    b.HasOne("bbt.gateway.messaging.Models.BlackListEntry", "BlackListEntry")
                         .WithMany("Logs")
                         .HasForeignKey("BlackListEntryId");
 
                     b.OwnsOne("bbt.gateway.messaging.Models.Process", "CreatedBy", b1 =>
                         {
-                            b1.Property<Guid>("OtpBlackListEntryLogId")
+                            b1.Property<Guid>("BlackListEntryLogId")
                                 .HasColumnType("TEXT");
 
                             b1.Property<string>("Action")
@@ -461,17 +464,91 @@ namespace bbt.gateway.messaging.Migrations
                             b1.Property<string>("Name")
                                 .HasColumnType("TEXT");
 
-                            b1.HasKey("OtpBlackListEntryLogId");
+                            b1.HasKey("BlackListEntryLogId");
 
-                            b1.ToTable("OtpBlackListEntryLog");
+                            b1.ToTable("BlackListEntryLog");
 
                             b1.WithOwner()
-                                .HasForeignKey("OtpBlackListEntryLogId");
+                                .HasForeignKey("BlackListEntryLogId");
                         });
 
                     b.Navigation("BlackListEntry");
 
                     b.Navigation("CreatedBy");
+                });
+
+            modelBuilder.Entity("bbt.gateway.messaging.Models.OtpRequestLog", b =>
+                {
+                    b.HasOne("bbt.gateway.messaging.Models.PhoneConfiguration", "PhoneConfiguration")
+                        .WithMany("OtpLogs")
+                        .HasForeignKey("PhoneConfigurationId");
+
+                    b.OwnsOne("bbt.gateway.messaging.Models.Process", "CreatedBy", b1 =>
+                        {
+                            b1.Property<Guid>("OtpRequestLogId")
+                                .HasColumnType("TEXT");
+
+                            b1.Property<string>("Action")
+                                .HasColumnType("TEXT");
+
+                            b1.Property<string>("Identity")
+                                .HasColumnType("TEXT");
+
+                            b1.Property<string>("ItemId")
+                                .HasColumnType("TEXT");
+
+                            b1.Property<string>("Name")
+                                .HasColumnType("TEXT");
+
+                            b1.HasKey("OtpRequestLogId");
+
+                            b1.ToTable("OtpRequestLogs");
+
+                            b1.WithOwner()
+                                .HasForeignKey("OtpRequestLogId");
+                        });
+
+                    b.OwnsOne("bbt.gateway.messaging.Models.Phone", "Phone", b1 =>
+                        {
+                            b1.Property<Guid>("OtpRequestLogId")
+                                .HasColumnType("TEXT");
+
+                            b1.Property<int>("CountryCode")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<int>("Number")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<int>("Prefix")
+                                .HasColumnType("INTEGER");
+
+                            b1.HasKey("OtpRequestLogId");
+
+                            b1.ToTable("OtpRequestLogs");
+
+                            b1.WithOwner()
+                                .HasForeignKey("OtpRequestLogId");
+                        });
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("Phone");
+
+                    b.Navigation("PhoneConfiguration");
+                });
+
+            modelBuilder.Entity("bbt.gateway.messaging.Models.OtpResponseLog", b =>
+                {
+                    b.HasOne("bbt.gateway.messaging.Models.OtpRequestLog", null)
+                        .WithMany("ResponseLogs")
+                        .HasForeignKey("OtpRequestLogId");
+                });
+
+            modelBuilder.Entity("bbt.gateway.messaging.Models.OtpTrackingLog", b =>
+                {
+                    b.HasOne("bbt.gateway.messaging.Models.OtpResponseLog", null)
+                        .WithMany("TrackingLogs")
+                        .HasForeignKey("OtpResponseLogId");
                 });
 
             modelBuilder.Entity("bbt.gateway.messaging.Models.PhoneConfiguration", b =>
@@ -537,15 +614,15 @@ namespace bbt.gateway.messaging.Migrations
                     b.Navigation("Phone");
                 });
 
-            modelBuilder.Entity("bbt.gateway.messaging.Models.SendOtpRequestLog", b =>
+            modelBuilder.Entity("bbt.gateway.messaging.Models.SmsLog", b =>
                 {
                     b.HasOne("bbt.gateway.messaging.Models.PhoneConfiguration", "PhoneConfiguration")
-                        .WithMany("OtpLogs")
+                        .WithMany("SmsLogs")
                         .HasForeignKey("PhoneConfigurationId");
 
                     b.OwnsOne("bbt.gateway.messaging.Models.Process", "CreatedBy", b1 =>
                         {
-                            b1.Property<Guid>("SendOtpRequestLogId")
+                            b1.Property<Guid>("SmsLogId")
                                 .HasColumnType("TEXT");
 
                             b1.Property<string>("Action")
@@ -560,98 +637,32 @@ namespace bbt.gateway.messaging.Migrations
                             b1.Property<string>("Name")
                                 .HasColumnType("TEXT");
 
-                            b1.HasKey("SendOtpRequestLogId");
+                            b1.HasKey("SmsLogId");
 
-                            b1.ToTable("SendOtpRequestLog");
-
-                            b1.WithOwner()
-                                .HasForeignKey("SendOtpRequestLogId");
-                        });
-
-                    b.OwnsOne("bbt.gateway.messaging.Models.Phone", "Phone", b1 =>
-                        {
-                            b1.Property<Guid>("SendOtpRequestLogId")
-                                .HasColumnType("TEXT");
-
-                            b1.Property<int>("CountryCode")
-                                .HasColumnType("INTEGER");
-
-                            b1.Property<int>("Number")
-                                .HasColumnType("INTEGER");
-
-                            b1.Property<int>("Prefix")
-                                .HasColumnType("INTEGER");
-
-                            b1.HasKey("SendOtpRequestLogId");
-
-                            b1.ToTable("SendOtpRequestLog");
+                            b1.ToTable("SmsLogs");
 
                             b1.WithOwner()
-                                .HasForeignKey("SendOtpRequestLogId");
+                                .HasForeignKey("SmsLogId");
                         });
 
                     b.Navigation("CreatedBy");
-
-                    b.Navigation("Phone");
 
                     b.Navigation("PhoneConfiguration");
                 });
 
-            modelBuilder.Entity("bbt.gateway.messaging.Models.SendOtpResponseLog", b =>
-                {
-                    b.HasOne("bbt.gateway.messaging.Models.SendOtpRequestLog", null)
-                        .WithMany("ResponseLogs")
-                        .HasForeignKey("SendOtpRequestLogId");
-                });
-
-            modelBuilder.Entity("bbt.gateway.messaging.Models.SendSmsLog", b =>
-                {
-                    b.HasOne("bbt.gateway.messaging.Models.PhoneConfiguration", "Phone")
-                        .WithMany("SmsLogs")
-                        .HasForeignKey("PhoneId");
-
-                    b.OwnsOne("bbt.gateway.messaging.Models.Process", "CreatedBy", b1 =>
-                        {
-                            b1.Property<Guid>("SendSmsLogId")
-                                .HasColumnType("TEXT");
-
-                            b1.Property<string>("Action")
-                                .HasColumnType("TEXT");
-
-                            b1.Property<string>("Identity")
-                                .HasColumnType("TEXT");
-
-                            b1.Property<string>("ItemId")
-                                .HasColumnType("TEXT");
-
-                            b1.Property<string>("Name")
-                                .HasColumnType("TEXT");
-
-                            b1.HasKey("SendSmsLogId");
-
-                            b1.ToTable("SendSmsLog");
-
-                            b1.WithOwner()
-                                .HasForeignKey("SendSmsLogId");
-                        });
-
-                    b.Navigation("CreatedBy");
-
-                    b.Navigation("Phone");
-                });
-
-            modelBuilder.Entity("bbt.gateway.messaging.Models.SmsTrackingLog", b =>
-                {
-                    b.HasOne("bbt.gateway.messaging.Models.SendOtpResponseLog", null)
-                        .WithMany("TrackingLogs")
-                        .HasForeignKey("SendOtpResponseLogId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("bbt.gateway.messaging.Models.OtpBlackListEntry", b =>
+            modelBuilder.Entity("bbt.gateway.messaging.Models.BlackListEntry", b =>
                 {
                     b.Navigation("Logs");
+                });
+
+            modelBuilder.Entity("bbt.gateway.messaging.Models.OtpRequestLog", b =>
+                {
+                    b.Navigation("ResponseLogs");
+                });
+
+            modelBuilder.Entity("bbt.gateway.messaging.Models.OtpResponseLog", b =>
+                {
+                    b.Navigation("TrackingLogs");
                 });
 
             modelBuilder.Entity("bbt.gateway.messaging.Models.PhoneConfiguration", b =>
@@ -663,16 +674,6 @@ namespace bbt.gateway.messaging.Migrations
                     b.Navigation("OtpLogs");
 
                     b.Navigation("SmsLogs");
-                });
-
-            modelBuilder.Entity("bbt.gateway.messaging.Models.SendOtpRequestLog", b =>
-                {
-                    b.Navigation("ResponseLogs");
-                });
-
-            modelBuilder.Entity("bbt.gateway.messaging.Models.SendOtpResponseLog", b =>
-                {
-                    b.Navigation("TrackingLogs");
                 });
 #pragma warning restore 612, 618
         }

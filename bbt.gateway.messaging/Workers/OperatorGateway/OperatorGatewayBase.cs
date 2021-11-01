@@ -21,13 +21,13 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
         }
         protected Operator OperatorConfig { get; set; }
 
-        public abstract SmsTrackingLog CheckMessageStatus(SendOtpResponseLog response);
+        public abstract OtpTrackingLog CheckMessageStatus(OtpResponseLog response);
 
-        public void TrackMessageStatus(SendOtpResponseLog response)
+        public void TrackMessageStatus(OtpResponseLog response)
         {
             System.Diagnostics.Debug.WriteLine($"{Type} tracking otp is started");
 
-            List<SmsTrackingLog> logs = new List<SmsTrackingLog>();
+            List<OtpTrackingLog> logs = new List<OtpTrackingLog>();
 
             var maxRetryCount = 5;
             while (maxRetryCount-- > 0)

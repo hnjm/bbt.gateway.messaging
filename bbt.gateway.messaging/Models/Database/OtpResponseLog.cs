@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace bbt.gateway.messaging.Models
 {
-    public class SendOtpResponseLog
+    public class OtpResponseLog
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public OperatorType Operator { get; set; }
@@ -14,7 +14,7 @@ namespace bbt.gateway.messaging.Models
         public string ResponseMessage { get; set; }
         public string StatusQueryId { get; set; }
         public SmsTrackingStatus TrackingStatus { get; set; }
-        public ICollection<SmsTrackingLog> TrackingLogs { get; set; } = new List<SmsTrackingLog>();
+        public ICollection<OtpTrackingLog> TrackingLogs { get; set; } = new List<OtpTrackingLog>();
         public DateTime CreatedAt { get; set; } = DateTime.Now;
     }
 }

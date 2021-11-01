@@ -13,10 +13,10 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
         {
             Type = OperatorType.Vodafone;
         }
-        public void SendOtp(Phone phone, string content, ConcurrentBag<SendOtpResponseLog> responses, Header header, bool useControlDays)
+        public void SendOtp(Phone phone, string content, ConcurrentBag<OtpResponseLog> responses, Header header, bool useControlDays)
         {
 
-            var response = new SendOtpResponseLog
+            var response = new OtpResponseLog
             {
                 Operator = OperatorType.Vodafone,
                 Topic = "Vodafone otp sending",
@@ -31,9 +31,9 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             Task.Run(() => TrackMessageStatus(response));
         }
 
-        public SendOtpResponseLog SendOtp(Phone phone, string content, Header header)
+        public OtpResponseLog SendOtp(Phone phone, string content, Header header)
         {
-            var response = new SendOtpResponseLog
+            var response = new OtpResponseLog
             {
                 Operator = OperatorType.Vodafone,
                 Topic = "Vodafone otp sending",
@@ -46,9 +46,9 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
             return response;
         }
-        public override SmsTrackingLog CheckMessageStatus(SendOtpResponseLog response)
+        public override OtpTrackingLog CheckMessageStatus(OtpResponseLog response)
         {
-           return new SmsTrackingLog { SendOtpResponseLogId = response.Id, Status = SmsTrackingStatus.Pending, Detail = "No details" };
+           return new OtpTrackingLog { LogId = response.Id, Status = SmsTrackingStatus.Pending, Detail = "No details" };
         }
     }
 }

@@ -9,8 +9,8 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 {
     public interface IOperatorGateway
     {
-        void SendOtp(Phone phone, string content, ConcurrentBag<SendOtpResponseLog> responses, Header header, bool useControlDays);
-        SendOtpResponseLog SendOtp(Phone phone, string content, Header header);
+        void SendOtp(Phone phone, string content, ConcurrentBag<OtpResponseLog> responses, Header header, bool useControlDays);
+        OtpResponseLog SendOtp(Phone phone, string content, Header header);
 
     }
 }

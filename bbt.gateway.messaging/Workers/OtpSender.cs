@@ -13,7 +13,7 @@ namespace bbt.gateway.messaging.Workers
     {
         SendMessageSmsRequest _data;
 
-        SendOtpRequestLog _requestLog;
+        OtpRequestLog _requestLog;
 
         Type[] operators = new Type[] { typeof(OperatorTurkcell), typeof(OperatorVodafone), typeof(OperatorTurkTelekom) };
 
@@ -21,7 +21,7 @@ namespace bbt.gateway.messaging.Workers
         {
             _data = data;
 
-            _requestLog = new SendOtpRequestLog
+            _requestLog = new OtpRequestLog
             {
                 CreatedBy = _data.Process,
                 Phone = _data.Phone
@@ -93,11 +93,11 @@ namespace bbt.gateway.messaging.Workers
             return returnValue;
         }
 
-        private List<SendOtpResponseLog> SendMessageToUnknown(PhoneConfiguration phoneConfiguration, bool useControlDays)
+        private List<OtpResponseLog> SendMessageToUnknown(PhoneConfiguration phoneConfiguration, bool useControlDays)
         {
             Header header = loadHeader(phoneConfiguration);
 
-            ConcurrentBag<SendOtpResponseLog> responses = new ConcurrentBag<SendOtpResponseLog>();
+            ConcurrentBag<OtpResponseLog> responses = new ConcurrentBag<OtpResponseLog>();
 
             Parallel.ForEach(operators, currentElement =>
             {
@@ -108,7 +108,7 @@ namespace bbt.gateway.messaging.Workers
             return responses.ToList();
         }
 
-        private SendOtpResponseLog SendMessageToKnown(PhoneConfiguration phoneConfiguration)
+        private OtpResponseLog SendMessageToKnown(PhoneConfiguration phoneConfiguration)
         {
             IOperatorGateway gateway = null;
             Header header = loadHeader(phoneConfiguration);
