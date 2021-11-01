@@ -25,6 +25,22 @@ namespace bbt.gateway.messaging.Workers
             }
         }
 
+
+        public Header[] Get(int page, int pageSize)
+        {
+
+            Header[] returnValue;
+
+            using (var db = new DatabaseContext())
+            {
+                returnValue = db.Headers
+                    .Skip(page * pageSize)
+                    .Take(pageSize)
+                    .ToArray();
+            }
+            return returnValue;
+        }
+
         public Header Get(PhoneConfiguration config, MessageContentType contentType)
         {
             Header header = null;
@@ -69,7 +85,7 @@ namespace bbt.gateway.messaging.Workers
                 }
                 db.SaveChanges();
             }
-            
+
             //TODO: Meanwhile, dont forget to inform other pods to invalidate headers cahce.
             loadHeaders();
         }
@@ -78,11 +94,11 @@ namespace bbt.gateway.messaging.Workers
         {
             using (var db = new DatabaseContext())
             {
-                var itemToDelete = new Header {Id = id};
+                var itemToDelete = new Header { Id = id };
                 db.Remove(itemToDelete);
                 db.SaveChanges();
             }
-            
+
             //TODO: Meanwhile, dont forget to inform other pods to invalidate headers cahce.
             loadHeaders();
         }

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using bbt.gateway.messaging;
 
@@ -10,9 +11,10 @@ using bbt.gateway.messaging;
 namespace bbt.gateway.messaging.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20211101102905_Reset4")]
+    partial class Reset4
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.0-rc.2.21480.5");
@@ -125,7 +127,7 @@ namespace bbt.gateway.messaging.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("7fd4c8cd-1dbf-4bb9-9cbf-4fadb0e4918a"),
+                            Id = new Guid("f6dc3169-bb75-49a9-b37b-5cf217c87938"),
                             ContentType = 0,
                             EmailTemplatePrefix = "generic",
                             SmsPrefix = "Dear Honey,",
@@ -135,7 +137,7 @@ namespace bbt.gateway.messaging.Migrations
                         },
                         new
                         {
-                            Id = new Guid("d2991d8f-69e6-4dba-bb39-a5c40cdb3a25"),
+                            Id = new Guid("3629e2fe-a77e-4eb9-ae65-29f28acde8f9"),
                             Branch = 2000,
                             ContentType = 0,
                             EmailTemplatePrefix = "on",
@@ -303,24 +305,24 @@ namespace bbt.gateway.messaging.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<long>("$id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
                     b.Property<int?>("CustomerNo")
                         .HasColumnType("INTEGER");
 
                     b.Property<int?>("Operator")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("Id");
+                    b.Property<long>("_$id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
-                    b.HasIndex("$id")
-                        .IsUnique()
-                        .HasAnnotation("SqlServer:Clustered", true);
+                    b.HasKey("Id");
 
                     b.HasIndex("Id")
                         .HasAnnotation("SqlServer:Clustered", false);
+
+                    b.HasIndex("_$id")
+                        .IsUnique()
+                        .HasAnnotation("SqlServer:Clustered", true);
 
                     b.ToTable("PhoneConfigurations");
                 });

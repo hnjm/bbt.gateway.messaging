@@ -24,6 +24,16 @@ namespace bbt.gateway.messaging.Workers
             }
         }
 
+        public Operator[] Get()
+        {
+            Operator[] returnValue;
+            using (var db = new DatabaseContext())
+            {
+                returnValue = db.Operators.ToArray();
+            }
+            return returnValue;
+        }
+
         public Operator Get(OperatorType type)
         {
             return operators.FirstOrDefault(o => o.Type == type);
