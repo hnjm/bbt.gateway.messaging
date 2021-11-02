@@ -101,7 +101,7 @@ namespace bbt.gateway.messaging.Controllers
                     .Where(c => c.PhoneConfiguration.Phone.CountryCode == countryCode && c.PhoneConfiguration.Phone.Prefix == prefix && c.PhoneConfiguration.Phone.Number == number)
                     .Skip(page * pageSize)
                     .Take(pageSize)
-                    .ToArray();
+                    .ToArray(); 
             }
 
             return Ok(returnValue);
