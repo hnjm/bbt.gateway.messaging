@@ -50,6 +50,7 @@ namespace bbt.gateway.messaging.Workers
                     !phoneConfiguration.BlacklistEntries.Any(b => b.Status == BlacklistStatus.NotResolved)
                 )
                 {
+                    //TODO: Operator ghonderemezse? Sim değişmişse?
                     var responseLog = SendMessageToKnown(phoneConfiguration);
                     _requestLog.ResponseLogs.Add(responseLog);
                     returnValue = responseLog.ResponseCode;
@@ -75,6 +76,8 @@ namespace bbt.gateway.messaging.Workers
 
                     // Decide which response code will be returned
                     returnValue = responseLogs.UnifyResponse();
+
+                    //TODO: Blackliste eklenmesi gerekiyorsa ekle.
 
                     // Update with valid operator if any otp sending 
                     var successAttempt = responseLogs.FirstOrDefault(l => l.ResponseCode == SendSmsResponseStatus.Success);

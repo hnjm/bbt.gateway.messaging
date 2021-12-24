@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using bbt.gateway.messaging;
 
@@ -10,9 +11,10 @@ using bbt.gateway.messaging;
 namespace bbt.gateway.messaging.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20211102141237_localtest")]
+    partial class localtest
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.0-rc.2.21480.5");
@@ -125,7 +127,7 @@ namespace bbt.gateway.messaging.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("d83edeb9-9b3c-493c-b1c4-0487d5485eb7"),
+                            Id = new Guid("817ece01-c4e2-4bb0-97cf-f68195af17c4"),
                             ContentType = 0,
                             EmailTemplatePrefix = "generic",
                             SmsPrefix = "Dear Honey,",
@@ -135,7 +137,7 @@ namespace bbt.gateway.messaging.Migrations
                         },
                         new
                         {
-                            Id = new Guid("9f91d62a-d280-4bec-92eb-6eee6fafa285"),
+                            Id = new Guid("4fc3cd9a-87b2-47c7-afaa-62d50bcf0844"),
                             Branch = 2000,
                             ContentType = 0,
                             EmailTemplatePrefix = "on",
@@ -151,20 +153,8 @@ namespace bbt.gateway.messaging.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("AuthanticationService")
-                        .HasColumnType("TEXT");
-
                     b.Property<int>("ControlDaysForOtp")
                         .HasColumnType("INTEGER");
-
-                    b.Property<string>("Password")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("QueryService")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("SendService")
-                        .HasColumnType("TEXT");
 
                     b.Property<int>("Status")
                         .HasColumnType("INTEGER");
@@ -174,9 +164,6 @@ namespace bbt.gateway.messaging.Migrations
 
                     b.Property<bool>("UseIvnWhenDeactive")
                         .HasColumnType("INTEGER");
-
-                    b.Property<string>("User")
-                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
