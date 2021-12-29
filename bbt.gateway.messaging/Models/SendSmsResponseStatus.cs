@@ -16,4 +16,6 @@ namespace bbt.gateway.messaging.Models
         ClientError = 465,
         ServerError = 466,
     }
+
+   
 }

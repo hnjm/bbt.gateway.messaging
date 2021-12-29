@@ -15,17 +15,16 @@ namespace bbt.gateway.messaging
         public DbSet<BlackListEntry> BlackListEntries { get; set; }
         public DbSet<OtpRequestLog> OtpRequestLogs { get; set; }
         public DbSet<SmsLog> SmsLogs { get; set; }
-        public string DbPath { get; set; }
 
-        public DatabaseContext()
+        public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options)
         {
-            DbPath = $"messaging.db";
+            
         }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder options)
-        {
-            options.UseSqlite($"Data Source={DbPath}; Foreign Keys = False");
-        }
+        //protected override void OnConfiguring(DbContextOptionsBuilder options)
+        //{
+        //    options.UseSqlite($"Data Source={DbPath}; Foreign Keys = False");
+        //}
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -44,14 +43,14 @@ namespace bbt.gateway.messaging
                 .HasIndex(c => c.Id)
                 .IsClustered(false);
 
-            builder.Entity<PhoneConfiguration>() 
-                .Property<long>("$id")
-                .ValueGeneratedOnAdd();
+            //builder.Entity<PhoneConfiguration>() 
+            //    .Property<long>("$id")
+            //    .ValueGeneratedOnAdd();
 
-            builder.Entity<PhoneConfiguration>()
-                .HasIndex("$id")
-                .IsUnique()
-                .IsClustered(true);
+            //builder.Entity<PhoneConfiguration>()
+            //    .HasIndex("$id")
+            //    .IsUnique()
+            //    .IsClustered(true);
 
             builder.Entity<Operator>().HasData(new Operator { Id = 1, Type = OperatorType.Turkcell, ControlDaysForOtp = 60, Status = OperatorStatus.Active });
             builder.Entity<Operator>().HasData(new Operator { Id = 2, Type = OperatorType.Vodafone, ControlDaysForOtp = 60, Status = OperatorStatus.Active });

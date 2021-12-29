@@ -3,9 +3,9 @@ using bbt.gateway.messaging.Workers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Swashbuckle.AspNetCore.Annotations;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace bbt.gateway.messaging.Controllers
@@ -15,10 +15,12 @@ namespace bbt.gateway.messaging.Controllers
     public class Messaging : ControllerBase
     {
         private readonly ILogger<Messaging> _logger;
+        private readonly OtpSender _otpSender;
 
-        public Messaging(ILogger<Messaging> logger)
+        public Messaging(ILogger<Messaging> logger,OtpSender otpSender)
         {
             _logger = logger;
+            _otpSender = otpSender;
         }
 
         
@@ -46,10 +48,12 @@ namespace bbt.gateway.messaging.Controllers
         [SwaggerResponse(200, "Sms was sent successfully", typeof(SendSmsResponse))]
         [SwaggerResponse(465, "Sim card is changed.", typeof(void))]
         [SwaggerResponse(466, "Operator is changed.", typeof(void))]
-        public IActionResult SendMessageSms([FromBody] SendMessageSmsRequest data)
+        public async Task<IActionResult> SendMessageSms([FromBody] SendMessageSmsRequest data)
         {
-            new OtpSender(data).SendMessage();
-            return Ok();
+ 
+            var res = await _otpSender.SendMessage(data);
+            return Ok(res);
+
         }
 
         /* For Future development

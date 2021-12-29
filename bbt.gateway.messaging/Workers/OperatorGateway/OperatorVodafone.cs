@@ -1,15 +1,12 @@
 ﻿using bbt.gateway.messaging.Models;
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace bbt.gateway.messaging.Workers.OperatorGateway
 {
     public class OperatorVodafone : OperatorGatewayBase, IOperatorGateway
     {
-        public OperatorVodafone()
+        public OperatorVodafone(OperatorManager operatorManager, DatabaseContext databaseContext) : base (operatorManager,databaseContext)
         {
             Type = OperatorType.Vodafone;
         }
@@ -31,7 +28,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             Task.Run(() => TrackMessageStatus(response));
         }
 
-        public OtpResponseLog SendOtp(Phone phone, string content, Header header)
+        public async Task<OtpResponseLog> SendOtp(Phone phone, string content, Header header)
         {
             var response = new OtpResponseLog
             {
@@ -46,9 +43,10 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
             return response;
         }
-        public override OtpTrackingLog CheckMessageStatus(OtpResponseLog response)
+        public override Task<OtpTrackingLog> CheckMessageStatus(OtpResponseLog response)
         {
-           return new OtpTrackingLog { LogId = response.Id, Status = SmsTrackingStatus.Pending, Detail = "No details" };
+            return null;
+           //return new OtpTrackingLog { LogId = response.Id, Status = SmsTrackingStatus.Pending, Detail = "No details" };
         }
     }
 }

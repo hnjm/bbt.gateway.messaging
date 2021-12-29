@@ -1,43 +1,30 @@
 ﻿using bbt.gateway.messaging.Models;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace bbt.gateway.messaging.Workers
 {
     public class HeaderManager
     {
+        private readonly DatabaseContext _databaseContext;
         public List<Header> Headers = new List<Header>();
 
-        private HeaderManager()
+        public HeaderManager(DatabaseContext databaseContext)
         {
+            _databaseContext = databaseContext;
             loadHeaders();
         }
-
-        private static readonly Lazy<HeaderManager> lazy = new Lazy<HeaderManager>(() => new HeaderManager());
-        public static HeaderManager Instance
-        {
-            get
-            {
-                return lazy.Value;
-            }
-        }
-
 
         public Header[] Get(int page, int pageSize)
         {
 
             Header[] returnValue;
-
-            using (var db = new DatabaseContext())
-            {
-                returnValue = db.Headers
-                    .Skip(page * pageSize)
-                    .Take(pageSize)
-                    .ToArray();
-            }
+            returnValue = _databaseContext.Headers
+                .Skip(page * pageSize)
+                .Take(pageSize)
+                .ToArray();
+            
             return returnValue;
         }
 
@@ -71,20 +58,18 @@ namespace bbt.gateway.messaging.Workers
 
         public void Save(Header header)
         {
-            using (var db = new DatabaseContext())
+            
+            if (header.Id == Guid.Empty)
             {
-
-                if (header.Id == Guid.Empty)
-                {
-                    header.Id = Guid.NewGuid();
-                    db.Headers.Add(header);
-                }
-                else
-                {
-                    db.Headers.Update(header);
-                }
-                db.SaveChanges();
+                header.Id = Guid.NewGuid();
+                _databaseContext.Headers.Add(header);
             }
+            else
+            {
+                _databaseContext.Headers.Update(header);
+            }
+            _databaseContext.SaveChanges();
+            
 
             //TODO: Meanwhile, dont forget to inform other pods to invalidate headers cahce.
             loadHeaders();
@@ -92,12 +77,10 @@ namespace bbt.gateway.messaging.Workers
 
         public void Delete(Guid id)
         {
-            using (var db = new DatabaseContext())
-            {
-                var itemToDelete = new Header { Id = id };
-                db.Remove(itemToDelete);
-                db.SaveChanges();
-            }
+            
+            var itemToDelete = new Header { Id = id };
+            _databaseContext.Remove(itemToDelete);
+            _databaseContext.SaveChanges();
 
             //TODO: Meanwhile, dont forget to inform other pods to invalidate headers cahce.
             loadHeaders();
@@ -124,10 +107,9 @@ namespace bbt.gateway.messaging.Workers
 
         private void loadHeaders()
         {
-            using (var db = new DatabaseContext())
-            {
-                Headers = db.Headers.ToList();
-            }
+            
+            Headers = _databaseContext.Headers.ToList();
+            
         }
 
 

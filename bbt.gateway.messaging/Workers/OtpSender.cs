@@ -11,134 +11,151 @@ namespace bbt.gateway.messaging.Workers
 {
     public class OtpSender
     {
+        private readonly DatabaseContext _databaseContext;
+        private readonly HeaderManager _headerManager;
+        private readonly OperatorManager _operatorManager;
+        private readonly Func<OperatorType, IOperatorGateway> _operatorRepository;
         SendMessageSmsRequest _data;
 
         OtpRequestLog _requestLog;
 
-        Type[] operators = new Type[] { typeof(OperatorTurkcell), typeof(OperatorVodafone), typeof(OperatorTurkTelekom) };
-
-        public OtpSender(SendMessageSmsRequest data)
+        //Type[] operators = new Type[] { typeof(OperatorTurkcell), typeof(OperatorVodafone), typeof(OperatorTurkTelekom) };
+        private readonly Dictionary<Type, OperatorType> operators = new Dictionary<Type, OperatorType>()
         {
-            _data = data;
+            { typeof(OperatorTurkcell) , OperatorType.Turkcell},
+            { typeof(OperatorVodafone) , OperatorType.Vodafone},
+            { typeof(OperatorTurkTelekom) , OperatorType.TurkTelekom},
+            { typeof(OperatorIVN) , OperatorType.IVN}
+        };
+        public OtpSender(DatabaseContext databaseContext,HeaderManager headerManager,OperatorManager operatorManager,
+            Func<OperatorType, IOperatorGateway> operatorRepository)
+        {
+            _databaseContext = databaseContext;
+            _headerManager = headerManager;
+            _operatorManager = operatorManager;
+            _operatorRepository = operatorRepository;
+        }
 
+        public async Task<SendSmsResponseStatus> SendMessage(SendMessageSmsRequest sendMessageSmsRequest)
+        {
+            SendSmsResponseStatus returnValue = SendSmsResponseStatus.ClientError;
+
+            _data = sendMessageSmsRequest;
             _requestLog = new OtpRequestLog
             {
                 CreatedBy = _data.Process,
                 Phone = _data.Phone
             };
-        }
 
-        public SendSmsResponseStatus SendMessage()
-        {
-            SendSmsResponseStatus returnValue = SendSmsResponseStatus.ClientError;
-
-            using (var db = new DatabaseContext())
-            {
-                // Load Phone configuration and related active blacklist entiries.
-                var phoneConfiguration = db.PhoneConfigurations.Where(i =>
-                    i.Phone.CountryCode == _data.Phone.CountryCode &&
-                    i.Phone.Prefix == _data.Phone.Prefix &&
-                    i.Phone.Number == _data.Phone.Number
-                    )
-                    .Include(c => c.BlacklistEntries.Where(b => b.ValidTo > DateTime.Today))
-                    .FirstOrDefault();
-
-                // if known number without any blacklist entry 
-                if (
-                    phoneConfiguration != null &&
-                    phoneConfiguration.Operator != null &&
-                    !phoneConfiguration.BlacklistEntries.Any(b => b.Status == BlacklistStatus.NotResolved)
+            // Load Phone configuration and related active blacklist entiries.
+            var phoneConfiguration = _databaseContext.PhoneConfigurations.Where(i =>
+                i.Phone.CountryCode == _data.Phone.CountryCode &&
+                i.Phone.Prefix == _data.Phone.Prefix &&
+                i.Phone.Number == _data.Phone.Number
                 )
-                {
-                    //TODO: Operator ghonderemezse? Sim değişmişse?
-                    var responseLog = SendMessageToKnown(phoneConfiguration);
-                    _requestLog.ResponseLogs.Add(responseLog);
-                    returnValue = responseLog.ResponseCode;
-                }
-                else
-                {
-                    //If configuration is not available then create clean phone configuration to phone number   
-                    if (phoneConfiguration == null)
-                    {
-                        phoneConfiguration = createNewPhoneConfiguration();
-                        db.Add(phoneConfiguration);
-                    }
+                .Include(c => c.BlacklistEntries.Where(b => b.ValidTo > DateTime.Today))
+                .FirstOrDefault();
 
-
-                    // If phone is in blacklist and reason is resolved, then do not apply black list control.
-                    var useControlDays = !(
-                        phoneConfiguration.BlacklistEntries != null &&
-                        phoneConfiguration.BlacklistEntries.Count > 0 &&
-                        phoneConfiguration.BlacklistEntries.All(b => b.Status == BlacklistStatus.Resolved)
-                        );
-
-                    var responseLogs = SendMessageToUnknown(phoneConfiguration, useControlDays);
-
-                    // Decide which response code will be returned
-                    returnValue = responseLogs.UnifyResponse();
-
-                    //TODO: Blackliste eklenmesi gerekiyorsa ekle.
-
-                    // Update with valid operator if any otp sending 
-                    var successAttempt = responseLogs.FirstOrDefault(l => l.ResponseCode == SendSmsResponseStatus.Success);
-                    if (successAttempt != null)
-                        phoneConfiguration.Operator = successAttempt.Operator;
-
-                    // Add all response logs to request log
-                    responseLogs.ForEach(l => _requestLog.ResponseLogs.Add(l));
-                }
-
-                _requestLog.PhoneConfiguration = phoneConfiguration;
-                db.Add(_requestLog);
-                db.SaveChanges();
+            // if known number without any blacklist entry 
+            if (
+                phoneConfiguration != null &&
+                phoneConfiguration.Operator != null &&
+                !phoneConfiguration.BlacklistEntries.Any(b => b.Status == BlacklistStatus.NotResolved)
+            )
+            {
+                //TODO: Operator ghonderemezse? Sim değişmişse?
+                var responseLog = await SendMessageToKnown(phoneConfiguration);
+                _requestLog.ResponseLogs.Add(responseLog);
+                returnValue = responseLog.ResponseCode;
             }
+            else
+            {
+                //If configuration is not available then create clean phone configuration to phone number   
+                if (phoneConfiguration == null)
+                {
+                    phoneConfiguration = createNewPhoneConfiguration();
+                    _databaseContext.Add(phoneConfiguration);
+                }
+
+
+                // If phone is in blacklist and reason is resolved, then do not apply black list control.
+                var useControlDays = !(
+                    phoneConfiguration.BlacklistEntries != null &&
+                    phoneConfiguration.BlacklistEntries.Count > 0 &&
+                    phoneConfiguration.BlacklistEntries.All(b => b.Status == BlacklistStatus.Resolved)
+                    );
+
+                var responseLogs = SendMessageToUnknown(phoneConfiguration, useControlDays);
+
+                // Decide which response code will be returned
+                returnValue = responseLogs.UnifyResponse();
+
+                //TODO: Blackliste eklenmesi gerekiyorsa ekle.
+                if (returnValue == SendSmsResponseStatus.OperatorChange || returnValue == SendSmsResponseStatus.SimChange)
+                { 
+                    
+                }
+
+
+                // Update with valid operator if any otp sending 
+                var successAttempt = responseLogs.FirstOrDefault(l => l.ResponseCode == SendSmsResponseStatus.Success);
+                if (successAttempt != null)
+                    phoneConfiguration.Operator = successAttempt.Operator;
+
+                // Add all response logs to request log
+                responseLogs.ForEach(l => _requestLog.ResponseLogs.Add(l));
+            }
+
+            _requestLog.PhoneConfiguration = phoneConfiguration;
+            _databaseContext.Add(_requestLog);
+            _databaseContext.SaveChanges();
+            
 
             return returnValue;
         }
 
         private List<OtpResponseLog> SendMessageToUnknown(PhoneConfiguration phoneConfiguration, bool useControlDays)
         {
-            var header = HeaderManager.Instance.Get(phoneConfiguration, _data.ContentType);
+            var header = _headerManager.Get(phoneConfiguration, _data.ContentType);
             _requestLog.Content = header.BuildContentForLog(_data.Content);
 
             ConcurrentBag<OtpResponseLog> responses = new ConcurrentBag<OtpResponseLog>();
 
-            Parallel.ForEach(operators, currentElement =>
+            Parallel.ForEach(operators, (currentElement) =>
             {
-                IOperatorGateway gateway = (IOperatorGateway)Activator.CreateInstance(currentElement);
+                IOperatorGateway gateway = (IOperatorGateway)_operatorRepository(currentElement.Value);
                 gateway.SendOtp(_data.Phone, header.BuildContentForSms(_data.Content), responses, header, useControlDays);
             });
 
             return responses.ToList();
         }
 
-        private OtpResponseLog SendMessageToKnown(PhoneConfiguration phoneConfiguration)
+        private async Task<OtpResponseLog> SendMessageToKnown(PhoneConfiguration phoneConfiguration)
         {
             IOperatorGateway gateway = null;
-             var header = HeaderManager.Instance.Get(phoneConfiguration, _data.ContentType);
+             var header = _headerManager.Get(phoneConfiguration, _data.ContentType);
             _requestLog.Content = header.BuildContentForLog(_data.Content);
 
             switch (phoneConfiguration.Operator)
             {
                 case OperatorType.Turkcell:
-                    gateway = new OperatorTurkcell();
+                    gateway = _operatorRepository(OperatorType.Turkcell);
                     break;
                 case OperatorType.Vodafone:
-                    gateway = new OperatorVodafone();
+                    gateway = _operatorRepository(OperatorType.Vodafone);
                     break;
-
                 case OperatorType.TurkTelekom:
-                    gateway = new OperatorTurkTelekom();
+                    gateway = _operatorRepository(OperatorType.TurkTelekom);
                     break;
                 case OperatorType.IVN:
-                    gateway = new OperatorIVN();
+                    gateway = _operatorRepository(OperatorType.IVN);
                     break;
                 default:
                     // Serious Exception
                     break;
             }
 
-            var result = gateway.SendOtp(_data.Phone, header.BuildContentForSms(_data.Content), header);
+            var result = await gateway.SendOtp(_data.Phone, header.BuildContentForSms(_data.Content), header);
 
             return result;
         }
@@ -159,6 +176,13 @@ namespace bbt.gateway.messaging.Workers
             };
 
             return newConfig;
+        }
+
+        private BlackListEntry createBlackListEntry(PhoneConfiguration phoneConfiguration)
+        {
+            var newBlackListEntry = new BlackListEntry();
+
+            return newBlackListEntry;
         }
     }
 }

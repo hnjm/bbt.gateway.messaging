@@ -15,11 +15,18 @@ namespace bbt.gateway.messaging.Controllers
     [Route("[controller]")]
     public class Administration : ControllerBase
     {
+        private readonly HeaderManager _headerManager;
+        private readonly OperatorManager _operatorManager;
+        private readonly DatabaseContext _databaseContext;
         private readonly ILogger<Administration> _logger;
 
-        public Administration(ILogger<Administration> logger)
+        public Administration(ILogger<Administration> logger,HeaderManager headerManager,OperatorManager operatorManager,
+            DatabaseContext databaseContext)
         {
             _logger = logger;
+            _headerManager = headerManager;
+            _operatorManager = operatorManager;
+            _databaseContext = databaseContext;
         }
 
         [SwaggerOperation(Summary = "Returns content headers configuration")]
@@ -27,7 +34,7 @@ namespace bbt.gateway.messaging.Controllers
         [SwaggerResponse(200, "Headers is returned successfully", typeof(Header[]))]
         public IActionResult GetHeaders([FromQuery][Range(0, 100)] int page = 0, [FromQuery][Range(1, 100)] int pageSize = 20)
         {
-            return Ok(HeaderManager.Instance.Get(page, pageSize));
+            return Ok(_headerManager.Get(page, pageSize));
         }
 
         [SwaggerOperation(Summary = "Save or update header configuration")]
@@ -35,7 +42,7 @@ namespace bbt.gateway.messaging.Controllers
         [SwaggerResponse(200, "Header is saved successfully", typeof(Header[]))]
         public IActionResult SaveHeader([FromBody] Header data)
         {
-            HeaderManager.Instance.Save(data);
+            _headerManager.Save(data);
             return Ok();
         }
 
@@ -44,7 +51,7 @@ namespace bbt.gateway.messaging.Controllers
         [SwaggerResponse(200, "Header is deleted successfully", typeof(Header[]))]
         public IActionResult DeleteHeader([FromQuery] Guid id)
         {
-            HeaderManager.Instance.Delete(id);
+            _headerManager.Delete(id);
             return Ok();
         }
 
@@ -53,7 +60,7 @@ namespace bbt.gateway.messaging.Controllers
         [SwaggerResponse(200, "Operators was returned successfully", typeof(Operator[]))]
         public IActionResult GetOperators()
         {
-            return Ok(OperatorManager.Instance.Get());
+            return Ok(_operatorManager.Get());
         }
 
         [SwaggerOperation(Summary = "Updated operator configuration")]
@@ -61,7 +68,7 @@ namespace bbt.gateway.messaging.Controllers
         [SwaggerResponse(200, "operator has saved successfully", typeof(void))]
         public IActionResult SaveOperator([FromBody] Operator data)
         {
-            OperatorManager.Instance.Save(data);
+            _operatorManager.Save(data);
             return Ok();
         }
 
@@ -73,16 +80,15 @@ namespace bbt.gateway.messaging.Controllers
         public IActionResult GetPhoneMonitorRecords(int countryCode, int prefix, int number)
         {
             PhoneConfiguration[] returnValue = null;
-            using (var db = new DatabaseContext())
-            {
-                returnValue = db.PhoneConfigurations
-                    .Where(c => c.Phone.CountryCode == countryCode && c.Phone.Prefix == prefix && c.Phone.Number == number)
-                    .Include(c => c.BlacklistEntries.Take(10).OrderBy(l => l.CreatedAt))
-                    .Include(c => c.OtpLogs.Take(10).OrderBy(l => l.CreatedAt))
-                    .Include(c => c.Logs.Take(10).OrderBy(l => l.CreatedAt))
-                    .Include(c => c.SmsLogs.Take(10).OrderBy(l => l.CreatedAt))
-                    .ToArray();
-            }
+            
+            returnValue = _databaseContext.PhoneConfigurations
+                .Where(c => c.Phone.CountryCode == countryCode && c.Phone.Prefix == prefix && c.Phone.Number == number)
+                .Include(c => c.BlacklistEntries.Take(10).OrderBy(l => l.CreatedAt))
+                .Include(c => c.OtpLogs.Take(10).OrderBy(l => l.CreatedAt))
+                .Include(c => c.Logs.Take(10).OrderBy(l => l.CreatedAt))
+                .Include(c => c.SmsLogs.Take(10).OrderBy(l => l.CreatedAt))
+                .ToArray();
+
             return Ok(returnValue);
         }
 
@@ -95,14 +101,11 @@ namespace bbt.gateway.messaging.Controllers
         {
             BlackListEntry[] returnValue = null;
 
-            using (var db = new DatabaseContext())
-            {
-                returnValue = db.BlackListEntries
-                    .Where(c => c.PhoneConfiguration.Phone.CountryCode == countryCode && c.PhoneConfiguration.Phone.Prefix == prefix && c.PhoneConfiguration.Phone.Number == number)
-                    .Skip(page * pageSize)
-                    .Take(pageSize)
-                    .ToArray(); 
-            }
+            returnValue = _databaseContext.BlackListEntries
+                .Where(c => c.PhoneConfiguration.Phone.CountryCode == countryCode && c.PhoneConfiguration.Phone.Prefix == prefix && c.PhoneConfiguration.Phone.Number == number)
+                .Skip(page * pageSize)
+                .Take(pageSize)
+                .ToArray(); 
 
             return Ok(returnValue);
         }
@@ -114,45 +117,44 @@ namespace bbt.gateway.messaging.Controllers
         {
             Guid newOtpBlackListEntryId = Guid.NewGuid();
 
-            using (var db = new DatabaseContext())
+           
+            var config = _databaseContext.PhoneConfigurations
+                .Where(c => c.Phone.CountryCode == data.Phone.CountryCode && c.Phone.Prefix == data.Phone.Prefix && c.Phone.Number == data.Phone.Number)
+                .FirstOrDefault();
+
+            if (config == null)
             {
-                var config = db.PhoneConfigurations
-                    .Where(c => c.Phone.CountryCode == data.Phone.CountryCode && c.Phone.Prefix == data.Phone.Prefix && c.Phone.Number == data.Phone.Number)
-                    .FirstOrDefault();
-
-                if (config == null)
+                config = new PhoneConfiguration
                 {
-                    config = new PhoneConfiguration
-                    {
-                        Phone = data.Phone,
-                        Logs = new List<PhoneConfigurationLog>(),
-                        BlacklistEntries = new List<BlackListEntry>()
-                    };
-
-                    config.Logs.Add(new PhoneConfigurationLog
-                    {
-                        Type = "Initialization",
-                        Action = "Blacklist Entry",
-                        CreatedBy = data.Process,
-                        RelatedId = newOtpBlackListEntryId
-                    });
-
-                    db.Add(config);
-                }
-
-                var newOtpBlackListEntry = new BlackListEntry
-                {
-                    Id = newOtpBlackListEntryId,
-                    PhoneConfigurationId = config.Id,
-                    Reason = data.Reason,
-                    Source = data.Source,
-                    ValidTo = DateTime.Now.AddDays(data.Days),
-                    CreatedBy = data.Process
+                    Phone = data.Phone,
+                    Logs = new List<PhoneConfigurationLog>(),
+                    BlacklistEntries = new List<BlackListEntry>()
                 };
 
-                db.Add(newOtpBlackListEntry);
-                db.SaveChanges();
+                config.Logs.Add(new PhoneConfigurationLog
+                {
+                    Type = "Initialization",
+                    Action = "Blacklist Entry",
+                    CreatedBy = data.Process,
+                    RelatedId = newOtpBlackListEntryId
+                });
+
+                _databaseContext.Add(config);
             }
+
+            var newOtpBlackListEntry = new BlackListEntry
+            {
+                Id = newOtpBlackListEntryId,
+                PhoneConfigurationId = config.Id,
+                Reason = data.Reason,
+                Source = data.Source,
+                ValidTo = DateTime.Now.AddDays(data.Days),
+                CreatedBy = data.Process
+            };
+
+            _databaseContext.Add(newOtpBlackListEntry);
+            _databaseContext.SaveChanges();
+            
 
             return Created("", newOtpBlackListEntryId);
         }
@@ -162,13 +164,12 @@ namespace bbt.gateway.messaging.Controllers
         [SwaggerResponse(201, "Record was created successfully", typeof(void))]
         public IActionResult ResolveBlacklistItem([FromRoute(Name = "blacklist-entry-id")] Guid entryId, [FromBody] ResolveBlacklistEntryRequest data)
         {
-            using (var db = new DatabaseContext())
-            {
-                var config = db.BlackListEntries.FirstOrDefault(b => b.Id == entryId);
-                config.ResolvedBy = data.ResolvedBy;
-                config.Status = BlacklistStatus.Resolved;
-                db.SaveChanges();
-            }
+            
+            var config = _databaseContext.BlackListEntries.FirstOrDefault(b => b.Id == entryId);
+            config.ResolvedBy = data.ResolvedBy;
+            config.Status = BlacklistStatus.Resolved;
+            _databaseContext.SaveChanges();
+            
             return Ok();
         }
 
@@ -179,14 +180,11 @@ namespace bbt.gateway.messaging.Controllers
         {
             OtpRequestLog[] returnValue = null;
 
-            using (var db = new DatabaseContext())
-            {
-                returnValue = db.OtpRequestLogs
-                    .Where(c => c.PhoneConfiguration.Phone.CountryCode == countryCode && c.PhoneConfiguration.Phone.Prefix == prefix && c.PhoneConfiguration.Phone.Number == number)
-                    .Skip(page * pageSize)
-                    .Take(pageSize)
-                    .ToArray();
-            }
+            returnValue = _databaseContext.OtpRequestLogs
+                .Where(c => c.PhoneConfiguration.Phone.CountryCode == countryCode && c.PhoneConfiguration.Phone.Prefix == prefix && c.PhoneConfiguration.Phone.Number == number)
+                .Skip(page * pageSize)
+                .Take(pageSize)
+                .ToArray();
 
             return Ok(returnValue);
         }
@@ -198,14 +196,12 @@ namespace bbt.gateway.messaging.Controllers
         {
             SmsLog[] returnValue = null;
 
-            using (var db = new DatabaseContext())
-            {
-                returnValue = db.SmsLogs
-                    .Where(c => c.PhoneConfiguration.Phone.CountryCode == countryCode && c.PhoneConfiguration.Phone.Prefix == prefix && c.PhoneConfiguration.Phone.Number == number)
-                    .Skip(page * pageSize)
-                    .Take(pageSize)
-                    .ToArray();
-            }
+           
+            returnValue = _databaseContext.SmsLogs
+                .Where(c => c.PhoneConfiguration.Phone.CountryCode == countryCode && c.PhoneConfiguration.Phone.Prefix == prefix && c.PhoneConfiguration.Phone.Number == number)
+                .Skip(page * pageSize)
+                .Take(pageSize)
+                .ToArray();
 
             return Ok(returnValue);
         }

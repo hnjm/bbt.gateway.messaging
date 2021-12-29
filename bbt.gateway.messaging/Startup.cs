@@ -1,7 +1,12 @@
+using bbt.gateway.messaging.Api.TurkTelekom;
+using bbt.gateway.messaging.Models;
+using bbt.gateway.messaging.Workers;
+using bbt.gateway.messaging.Workers.OperatorGateway;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -27,13 +32,15 @@ namespace bbt.gateway.messaging
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
             services.AddControllers()
-                    .AddJsonOptions(opts =>
-                    {
-                        var enumConverter = new JsonStringEnumConverter();
-                        opts.JsonSerializerOptions.Converters.Add(enumConverter);
-                    });
+                    //.AddJsonOptions(opts =>
+                    //{
+                    //    var enumConverter = new JsonStringEnumConverter();
+                    //    opts.JsonSerializerOptions.Converters.Add(enumConverter);
+                    //    opts.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+                    //    opts.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+                    //});
+                    .AddNewtonsoftJson();
 
             services.AddSwaggerGen(c =>
             {
@@ -42,6 +49,36 @@ namespace bbt.gateway.messaging
                 //TODO: is process info came from header or body ? Decide
                 //c.OperationFilter<AddRequiredHeaderParameter>();
             });
+
+            services.AddTransient<OperatorTurkTelekom>();
+            services.AddTransient<OperatorVodafone>();
+            services.AddTransient<OperatorTurkcell>();
+            services.AddTransient<OperatorIVN>();
+            services.AddTransient<Func<OperatorType, IOperatorGateway>>(serviceProvider => key =>
+            {
+                switch (key)
+                {
+                    case OperatorType.Turkcell:
+                        return serviceProvider.GetService<OperatorTurkcell>();
+                    case OperatorType.Vodafone:
+                        return serviceProvider.GetService<OperatorVodafone>();
+                    case OperatorType.TurkTelekom:
+                        return serviceProvider.GetService<OperatorTurkTelekom>();
+                    case OperatorType.IVN:
+                        return serviceProvider.GetService<OperatorIVN>();
+                    default:
+                        throw new KeyNotFoundException();
+                }
+            });
+
+            services.AddDbContext<DatabaseContext>(
+                options => options.UseSqlServer(Environment.GetEnvironmentVariable("SQL_CONNECTION")),ServiceLifetime.Transient);
+
+            services.AddScoped<OtpSender>();
+            services.AddScoped<HeaderManager>();
+            services.AddScoped<OperatorManager>();
+            services.AddScoped<TurkTelekomApi>();
+           
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
