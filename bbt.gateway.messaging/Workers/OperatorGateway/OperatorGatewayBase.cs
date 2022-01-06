@@ -28,9 +28,9 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
         }
         protected Operator OperatorConfig { get; set; }
 
-        public abstract Task<OtpTrackingLog> CheckMessageStatus(OtpResponseLog response);
+        public abstract OtpTrackingLog CheckMessageStatus(OtpResponseLog response);
 
-        public async void TrackMessageStatus(OtpResponseLog response)
+        public void TrackMessageStatus(OtpResponseLog response)
         {
             System.Diagnostics.Debug.WriteLine($"{Type} tracking otp is started");
 
@@ -39,8 +39,8 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             var maxRetryCount = 5;
             while (maxRetryCount-- > 0)
             {
-                await Task.Delay(1000);
-                var log = await CheckMessageStatus(response);
+                Task.Delay(1000);
+                var log = CheckMessageStatus(response);
                 logs.Add(log);
 
                 if (log.Status == SmsTrackingStatus.Delivered || log.Status == SmsTrackingStatus.DeviceRejected || log.Status == SmsTrackingStatus.Expired)
@@ -51,13 +51,13 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             }
 
 
-            var contextOptions = new DbContextOptionsBuilder<DatabaseContext>()
+            var dbContextOptions = new DbContextOptionsBuilder<DatabaseContext>()
             .UseSqlServer(Environment.GetEnvironmentVariable("SQL_CONNECTION"))
             .Options;
 
-            using var context = new DatabaseContext(contextOptions);
-            context.AddRange(logs);
-            context.SaveChanges();
+            using var dbContext = new DatabaseContext(dbContextOptions);
+            dbContext.AddRange(logs);
+            dbContext.SaveChanges();
             
 
             System.Diagnostics.Debug.WriteLine($"{Type} tracking otp is finished");

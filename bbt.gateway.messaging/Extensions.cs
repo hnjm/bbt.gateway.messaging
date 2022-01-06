@@ -77,7 +77,24 @@ namespace bbt.gateway.messaging
 
         public static OtpTrackingLog BuildResponseForTurkTelekom(this TurkTelekomSmsStatusResponse turkTelekomResponse,OtpResponseLog response)
         {
-            var otpTrackingLog = new OtpTrackingLog { LogId = response.Id, Status = (turkTelekomResponse.ResponseSmsStatus.DCode == "000" ? SmsTrackingStatus.Delivered : SmsTrackingStatus.Pending), Detail = turkTelekomResponse.SerializeXml<TurkTelekomSmsStatusResponse>()};
+            var otpTrackingLog = new OtpTrackingLog();
+            otpTrackingLog.LogId = response.Id;
+            otpTrackingLog.Detail = turkTelekomResponse.SerializeXml<TurkTelekomSmsStatusResponse>();
+            if (turkTelekomResponse.ResponseSmsStatus.Status == "0")
+            {
+                otpTrackingLog.Status = SmsTrackingStatus.Delivered;
+            }
+            else if (turkTelekomResponse.ResponseSmsStatus.Status == "1")
+            {
+                otpTrackingLog.Status = SmsTrackingStatus.Expired;
+            }
+            else if (turkTelekomResponse.ResponseSmsStatus.Status == "9")
+            {
+                otpTrackingLog.Status = SmsTrackingStatus.Expired;
+            }
+            else {
+                otpTrackingLog.Status = SmsTrackingStatus.DeviceRejected;
+            }
             return otpTrackingLog;
         }
 

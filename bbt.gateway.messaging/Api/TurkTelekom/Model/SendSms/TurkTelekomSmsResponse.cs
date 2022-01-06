@@ -10,7 +10,7 @@ namespace bbt.gateway.messaging.Api.TurkTelekom.Model
     public class TurkTelekomSmsResponse
     {
         [XmlElement(ElementName = "SMS")]
-        public ResponseSms ResponseSms { get; set; }
+        public TurkTelekomResponseSms ResponseSms { get; set; }
        
     }
 }

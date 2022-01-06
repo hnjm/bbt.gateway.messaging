@@ -13,7 +13,6 @@ namespace bbt.gateway.messaging.Workers
     {
         private readonly DatabaseContext _databaseContext;
         private readonly HeaderManager _headerManager;
-        private readonly OperatorManager _operatorManager;
         private readonly Func<OperatorType, IOperatorGateway> _operatorRepository;
         SendMessageSmsRequest _data;
 
@@ -27,16 +26,15 @@ namespace bbt.gateway.messaging.Workers
             { typeof(OperatorTurkTelekom) , OperatorType.TurkTelekom},
             { typeof(OperatorIVN) , OperatorType.IVN}
         };
-        public OtpSender(DatabaseContext databaseContext,HeaderManager headerManager,OperatorManager operatorManager,
+        public OtpSender(DatabaseContext databaseContext,HeaderManager headerManager,
             Func<OperatorType, IOperatorGateway> operatorRepository)
         {
             _databaseContext = databaseContext;
             _headerManager = headerManager;
-            _operatorManager = operatorManager;
             _operatorRepository = operatorRepository;
         }
 
-        public async Task<SendSmsResponseStatus> SendMessage(SendMessageSmsRequest sendMessageSmsRequest)
+        public SendSmsResponseStatus SendMessage(SendMessageSmsRequest sendMessageSmsRequest)
         {
             SendSmsResponseStatus returnValue = SendSmsResponseStatus.ClientError;
 
@@ -64,7 +62,7 @@ namespace bbt.gateway.messaging.Workers
             )
             {
                 //TODO: Operator ghonderemezse? Sim değişmişse?
-                var responseLog = await SendMessageToKnown(phoneConfiguration);
+                var responseLog = SendMessageToKnown(phoneConfiguration);
                 _requestLog.ResponseLogs.Add(responseLog);
                 returnValue = responseLog.ResponseCode;
             }
@@ -92,8 +90,8 @@ namespace bbt.gateway.messaging.Workers
 
                 //TODO: Blackliste eklenmesi gerekiyorsa ekle.
                 if (returnValue == SendSmsResponseStatus.OperatorChange || returnValue == SendSmsResponseStatus.SimChange)
-                { 
-                    
+                {
+                    var blackListEntry = createBlackListEntry(phoneConfiguration, returnValue.ToString(), "türk telekom");
                 }
 
 
@@ -130,7 +128,7 @@ namespace bbt.gateway.messaging.Workers
             return responses.ToList();
         }
 
-        private async Task<OtpResponseLog> SendMessageToKnown(PhoneConfiguration phoneConfiguration)
+        private OtpResponseLog SendMessageToKnown(PhoneConfiguration phoneConfiguration)
         {
             IOperatorGateway gateway = null;
              var header = _headerManager.Get(phoneConfiguration, _data.ContentType);
@@ -155,7 +153,7 @@ namespace bbt.gateway.messaging.Workers
                     break;
             }
 
-            var result = await gateway.SendOtp(_data.Phone, header.BuildContentForSms(_data.Content), header);
+            var result = gateway.SendOtp(_data.Phone, header.BuildContentForSms(_data.Content), header);
 
             return result;
         }
@@ -178,9 +176,27 @@ namespace bbt.gateway.messaging.Workers
             return newConfig;
         }
 
-        private BlackListEntry createBlackListEntry(PhoneConfiguration phoneConfiguration)
+        private BlackListEntry createBlackListEntry(PhoneConfiguration phoneConfiguration,string reason,string source)
         {
             var newBlackListEntry = new BlackListEntry();
+            newBlackListEntry.PhoneConfiguration = phoneConfiguration;
+            newBlackListEntry.PhoneConfigurationId = phoneConfiguration.Id;
+            newBlackListEntry.Reason = reason;
+            newBlackListEntry.Source = source;
+            newBlackListEntry.CreatedBy = _data.Process;
+            newBlackListEntry.ValidTo = DateTime.Now;
+            newBlackListEntry.Logs = new List<BlackListEntryLog>
+            {
+                new BlackListEntryLog
+                {
+                    Action = "Added To Blacklist",
+                    BlackListEntry = newBlackListEntry,
+                    CreatedBy = _data.Process,
+                    ParameterMaster = "master",
+                    ParameterSlave = "slave",
+                    Type = "type"
+                }
+            };
 
             return newBlackListEntry;
         }

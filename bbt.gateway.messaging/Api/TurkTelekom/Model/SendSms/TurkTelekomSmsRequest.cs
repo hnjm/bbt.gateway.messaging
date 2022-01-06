@@ -8,7 +8,7 @@ using System.Xml.Serialization;
 namespace bbt.gateway.messaging.Api.TurkTelekom.Model
 {
     [XmlRoot(ElementName = "SMS")]
-    public class TurkTelekomSmsRequest : BaseRequest
+    public class TurkTelekomSmsRequest : TurkTelekomBaseRequest
     {
         
         [XmlElement(ElementName = "GSMNO")]

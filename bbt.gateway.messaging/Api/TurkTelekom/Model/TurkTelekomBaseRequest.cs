@@ -6,7 +6,7 @@ using System.Xml.Serialization;
 
 namespace bbt.gateway.messaging.Api.TurkTelekom.Model
 {
-    public class BaseRequest
+    public class TurkTelekomBaseRequest
     {
         [XmlElement(ElementName = "USERCODE")]
         public string UserCode { get; set; }
