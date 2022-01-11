@@ -69,9 +69,11 @@ namespace bbt.gateway.messaging
                         throw new KeyNotFoundException();
                 }
             });
+            
+            string sqlConnectionString = Environment.GetEnvironmentVariable("SQL_CONNECTION");
 
             services.AddDbContext<DatabaseContext>(
-                options => options.UseSqlServer(Environment.GetEnvironmentVariable("SQL_CONNECTION")),ServiceLifetime.Transient);
+                options => options.UseSqlServer(sqlConnectionString),ServiceLifetime.Transient);
 
             services.AddScoped<OtpSender>();
             services.AddScoped<HeaderManager>();
