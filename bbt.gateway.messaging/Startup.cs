@@ -4,19 +4,16 @@ using bbt.gateway.messaging.Workers;
 using bbt.gateway.messaging.Workers.OperatorGateway;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
+
 
 namespace bbt.gateway.messaging
 {
@@ -40,8 +37,9 @@ namespace bbt.gateway.messaging
                     //    opts.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
                     //    opts.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
                     //});
-                    .AddNewtonsoftJson();
+                    .AddNewtonsoftJson(opts => opts.SerializerSettings.Converters.Add(new StringEnumConverter()));
 
+            
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "bbt.gateway.messaging", Version = "v1" });
@@ -49,6 +47,7 @@ namespace bbt.gateway.messaging
                 //TODO: is process info came from header or body ? Decide
                 //c.OperationFilter<AddRequiredHeaderParameter>();
             });
+            services.AddSwaggerGenNewtonsoftSupport();
 
             services.AddTransient<OperatorTurkTelekom>();
             services.AddTransient<OperatorVodafone>();
@@ -70,9 +69,11 @@ namespace bbt.gateway.messaging
                         throw new KeyNotFoundException();
                 }
             });
+            
+            string sqlConnectionString = Environment.GetEnvironmentVariable("SQL_CONNECTION");
 
             services.AddDbContext<DatabaseContext>(
-                options => options.UseSqlServer(Environment.GetEnvironmentVariable("SQL_CONNECTION")),ServiceLifetime.Transient);
+                options => options.UseSqlServer(sqlConnectionString),ServiceLifetime.Transient);
 
             services.AddScoped<OtpSender>();
             services.AddScoped<HeaderManager>();

@@ -1,7 +1,6 @@
 ﻿using bbt.gateway.messaging.Models;
 using System;
 using System.Collections.Concurrent;
-using System.Threading.Tasks;
 
 namespace bbt.gateway.messaging.Workers.OperatorGateway
 {
@@ -28,7 +27,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
       
 
-        public async Task<OtpResponseLog> SendOtp(Phone phone, string content, Header header)
+        public OtpResponseLog SendOtp(Phone phone, string content, Header header)
         {
            var response = new OtpResponseLog { 
                 Operator = OperatorType.IVN,
@@ -42,7 +41,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             return response;
         }
 
-        public override Task<OtpTrackingLog> CheckMessageStatus(OtpResponseLog response)
+        public override OtpTrackingLog CheckMessageStatus(OtpResponseLog response)
         {
            throw new NotSupportedException();
         }

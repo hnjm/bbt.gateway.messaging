@@ -8,7 +8,7 @@ using System.Xml.Serialization;
 namespace bbt.gateway.messaging.Api.TurkTelekom.Model
 {
     [XmlRoot(ElementName = "VIPSMS_REPORT")]
-    public class TurkTelekomSmsStatusRequest : BaseRequest
+    public class TurkTelekomSmsStatusRequest : TurkTelekomBaseRequest
     {
 
         [XmlElement(ElementName = "MESSAGEID")]

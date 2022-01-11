@@ -30,7 +30,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             Task.Run(() => TrackMessageStatus(response));
         }
 
-        public async Task<OtpResponseLog> SendOtp(Phone phone, string content, Header header)
+        public OtpResponseLog SendOtp(Phone phone, string content, Header header)
         {
             var response = new OtpResponseLog
             {
@@ -47,10 +47,9 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             return response;
         }
 
-        public override Task<OtpTrackingLog> CheckMessageStatus(OtpResponseLog response)
+        public override OtpTrackingLog CheckMessageStatus(OtpResponseLog response)
         {
-            return null;
-            //return new Task<OtpTrackingLog> { LogId = response.Id, Status = SmsTrackingStatus.Pending, Detail = "No details" };
+            return new OtpTrackingLog { LogId = response.Id, Status = SmsTrackingStatus.Pending, Detail = "No details" };
         }
     }
 }

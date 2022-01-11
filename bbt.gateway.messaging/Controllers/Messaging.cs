@@ -48,11 +48,18 @@ namespace bbt.gateway.messaging.Controllers
         [SwaggerResponse(200, "Sms was sent successfully", typeof(SendSmsResponse))]
         [SwaggerResponse(465, "Sim card is changed.", typeof(void))]
         [SwaggerResponse(466, "Operator is changed.", typeof(void))]
-        public async Task<IActionResult> SendMessageSms([FromBody] SendMessageSmsRequest data)
+        public IActionResult SendMessageSms([FromBody] SendMessageSmsRequest data)
         {
- 
-            var res = await _otpSender.SendMessage(data);
-            return Ok(res);
+            if (ModelState.IsValid)
+            {
+                var res = _otpSender.SendMessage(data);
+                return Ok(res);
+            }
+            else 
+            {
+                return BadRequest(ModelState);
+            }
+            
 
         }
 

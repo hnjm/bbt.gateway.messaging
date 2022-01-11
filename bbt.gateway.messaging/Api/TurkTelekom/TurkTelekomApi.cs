@@ -2,10 +2,7 @@
 using bbt.gateway.messaging.Workers;
 using Microsoft.Extensions.Configuration;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace bbt.gateway.messaging.Api.TurkTelekom
 {
@@ -20,9 +17,8 @@ namespace bbt.gateway.messaging.Api.TurkTelekom
             _operatorManager = operatorManager;
         }
 
-        public async Task<TurkTelekomSmsResponse> SendSms(TurkTelekomSmsRequest turkTelekomSmsRequest) 
+        public  TurkTelekomSmsResponse SendSms(TurkTelekomSmsRequest turkTelekomSmsRequest) 
         {
-            await Task.CompletedTask;
             //var xmlBody = new StringContent(turkTelekomSmsRequest.SerializeXml(), Encoding.UTF8, "application/xml");
 
             //Create process
@@ -50,20 +46,26 @@ namespace bbt.gateway.messaging.Api.TurkTelekom
             //Wait for process to finish
             pProcess.WaitForExit();
             //Call Web Service
-            
-            //var response = await _httpClient.PostAsync(_configuration.GetValue<string>("OperatorsApiEndpoints:TurkTelekom:SendSms"), xmlBody);
+            //HttpRequestMessage httpRequest = new();
+            //httpRequest.Method = HttpMethod.Post;
+            //httpRequest.Content = xmlBody;
+            //httpRequest.RequestUri = _operatorManager.Get(Models.OperatorType.TurkTelekom).SendService;
+            //var response = _httpClient.Send(httpRequest);
                 
             return strOutput.DeserializeXml<TurkTelekomSmsResponse>();
 
         }
 
-        public async Task<TurkTelekomSmsStatusResponse> CheckSmsStatus(TurkTelekomSmsStatusRequest turkTelekomSmsStatusRequest)
+        public TurkTelekomSmsStatusResponse CheckSmsStatus(TurkTelekomSmsStatusRequest turkTelekomSmsStatusRequest)
         {
-            //async methods should use await
-            await Task.CompletedTask;
+
             //Call Web Service
             //var xmlBody = new StringContent(turkTelekomSmsStatusRequest.SerializeXml(), Encoding.UTF8, "application/xml");
-            //var response = await _httpClient.PostAsync(_configuration.GetValue<string>("OperatorsApiEndpoints:TurkTelekom:CheckSms"), xmlBody);
+            //HttpRequestMessage httpRequest = new();
+            //httpRequest.Method = HttpMethod.Post;
+            //httpRequest.Content = xmlBody;
+            //httpRequest.RequestUri = _operatorManager.Get(Models.OperatorType.TurkTelekom).QueryService;
+            //var response = _httpClient.Send(httpRequest);
 
             //Create process
             System.Diagnostics.Process pProcess = new System.Diagnostics.Process();
