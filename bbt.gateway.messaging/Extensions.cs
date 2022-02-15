@@ -1,7 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Xml.Serialization;
+using bbt.gateway.messaging.Api;
 using bbt.gateway.messaging.Api.TurkTelekom.Model;
 using bbt.gateway.messaging.Models;
 
@@ -39,66 +42,71 @@ namespace bbt.gateway.messaging
             return $"[{header.SmsSender}]{header.SmsPrefix} {content} {header.SmsSuffix}";
         }
 
-        public static OtpResponseLog BuildResponseForTurkTelekom(this TurkTelekomSmsResponse turkTelekomResponse)
+        public static OtpResponseLog BuildOperatorApiResponse(this OperatorApiResponse apiResponse)
         {
             var response = new OtpResponseLog
             {
-                Operator = OperatorType.TurkTelekom,
-                Topic = "TurkTelekom otp sending",
-                TrackingStatus = SmsTrackingStatus.Pending
+                Operator = apiResponse.GetOperatorType(),
+                Topic = $"{apiResponse.GetOperatorType().ToString()} otp sending",
+                TrackingStatus = SmsTrackingStatus.Pending,
+                RequestBody = apiResponse.GetRequestBody(),
+                ResponseBody = apiResponse.GetResponseBody()
             };
-
-            response.ResponseMessage = turkTelekomResponse.ResponseSms.ReturnMessage;
-            switch (turkTelekomResponse.ResponseSms.ReturnCode)
+            
+            response.StatusQueryId = apiResponse.GetMessageId();
+            if (Constant.OperatorErrorCodes.ContainsKey(apiResponse.GetOperatorType()))
             {
-                case "0":
-                    response.ResponseCode = SendSmsResponseStatus.Success;
-                    response.StatusQueryId = turkTelekomResponse.ResponseSms.MessageId;
-                    break;
-                case "8":
-                    response.ResponseCode = SendSmsResponseStatus.NotSubscriber;
-                    break;
-                case "9":
-                    response.ResponseCode = SendSmsResponseStatus.SimChange;
-                    break;
-                case "15":
-                    response.ResponseCode = SendSmsResponseStatus.OperatorChange;
-                    break;
-                case "29":
-                    response.ResponseCode = SendSmsResponseStatus.RejectedByOperator;
-                    break;
-                default:
-                    response.ResponseCode = SendSmsResponseStatus.ServerError;
-                    break;
+                var errorCodes = Constant.OperatorErrorCodes[apiResponse.GetOperatorType()];
+                if (errorCodes.ContainsKey(apiResponse.GetResponseCode().Trim()))
+                {
+                    response.ResponseCode = errorCodes[apiResponse.GetResponseCode()].SmsResponseStatus;
+                    if (string.IsNullOrEmpty(apiResponse.GetResponseMessage()))
+                        response.ResponseMessage = errorCodes[apiResponse.GetResponseCode()].ReturnMessage;
+                }
+                else 
+                {
+                    response.ResponseCode = SendSmsResponseStatus.ClientError;
+                    response.ResponseMessage = $"Given Error Code Not Exist In Dictionary | Operator Type : {apiResponse.GetOperatorType()} | Error Code : {apiResponse.GetResponseCode()}";
+                }
+            }
+            else 
+            {
+                response.ResponseCode = SendSmsResponseStatus.ClientError;
+                response.ResponseMessage =  $"Given Operator Type Not Exist In Dictionary | Operator Type : {apiResponse.GetOperatorType()}";
             }
 
             return response;
         }
 
-        public static OtpTrackingLog BuildResponseForTurkTelekom(this TurkTelekomSmsStatusResponse turkTelekomResponse,OtpResponseLog response)
+        public static OtpTrackingLog BuildOperatorApiTrackingResponse(this OperatorApiTrackingResponse apiTrackingResponse, OtpResponseLog response)
         {
             var otpTrackingLog = new OtpTrackingLog();
             otpTrackingLog.LogId = response.Id;
-            otpTrackingLog.Detail = turkTelekomResponse.SerializeXml<TurkTelekomSmsStatusResponse>();
-            if (turkTelekomResponse.ResponseSmsStatus.Status == "0")
+            otpTrackingLog.Detail = apiTrackingResponse.GetFullResponse();
+            if (Constant.OperatorTrackingErrorCodes.ContainsKey(apiTrackingResponse.GetOperatorType()))
             {
-                otpTrackingLog.Status = SmsTrackingStatus.Delivered;
+                var errorCodes = Constant.OperatorTrackingErrorCodes[apiTrackingResponse.GetOperatorType()];
+                if (errorCodes.ContainsKey(apiTrackingResponse.GetResponseCode().Trim()))
+                {
+                    otpTrackingLog.Status = errorCodes[apiTrackingResponse.GetResponseCode()].SmsTrackingStatus;
+                    if (string.IsNullOrEmpty(apiTrackingResponse.GetResponseMessage()))
+                        otpTrackingLog.ResponseMessage = errorCodes[apiTrackingResponse.GetResponseCode()].ReturnMessage;
+                }
+                else
+                {
+                    otpTrackingLog.Status = SmsTrackingStatus.SystemError;
+                    otpTrackingLog.ResponseMessage = $"Given Error Code Not Exist In Dictionary | Operator Type : {apiTrackingResponse.GetOperatorType()} | Error Code : {apiTrackingResponse.GetResponseCode()}";
+                }
             }
-            else if (turkTelekomResponse.ResponseSmsStatus.Status == "1")
+            else
             {
-                otpTrackingLog.Status = SmsTrackingStatus.Expired;
-            }
-            else if (turkTelekomResponse.ResponseSmsStatus.Status == "9")
-            {
-                otpTrackingLog.Status = SmsTrackingStatus.Expired;
-            }
-            else {
-                otpTrackingLog.Status = SmsTrackingStatus.DeviceRejected;
+                    otpTrackingLog.Status = SmsTrackingStatus.SystemError;
+                    otpTrackingLog.ResponseMessage = $"Given Operator Type Not Exist In Dictionary | Operator Type : {apiTrackingResponse.GetOperatorType()}";
             }
             return otpTrackingLog;
         }
 
-            public static T DeserializeXml<T>(this string toDeserialize)
+        public static T DeserializeXml<T>(this string toDeserialize)
         {
             XmlSerializer xmlSerializer = new XmlSerializer(typeof(T));
             using (StringReader textReader = new StringReader(toDeserialize))
@@ -114,9 +122,32 @@ namespace bbt.gateway.messaging
             xmlnsEmpty.Add("", "");
             using (StringWriter textWriter = new StringWriter())
             {
-                xmlSerializer.Serialize(textWriter, toSerialize,xmlnsEmpty);
+                xmlSerializer.Serialize(textWriter, toSerialize, xmlnsEmpty);
                 return textWriter.ToString();
             }
         }
-    }
+
+        public static T SoapDeserializeXml<T>(this string toDeserialize)
+        {
+            XmlSerializer xmlSerializer = new XmlSerializer(typeof(T));
+            using (StringReader textReader = new StringReader(toDeserialize))
+            {
+                return (T)xmlSerializer.Deserialize(textReader);
+            }
+        }
+
+        public static string SoapSerializeXml<T>(this T toSerialize)
+        {
+            XmlSerializer xmlSerializer = new XmlSerializer(typeof(T));
+           
+            using (StringWriter textWriter = new StringWriter())
+            {
+                xmlSerializer.Serialize(textWriter, toSerialize);
+                return textWriter.ToString();
+            }
+        }
+
+    };
+
+    
 }

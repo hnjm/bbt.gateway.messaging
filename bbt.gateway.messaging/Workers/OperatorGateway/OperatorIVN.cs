@@ -1,19 +1,22 @@
 ﻿using bbt.gateway.messaging.Models;
+using bbt.gateway.messaging.Repositories;
 using System;
 using System.Collections.Concurrent;
+using System.Threading.Tasks;
 
 namespace bbt.gateway.messaging.Workers.OperatorGateway
 {
     public class OperatorIVN : OperatorGatewayBase, IOperatorGateway
     {
-        public OperatorIVN(OperatorManager operatorManager, DatabaseContext databaseContext) : base(operatorManager,databaseContext)
+        public OperatorIVN()
         {
             Type = OperatorType.IVN;
         }
 
 
-        public void SendOtp(Phone phone, string content, ConcurrentBag<OtpResponseLog> responses, Header header, bool useControlDays)
+        public async Task<bool> SendOtp(Phone phone, string content, ConcurrentBag<OtpResponseLog> responses, Header header, bool useControlDays)
         {
+            await Task.CompletedTask;
             var response = new OtpResponseLog { 
                 Operator = OperatorType.Turkcell,
                 Topic = "IVN otp sending",
@@ -23,11 +26,12 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             System.Diagnostics.Debug.WriteLine("IVN otp is send");
             response.ResponseCode = SendSmsResponseStatus.NotSubscriber;
             responses.Add(response);
+            return true;
         }
 
       
 
-        public OtpResponseLog SendOtp(Phone phone, string content, Header header)
+        public async Task<OtpResponseLog> SendOtp(Phone phone, string content, Header header,bool useControlDays)
         {
            var response = new OtpResponseLog { 
                 Operator = OperatorType.IVN,
@@ -41,8 +45,9 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             return response;
         }
 
-        public override OtpTrackingLog CheckMessageStatus(OtpResponseLog response)
+        public override async Task<OtpTrackingLog> CheckMessageStatus(OtpResponseLog response)
         {
+            await Task.CompletedTask;
            throw new NotSupportedException();
         }
     }

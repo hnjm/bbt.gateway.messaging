@@ -3,13 +3,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Xml.Serialization;
 
-namespace bbt.gateway.messaging.Api.Vodafone.Model
+namespace bbt.gateway.messaging.Repositories
 {
-    public class VodafoneSmsRequest
+    public interface ISmsLogRepository : IRepository<SmsLog>
     {
-       
-
+        
     }
 }

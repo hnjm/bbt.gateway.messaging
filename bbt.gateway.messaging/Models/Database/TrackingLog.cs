@@ -10,6 +10,8 @@ namespace bbt.gateway.messaging.Models
         public Guid Id { get; set; } = Guid.NewGuid();
         public Guid LogId { get; set; }
         public SmsTrackingStatus Status { get; set; }
+
+        public string ResponseMessage { get; set; }
         public string Detail { get; set; }
         public DateTime QueriedAt { get; set; } = DateTime.Now;
     }

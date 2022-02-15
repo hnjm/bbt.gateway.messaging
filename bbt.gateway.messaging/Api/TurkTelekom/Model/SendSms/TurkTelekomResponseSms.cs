@@ -9,9 +9,9 @@ namespace bbt.gateway.messaging.Api.TurkTelekom.Model
     public class TurkTelekomResponseSms
     {
         [XmlElement(ElementName = "RETURNCODE")]
-        public string ReturnCode { get; set; }
+        public string ResponseCode { get; set; }
         [XmlElement(ElementName = "RETURNMESSAGE")]
-        public string ReturnMessage { get; set; }
+        public string ResponseMessage { get; set; }
         [XmlElement(ElementName = "MESSAGEID")]
         public string MessageId { get; set; }
     }

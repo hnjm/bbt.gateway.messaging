@@ -130,7 +130,7 @@ namespace bbt.gateway.messaging.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("a9e08566-88d9-4d89-9f0f-6bbc9c1ba32d"),
+                            Id = new Guid("b4ec502a-0a79-4a19-a3b4-fdb128e46b33"),
                             ContentType = 0,
                             EmailTemplatePrefix = "generic",
                             SmsPrefix = "Dear Honey,",
@@ -140,7 +140,7 @@ namespace bbt.gateway.messaging.Migrations
                         },
                         new
                         {
-                            Id = new Guid("b42c7fcd-057d-4925-bfb6-fa8d685d99f4"),
+                            Id = new Guid("ba5d33b7-1e3e-4d98-a6ca-438409516e63"),
                             Branch = 2000,
                             ContentType = 0,
                             EmailTemplatePrefix = "on",
@@ -179,6 +179,18 @@ namespace bbt.gateway.messaging.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
+                    b.Property<string>("SupportDeskMail")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SupportDeskPhone")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("TokenCreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("TokenExpiredAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("Type")
                         .HasColumnType("int");
 
@@ -198,6 +210,8 @@ namespace bbt.gateway.messaging.Migrations
                             Id = 1,
                             ControlDaysForOtp = 60,
                             Status = 1,
+                            TokenCreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            TokenExpiredAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Type = 1,
                             UseIvnWhenDeactive = false
                         },
@@ -206,6 +220,8 @@ namespace bbt.gateway.messaging.Migrations
                             Id = 2,
                             ControlDaysForOtp = 60,
                             Status = 1,
+                            TokenCreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            TokenExpiredAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Type = 2,
                             UseIvnWhenDeactive = false
                         },
@@ -214,6 +230,8 @@ namespace bbt.gateway.messaging.Migrations
                             Id = 3,
                             ControlDaysForOtp = 60,
                             Status = 1,
+                            TokenCreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            TokenExpiredAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Type = 3,
                             UseIvnWhenDeactive = false
                         },
@@ -222,6 +240,8 @@ namespace bbt.gateway.messaging.Migrations
                             Id = 4,
                             ControlDaysForOtp = 60,
                             Status = 1,
+                            TokenCreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            TokenExpiredAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Type = 4,
                             UseIvnWhenDeactive = false
                         },
@@ -230,6 +250,8 @@ namespace bbt.gateway.messaging.Migrations
                             Id = 5,
                             ControlDaysForOtp = 60,
                             Status = 1,
+                            TokenCreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            TokenExpiredAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Type = 5,
                             UseIvnWhenDeactive = false
                         });
@@ -272,6 +294,12 @@ namespace bbt.gateway.messaging.Migrations
                     b.Property<Guid?>("OtpRequestLogId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("RequestBody")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ResponseBody")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("ResponseCode")
                         .HasColumnType("int");
 
@@ -311,6 +339,9 @@ namespace bbt.gateway.messaging.Migrations
 
                     b.Property<DateTime>("QueriedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("ResponseMessage")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");

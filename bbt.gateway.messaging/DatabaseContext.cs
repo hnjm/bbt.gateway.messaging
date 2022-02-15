@@ -16,15 +16,20 @@ namespace bbt.gateway.messaging
         public DbSet<OtpRequestLog> OtpRequestLogs { get; set; }
         public DbSet<SmsLog> SmsLogs { get; set; }
 
-        public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options)
+        public DatabaseContext()
         {
             
         }
 
-        //protected override void OnConfiguring(DbContextOptionsBuilder options)
-        //{
-        //    options.UseSqlite($"Data Source={DbPath}; Foreign Keys = False");
-        //}
+        public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options)
+        {
+
+        }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder options)
+        {
+            options.UseSqlServer(Environment.GetEnvironmentVariable("SQL_CONNECTION"));
+        }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

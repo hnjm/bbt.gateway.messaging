@@ -9,5 +9,7 @@ namespace bbt.gateway.messaging.Models
         DeviceRejected = 461,
         Pending = 462,
         Expired = 463,
+        UnknownNumber = 464,
+        SystemError = 465
     }
 }

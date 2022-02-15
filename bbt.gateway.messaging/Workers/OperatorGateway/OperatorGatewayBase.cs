@@ -1,7 +1,9 @@
 ﻿using bbt.gateway.messaging.Models;
+using bbt.gateway.messaging.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace bbt.gateway.messaging.Workers.OperatorGateway
@@ -9,12 +11,10 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
     public abstract class OperatorGatewayBase
     {
         private OperatorType type;
-        private readonly OperatorManager _operatorManager;
-        private readonly DatabaseContext  _databaseContext;
-        protected OperatorGatewayBase(OperatorManager operatorManager,DatabaseContext databaseContext) 
+       
+        protected OperatorGatewayBase() 
         {
-            _operatorManager = operatorManager;
-            _databaseContext = databaseContext;
+            
         }
 
         protected OperatorType Type
@@ -23,14 +23,33 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             set
             {
                 type = value;
-                OperatorConfig = _operatorManager.Get(value);
+                using var databaseContext = new DatabaseContext();
+                OperatorConfig = databaseContext.Operators.FirstOrDefault(o => o.Type == type);
             }
         }
         protected Operator OperatorConfig { get; set; }
 
-        public abstract OtpTrackingLog CheckMessageStatus(OtpResponseLog response);
+        protected void SaveOperator()
+        {
+            using var databaseContext = new DatabaseContext();
+            databaseContext.Operators.Update(OperatorConfig);
+            databaseContext.SaveChanges();
+        }
 
-        public void TrackMessageStatus(OtpResponseLog response)
+        protected PhoneConfiguration GetPhoneConfiguration(Phone phone)
+        {
+            using var databaseContext = new DatabaseContext();
+            return databaseContext.PhoneConfigurations.Where(i =>
+                i.Phone.CountryCode == phone.CountryCode &&
+                i.Phone.Prefix == phone.Prefix &&
+                i.Phone.Number == phone.Number
+                )
+                .FirstOrDefault();
+        }
+
+        public abstract  Task<OtpTrackingLog> CheckMessageStatus(OtpResponseLog response);
+
+        public async Task<bool> TrackMessageStatus(OtpResponseLog response)
         {
             System.Diagnostics.Debug.WriteLine($"{Type} tracking otp is started");
 
@@ -39,8 +58,8 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             var maxRetryCount = 5;
             while (maxRetryCount-- > 0)
             {
-                Task.Delay(1000);
-                var log = CheckMessageStatus(response);
+                await Task.Delay(1000);
+                var log = await CheckMessageStatus(response);
                 logs.Add(log);
 
                 if (log.Status == SmsTrackingStatus.Delivered || log.Status == SmsTrackingStatus.DeviceRejected || log.Status == SmsTrackingStatus.Expired)
@@ -51,16 +70,13 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             }
 
 
-            var dbContextOptions = new DbContextOptionsBuilder<DatabaseContext>()
-            .UseSqlServer(Environment.GetEnvironmentVariable("SQL_CONNECTION"))
-            .Options;
-
-            using var dbContext = new DatabaseContext(dbContextOptions);
-            dbContext.AddRange(logs);
-            dbContext.SaveChanges();
-            
+            using var _databaseContext = new DatabaseContext();
+            _databaseContext.AddRange(logs);
+            _databaseContext.SaveChanges();
 
             System.Diagnostics.Debug.WriteLine($"{Type} tracking otp is finished");
+            return true;
+
         }
     }
 

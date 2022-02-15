@@ -1,4 +1,5 @@
 ﻿using bbt.gateway.messaging.Models;
+using bbt.gateway.messaging.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,42 +8,36 @@ namespace bbt.gateway.messaging.Workers
 {
     public class OperatorManager
     {
-        private readonly DatabaseContext _databaseContext; 
         List<Operator> operators = new List<Operator>();
-
-        public OperatorManager(DatabaseContext databaseContext)
+        private readonly IRepositoryManager _repositoryManager;
+        public OperatorManager(IRepositoryManager repositoryManager)
         {
-            _databaseContext = databaseContext;
+            _repositoryManager = repositoryManager;
             loadOperators();
         }
 
         public Operator[] Get()
-        {
-            Operator[] returnValue;
-            
-            returnValue = _databaseContext.Operators.ToArray();
-            
-            return returnValue;
+        {            
+            return _repositoryManager.Operators.GetAll().ToArray();
         }
 
         public Operator Get(OperatorType type)
         {
-            return operators.FirstOrDefault(o => o.Type == type);
+            return _repositoryManager.Operators.FirstOrDefault(o => o.Type == type);
         }
 
 
         public void Save(Operator data)
         {
-           
             if (!operators.Any(o => o.Id == data.Id))
             {
                 throw new NotSupportedException("Adding new operator is not allowed.");
             }
             else
             {
-                _databaseContext.Operators.Update(data);
+                _repositoryManager.Operators.Update(data);
             }
-            _databaseContext.SaveChanges();
+            _repositoryManager.SaveChanges();
 
             //TODO: Meanwhile, dont forget to inform other pods to invalidate headers cahce.
             loadOperators();
@@ -50,7 +45,7 @@ namespace bbt.gateway.messaging.Workers
 
         private void loadOperators()
         {
-           operators = _databaseContext.Operators.ToList();
+            operators = _repositoryManager.Operators.GetAll().ToList();
         }
     }
 }

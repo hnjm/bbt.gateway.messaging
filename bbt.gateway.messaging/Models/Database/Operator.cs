@@ -14,10 +14,15 @@ namespace bbt.gateway.messaging.Models
         public Uri SendService { get; set;}
         public Uri QueryService { get; set;}
         public string AuthToken { get; set; }
+        public DateTime TokenCreatedAt { get; set; }
+        public DateTime TokenExpiredAt { get; set; }
         public string User { get; set;}
         public string Password { get; set;}
         public bool UseIvnWhenDeactive { get; set;}
         public OperatorStatus Status  { get; set; }
+
+        public string SupportDeskMail { get; set; }
+        public string SupportDeskPhone { get; set; }
     }
    
 }

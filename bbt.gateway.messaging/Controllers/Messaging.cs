@@ -11,7 +11,8 @@ using System.Threading.Tasks;
 namespace bbt.gateway.messaging.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/v{version:apiVersion}/[controller]")]
+    [ApiVersion("1.0")]
     public class Messaging : ControllerBase
     {
         private readonly ILogger<Messaging> _logger;
@@ -28,7 +29,7 @@ namespace bbt.gateway.messaging.Controllers
             Summary = "Send templated Sms message",
             Description = "Templates are defined in dEngage"
             )]
-        [HttpPost("/messaging/sms/templated") ]
+        [HttpPost("sms/templated") ]
         [SwaggerResponse(200, "Sms was sent successfully", typeof(SendSmsResponse))]
         [SwaggerResponse(460, "Given template is not found on dEngage", typeof(void))]
         [SwaggerResponse(465, "Sim card is changed.", typeof(void))]
@@ -44,15 +45,17 @@ namespace bbt.gateway.messaging.Controllers
            Summary = "Send Sms message",
            Description = "Send given content directly."
            )]
-        [HttpPost("/messaging/sms/message")]
+        [HttpPost("sms/message")]
         [SwaggerResponse(200, "Sms was sent successfully", typeof(SendSmsResponse))]
         [SwaggerResponse(465, "Sim card is changed.", typeof(void))]
         [SwaggerResponse(466, "Operator is changed.", typeof(void))]
-        public IActionResult SendMessageSms([FromBody] SendMessageSmsRequest data)
+        [SwaggerResponse(460, "Has Blacklist Record.", typeof(void))]
+        public async Task<IActionResult> SendMessageSms([FromBody] SendMessageSmsRequest data)
         {
+            
             if (ModelState.IsValid)
             {
-                var res = _otpSender.SendMessage(data);
+                var res = await _otpSender.SendMessage(data);
                 return Ok(res);
             }
             else 

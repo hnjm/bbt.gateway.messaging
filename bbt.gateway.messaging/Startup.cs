@@ -1,19 +1,28 @@
+using bbt.gateway.messaging.Api.Turkcell;
 using bbt.gateway.messaging.Api.TurkTelekom;
+using bbt.gateway.messaging.Api.Vodafone;
+using bbt.gateway.messaging.Api.Vodafone.Model;
 using bbt.gateway.messaging.Models;
+using bbt.gateway.messaging.Repositories;
 using bbt.gateway.messaging.Workers;
 using bbt.gateway.messaging.Workers.OperatorGateway;
+using Elastic.Apm.AspNetCore;
+using Elastic.Apm.NetCoreAll;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.HttpLogging;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
-
+using System.IO;
 
 namespace bbt.gateway.messaging
 {
@@ -29,6 +38,7 @@ namespace bbt.gateway.messaging
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            
             services.AddControllers()
                     //.AddJsonOptions(opts =>
                     //{
@@ -37,23 +47,45 @@ namespace bbt.gateway.messaging
                     //    opts.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
                     //    opts.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
                     //});
-                    .AddNewtonsoftJson(opts => opts.SerializerSettings.Converters.Add(new StringEnumConverter()));
+                    .AddNewtonsoftJson(opts => {
+                        opts.SerializerSettings.Converters.Add(new StringEnumConverter());
+                        opts.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+                        });
 
-            
+            services.AddHttpClient();
+
+            services.AddApiVersioning(v =>
+            {
+                v.DefaultApiVersion = new Microsoft.AspNetCore.Mvc.ApiVersion(1, 0);
+                v.AssumeDefaultVersionWhenUnspecified = true;
+            });
+
+            services.AddVersionedApiExplorer(setup =>
+            {
+                setup.GroupNameFormat = "'v'VVV";
+                setup.SubstituteApiVersionInUrl = true;
+            });
+
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "bbt.gateway.messaging", Version = "v1" });
+                //c.SwaggerDoc("v1", new OpenApiInfo { Title = "bbt.gateway.messaging", Version = "v1" });
                 c.EnableAnnotations();
                 //TODO: is process info came from header or body ? Decide
                 //c.OperationFilter<AddRequiredHeaderParameter>();
             });
             services.AddSwaggerGenNewtonsoftSupport();
+            services.ConfigureOptions<ConfigureSwaggerOptions>();
 
-            services.AddTransient<OperatorTurkTelekom>();
-            services.AddTransient<OperatorVodafone>();
-            services.AddTransient<OperatorTurkcell>();
-            services.AddTransient<OperatorIVN>();
-            services.AddTransient<Func<OperatorType, IOperatorGateway>>(serviceProvider => key =>
+
+            services.AddDbContext<DatabaseContext>(o => o.UseSqlServer(Environment.GetEnvironmentVariable("SQL_CONNECTION")));
+            services.AddScoped<IRepositoryManager, RepositoryManager>();
+            
+
+            services.AddScoped<OperatorTurkTelekom>();
+            services.AddScoped<OperatorVodafone>();
+            services.AddScoped<OperatorTurkcell>();
+            services.AddScoped<OperatorIVN>();
+            services.AddScoped<Func<OperatorType, IOperatorGateway>>(serviceProvider => key =>
             {
                 switch (key)
                 {
@@ -70,33 +102,41 @@ namespace bbt.gateway.messaging
                 }
             });
             
-            string sqlConnectionString = Environment.GetEnvironmentVariable("SQL_CONNECTION");
-
-            services.AddDbContext<DatabaseContext>(
-                options => options.UseSqlServer(sqlConnectionString),ServiceLifetime.Transient);
 
             services.AddScoped<OtpSender>();
             services.AddScoped<HeaderManager>();
             services.AddScoped<OperatorManager>();
             services.AddScoped<TurkTelekomApi>();
-           
+            services.AddScoped<VodafoneApi>();
+            services.AddScoped<TurkcellApi>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IApiVersionDescriptionProvider provider)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
-                app.UseSwaggerUI(c => {
-                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "bbt.gateway.messaging v1");
-                    c.RoutePrefix = "";
-                    });
+
+                app.UseSwaggerUI(options =>
+                {
+                    foreach (var description in provider.ApiVersionDescriptions)
+                    {
+                        options.SwaggerEndpoint(
+                            $"/swagger/{description.GroupName}/swagger.json",
+                            description.GroupName.ToUpperInvariant());
+                        options.RoutePrefix = "";
+                    }
+                });
+
+                //app.UseSwaggerUI(c => {
+                //    c.SwaggerEndpoint("/swagger/v1/swagger.json", "bbt.gateway.messaging v1");
+                //    c.RoutePrefix = "";
+                //    });
             }
 
             //app.UseHttpsRedirection();
-
             app.UseRouting();
 
             app.UseAuthorization();
@@ -105,6 +145,8 @@ namespace bbt.gateway.messaging
             {
                 endpoints.MapControllers();
             });
+
+            app.UseAllElasticApm(Configuration);
         }
     }
 }

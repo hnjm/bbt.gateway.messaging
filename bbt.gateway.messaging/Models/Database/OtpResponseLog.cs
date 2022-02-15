@@ -16,5 +16,7 @@ namespace bbt.gateway.messaging.Models
         public SmsTrackingStatus TrackingStatus { get; set; }
         public ICollection<OtpTrackingLog> TrackingLogs { get; set; } = new List<OtpTrackingLog>();
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public string RequestBody { get; set; }
+        public string ResponseBody { get; set; }
     }
 }

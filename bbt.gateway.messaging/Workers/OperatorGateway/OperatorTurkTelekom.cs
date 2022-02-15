@@ -1,6 +1,8 @@
 ﻿using bbt.gateway.messaging.Api.TurkTelekom;
 using bbt.gateway.messaging.Api.TurkTelekom.Model;
 using bbt.gateway.messaging.Models;
+using bbt.gateway.messaging.Repositories;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Concurrent;
 using System.Linq;
@@ -13,53 +15,70 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
     public class OperatorTurkTelekom : OperatorGatewayBase, IOperatorGateway
     {
         private readonly TurkTelekomApi _turkTelekomApi;
-        private readonly Operator _operator;
-        public OperatorTurkTelekom(TurkTelekomApi turkTelekomApi,OperatorManager operatorManager,DatabaseContext databaseContext) : base(operatorManager,databaseContext)
+        public OperatorTurkTelekom(TurkTelekomApi turkTelekomApi)
         {
             _turkTelekomApi = turkTelekomApi;
             Type = OperatorType.TurkTelekom;
-            _operator = operatorManager.Get(OperatorType.TurkTelekom);
         }
 
-        public void SendOtp(Phone phone, string content, ConcurrentBag<OtpResponseLog> responses, Header header, bool useControlDays)
+        public async Task<bool> SendOtp(Phone phone, string content, ConcurrentBag<OtpResponseLog> responses, Header header, bool useControlDays)
         {
-            var turkTelekomResponse = _turkTelekomApi.SendSms(CreateSmsRequest(phone,content,header,useControlDays));
+            var turkTelekomResponse = await _turkTelekomApi.SendSms(CreateSmsRequest(phone,content,header,useControlDays));
             System.Diagnostics.Debug.WriteLine("TT otp is send");
 
-            var response = turkTelekomResponse.BuildResponseForTurkTelekom();
+            var response =  turkTelekomResponse.BuildOperatorApiResponse();
 
             Task.Run(() => TrackMessageStatus(response));
 
             responses.Add(response);
+
+            return true;
         }
-        public OtpResponseLog SendOtp(Phone phone, string content, Header header)
+        public async Task<OtpResponseLog> SendOtp(Phone phone, string content, Header header, bool useControlDays)
         {
-           
-            var turkTelekomResponse = _turkTelekomApi.SendSms(CreateSmsRequest(phone, content, header,false));
+            var turkTelekomResponse = await _turkTelekomApi.SendSms(CreateSmsRequest(phone, content, header, useControlDays));
             System.Diagnostics.Debug.WriteLine("TurkTelekom otp is send");
 
-            var response = turkTelekomResponse.BuildResponseForTurkTelekom();
+            var response = turkTelekomResponse.BuildOperatorApiResponse();
 
             Task.Run(() => TrackMessageStatus(response));
             return response;
         }
 
-        public override OtpTrackingLog CheckMessageStatus(OtpResponseLog response)
+        public override async Task<OtpTrackingLog> CheckMessageStatus(OtpResponseLog response)
         {
-            var turkTelekomResponse = _turkTelekomApi.CheckSmsStatus(CreateSmsStatusRequest(response.StatusQueryId));
-            return turkTelekomResponse.BuildResponseForTurkTelekom(response);
+            var turkTelekomResponse = await _turkTelekomApi.CheckSmsStatus(CreateSmsStatusRequest(response.StatusQueryId));
+            return turkTelekomResponse.BuildOperatorApiTrackingResponse(response);
         }
 
         private TurkTelekomSmsRequest CreateSmsRequest(Phone phone, string content, Header header,bool useControlDays)
         {
-            var checkDate = useControlDays ?
-                (DateTime.Now.AddDays(_operator.ControlDaysForOtp * -1).ToString("yyyyMMddHHmmss")) :
-                (DateTime.Now.ToString("yyyyMMddHHmmss"));
+            DateTime checkDate = DateTime.Now.AddDays(-1 * OperatorConfig.ControlDaysForOtp);
+            if (useControlDays)
+            {
+                var phoneConfiguration = GetPhoneConfiguration(phone);
+                if (phoneConfiguration.BlacklistEntries != null &&
+                    phoneConfiguration.BlacklistEntries.Count > 0)
+                {
+                    var blackListEntry = phoneConfiguration.BlacklistEntries
+                    .Where(b => b.Status == BlacklistStatus.Resolved).OrderByDescending(b => b.CreatedAt)
+                    .FirstOrDefault();
+
+                    if (blackListEntry != null)
+                    {
+                        if (blackListEntry.ResolvedAt != null)
+                        {
+                            DateTime resolvedDate = blackListEntry.ResolvedAt.Value;
+                            checkDate = checkDate > resolvedDate ? checkDate : resolvedDate;
+                        }
+                    }
+                }
+            }
             return new TurkTelekomSmsRequest()
             {
-                UserCode = _operator.User,
-                Password = _operator.Password,
-                CheckDate = checkDate,
+                UserCode = OperatorConfig.User,
+                Password = OperatorConfig.Password,
+                CheckDate = checkDate.ToString("yyyyMMddHHmmss"),
                 Duration = "300",
                 GsmNo = phone.CountryCode.ToString()+phone.Prefix.ToString() + phone.Number.ToString(),
                 IsEncrypted = "False",
@@ -68,7 +87,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 Message = content,
                 OnNetPortInControl = "True",
                 OnNetSimChange = "True",
-                PortInCheckDate = checkDate
+                PortInCheckDate = checkDate.ToString("yyyyMMddHHmmss")
 
             };
         }
@@ -76,8 +95,8 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
         private TurkTelekomSmsStatusRequest CreateSmsStatusRequest(string MessageId, string LastMessageId = "")
         {
             return new TurkTelekomSmsStatusRequest() {
-                UserCode = _operator.User,
-                Password = _operator.Password,
+                UserCode = OperatorConfig.User,
+                Password = OperatorConfig.Password,
                 MessageId = MessageId,
                 LastMessageId = LastMessageId
             };

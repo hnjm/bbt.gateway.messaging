@@ -6,9 +6,9 @@ using System.Xml.Serialization;
 
 namespace bbt.gateway.messaging.Api.Turkcell.Model
 {
-    public class TurkcellSmsResponse
+    public class TurkcellAuthResponse
     {
-       
-       
+        public string ResultCode { get; set; }
+        public string AuthToken { get; set; }
     }
 }

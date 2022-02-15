@@ -7,9 +7,11 @@ using System.Xml.Serialization;
 
 namespace bbt.gateway.messaging.Api.Turkcell.Model
 {
-    public class TurkcellSmsRequest
+    
+    public class TurkcellSmsStatusRequest 
     {
-       
-
+        public string AuthToken { get; set; }
+        public string MsgId { get; set; }
     }
+
 }
