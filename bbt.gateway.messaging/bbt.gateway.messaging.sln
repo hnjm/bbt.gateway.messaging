@@ -1,9 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31424.327
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32126.317
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "bbt.gateway.messaging", "bbt.gateway.messaging.csproj", "{0EC5B279-FD0D-44CB-BB6B-80B7411DD591}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "bbt.gateway.worker", "..\bbt.gateway.worker\bbt.gateway.worker.csproj", "{C20447D3-A4D4-4973-8A39-8F9EE0BBD74C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "bbt.gateway.common", "..\bbt.gateway.common\bbt.gateway.common.csproj", "{6131CD7C-6B26-4F39-86B4-1C970C1A6406}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +19,14 @@ Global
 		{0EC5B279-FD0D-44CB-BB6B-80B7411DD591}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0EC5B279-FD0D-44CB-BB6B-80B7411DD591}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0EC5B279-FD0D-44CB-BB6B-80B7411DD591}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C20447D3-A4D4-4973-8A39-8F9EE0BBD74C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C20447D3-A4D4-4973-8A39-8F9EE0BBD74C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C20447D3-A4D4-4973-8A39-8F9EE0BBD74C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C20447D3-A4D4-4973-8A39-8F9EE0BBD74C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6131CD7C-6B26-4F39-86B4-1C970C1A6406}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6131CD7C-6B26-4F39-86B4-1C970C1A6406}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6131CD7C-6B26-4F39-86B4-1C970C1A6406}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6131CD7C-6B26-4F39-86B4-1C970C1A6406}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

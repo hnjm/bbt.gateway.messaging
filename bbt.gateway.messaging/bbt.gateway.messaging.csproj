@@ -5,6 +5,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
     <GenerateProgramFile>false</GenerateProgramFile>
+    <UserSecretsId>fbc00f5d-412e-4d33-a950-10da1fb88ab2</UserSecretsId>
   </PropertyGroup>
 
 
@@ -42,6 +43,12 @@
 
 
    
+  </ItemGroup>
+
+
+
+  <ItemGroup>
+    <ProjectReference Include="..\bbt.gateway.common\bbt.gateway.common.csproj" />
   </ItemGroup>
 
 </Project>
