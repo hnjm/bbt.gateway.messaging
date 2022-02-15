@@ -28,7 +28,10 @@ namespace bbt.gateway.messaging.Api.TurkTelekom
             {
                 var requestBody = turkTelekomSmsRequest.SerializeXml();
                 var httpRequest = new StringContent(requestBody, Encoding.UTF8, "text/xml");
-                using var httpClient = _httpClientFactory.CreateClient();
+                var httpClientHandler = new HttpClientHandler();
+                httpClientHandler.UseProxy = false;
+                using var httpClient = new HttpClient(httpClientHandler);
+                
                 var httpResponse = await httpClient.PostAsync(OperatorConfig.SendService, httpRequest);
                 var response = httpResponse.Content.ReadAsStringAsync().Result;
 
@@ -69,7 +72,9 @@ namespace bbt.gateway.messaging.Api.TurkTelekom
             {
                 var requestBody = turkTelekomSmsStatusRequest.SerializeXml();
                 var httpRequest = new StringContent(requestBody, Encoding.UTF8, "text/xml");
-                using var httpClient = new HttpClient();
+                var httpClientHandler = new HttpClientHandler();
+                httpClientHandler.UseProxy = false;
+                using var httpClient = new HttpClient(httpClientHandler);
                 var httpResponse = await httpClient.PostAsync(OperatorConfig.QueryService, httpRequest);
                 var response = httpResponse.Content.ReadAsStringAsync().Result;
 
