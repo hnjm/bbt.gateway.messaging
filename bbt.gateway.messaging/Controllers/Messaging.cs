@@ -1,11 +1,8 @@
-﻿using bbt.gateway.messaging.Models;
+﻿using bbt.gateway.common.Models;
 using bbt.gateway.messaging.Workers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Swashbuckle.AspNetCore.Annotations;
-using System.Net;
-using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace bbt.gateway.messaging.Controllers
@@ -66,6 +63,28 @@ namespace bbt.gateway.messaging.Controllers
 
         }
 
+        [SwaggerOperation(
+           Summary = "Check Sms Message Status",
+           Description = "Check Otp Sms Delivery Status."
+           )]
+        [HttpPost("sms/check-message")]
+        //[ApiExplorerSettings(IgnoreApi = true)]
+        public async Task<IActionResult> CheckMessageStatus([FromBody] CheckSmsRequest data)
+        {
+
+            if (ModelState.IsValid)
+            {
+                var res = await _otpSender.CheckMessage(data);
+                return Ok(res);
+            }
+            else
+            {
+                return BadRequest(ModelState);
+            }
+
+
+        }
+
         /* For Future development
 
         [SwaggerOperation(
@@ -93,7 +112,7 @@ namespace bbt.gateway.messaging.Controllers
         }
         */
 
-       
-     
+
+
     }
 }

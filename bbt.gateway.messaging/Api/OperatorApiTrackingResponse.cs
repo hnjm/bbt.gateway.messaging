@@ -1,8 +1,4 @@
-﻿using bbt.gateway.messaging.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using bbt.gateway.common.Models;
 
 namespace bbt.gateway.messaging.Api
 {

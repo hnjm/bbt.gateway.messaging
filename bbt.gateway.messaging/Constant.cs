@@ -1,8 +1,5 @@
-﻿using bbt.gateway.messaging.Models;
-using System;
+﻿using bbt.gateway.common.Models;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace bbt.gateway.messaging
 {

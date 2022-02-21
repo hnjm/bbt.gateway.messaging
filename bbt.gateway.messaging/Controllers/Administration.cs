@@ -1,15 +1,13 @@
-﻿using bbt.gateway.messaging.Models;
-using bbt.gateway.messaging.Repositories;
+﻿using bbt.gateway.common.Models;
+using bbt.gateway.common.Repositories;
 using bbt.gateway.messaging.Workers;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Swashbuckle.AspNetCore.Annotations;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using System.Net.Http;
 
 
 namespace bbt.gateway.messaging.Controllers
@@ -95,9 +93,7 @@ namespace bbt.gateway.messaging.Controllers
         public IActionResult GetPhoneBlacklistRecords(int countryCode, int prefix, int number, [Range(0, 100)] int page = 0, [Range(1, 100)] int pageSize = 20)
         {
             return Ok(_repositoryManager.BlackListEntries
-                .Find(c => c.PhoneConfiguration.Phone.CountryCode == countryCode && c.PhoneConfiguration.Phone.Prefix == prefix && c.PhoneConfiguration.Phone.Number == number)
-                .Skip(page * pageSize)
-                .Take(pageSize)
+                .getWithLogs(countryCode,prefix,number,page,pageSize)
                 .ToArray());
         }
 
@@ -135,10 +131,11 @@ namespace bbt.gateway.messaging.Controllers
             var newOtpBlackListEntry = new BlackListEntry
             {
                 Id = newOtpBlackListEntryId,
+                PhoneConfiguration = config,
                 PhoneConfigurationId = config.Id,
                 Reason = data.Reason,
                 Source = data.Source,
-                ValidTo = DateTime.Now.AddDays(data.Days),
+                ValidTo = DateTime.UtcNow.AddDays(data.Days),
                 CreatedBy = data.Process
             };
 
@@ -151,16 +148,19 @@ namespace bbt.gateway.messaging.Controllers
 
         [SwaggerOperation(Summary = "Resolve blacklist item")]
         [HttpPatch("blacklists/{blacklist-entry-id}/resolve")]
-        [SwaggerResponse(201, "Record was created successfully", typeof(void))]
+        [SwaggerResponse(201, "Record was updated successfully", typeof(void))]
+        [SwaggerResponse(404, "Record not found", typeof(void))]
         public IActionResult ResolveBlacklistItem([FromRoute(Name = "blacklist-entry-id")] Guid entryId, [FromBody] ResolveBlacklistEntryRequest data)
         {
             var config = _repositoryManager.BlackListEntries.FirstOrDefault(b => b.Id == entryId);
+            if (config == null)
+                return NotFound(entryId);
             config.ResolvedBy = data.ResolvedBy;
             config.Status = BlacklistStatus.Resolved;
-            config.ResolvedAt = DateTime.Now;
+            config.ResolvedAt = DateTime.UtcNow;
             _repositoryManager.SaveChanges();
             
-            return Ok();
+            return StatusCode(201);
         }
 
         [SwaggerOperation(Summary = "Returns phones otp sending logs")]
@@ -169,9 +169,7 @@ namespace bbt.gateway.messaging.Controllers
         public IActionResult GetOtpLog(int countryCode, int prefix, int number, [Range(0, 100)] int page = 0, [Range(1, 100)] int pageSize = 20)
         {
             return Ok(_repositoryManager.OtpRequestLogs
-                .Find(c => c.PhoneConfiguration.Phone.CountryCode == countryCode && c.PhoneConfiguration.Phone.Prefix == prefix && c.PhoneConfiguration.Phone.Number == number)
-                .Skip(page * pageSize)
-                .Take(pageSize)
+                .GetWithResponseLogs(countryCode,prefix,number,page,pageSize)
                 .ToArray());
         }
 

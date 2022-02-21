@@ -1,5 +1,5 @@
-﻿using bbt.gateway.messaging.Models;
-using bbt.gateway.messaging.Repositories;
+﻿using bbt.gateway.common.Models;
+using bbt.gateway.common.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;

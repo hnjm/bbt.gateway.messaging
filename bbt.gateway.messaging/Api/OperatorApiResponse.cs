@@ -1,15 +1,11 @@
-﻿using bbt.gateway.messaging.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿
+using bbt.gateway.common.Models;
 
 namespace bbt.gateway.messaging.Api
 {
     public abstract class OperatorApiResponse
     {
         protected OperatorType OperatorType;
-        public string t;
         public OperatorType GetOperatorType()
         {
             return this.OperatorType;

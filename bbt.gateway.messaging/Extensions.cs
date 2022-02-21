@@ -1,12 +1,10 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Xml.Serialization;
 using bbt.gateway.messaging.Api;
-using bbt.gateway.messaging.Api.TurkTelekom.Model;
-using bbt.gateway.messaging.Models;
+using bbt.gateway.common.Models;
+
 
 namespace bbt.gateway.messaging
 {
@@ -56,6 +54,7 @@ namespace bbt.gateway.messaging
             response.StatusQueryId = apiResponse.GetMessageId();
             if (Constant.OperatorErrorCodes.ContainsKey(apiResponse.GetOperatorType()))
             {
+                System.Console.WriteLine("Hata kodu : "+apiResponse.GetResponseCode());
                 var errorCodes = Constant.OperatorErrorCodes[apiResponse.GetOperatorType()];
                 if (errorCodes.ContainsKey(apiResponse.GetResponseCode().Trim()))
                 {
@@ -78,10 +77,10 @@ namespace bbt.gateway.messaging
             return response;
         }
 
-        public static OtpTrackingLog BuildOperatorApiTrackingResponse(this OperatorApiTrackingResponse apiTrackingResponse, OtpResponseLog response)
+        public static OtpTrackingLog BuildOperatorApiTrackingResponse(this OperatorApiTrackingResponse apiTrackingResponse,CheckSmsRequest checkSmsRequest)
         {
             var otpTrackingLog = new OtpTrackingLog();
-            otpTrackingLog.LogId = response.Id;
+            otpTrackingLog.LogId = checkSmsRequest.OtpRequestLogId;
             otpTrackingLog.Detail = apiTrackingResponse.GetFullResponse();
             if (Constant.OperatorTrackingErrorCodes.ContainsKey(apiTrackingResponse.GetOperatorType()))
             {

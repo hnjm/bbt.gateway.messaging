@@ -1,8 +1,6 @@
 ﻿using bbt.gateway.messaging.Api.TurkTelekom.Model;
-using bbt.gateway.messaging.Workers;
-using Microsoft.Extensions.Configuration;
+using bbt.gateway.common.Models;
 using Microsoft.Extensions.Logging;
-using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,27 +10,24 @@ namespace bbt.gateway.messaging.Api.TurkTelekom
     public class TurkTelekomApi:BaseApi
     {
         private readonly ILogger<TurkTelekomApi> _logger;
-        private readonly IHttpClientFactory _httpClientFactory;
-        public TurkTelekomApi(ILogger<TurkTelekomApi> logger,
-            IHttpClientFactory httpClientFactory,OperatorManager operatorManager) {
+        private readonly HttpClient _httpClient;
+        public TurkTelekomApi(ILogger<TurkTelekomApi> logger) {
             _logger = logger;
-            Type = Models.OperatorType.TurkTelekom;
-            _httpClientFactory = httpClientFactory;
+            Type = OperatorType.TurkTelekom;
+
+            var httpClientHandler = new HttpClientHandler();
+            httpClientHandler.UseProxy = false;
+            _httpClient = new(httpClientHandler);
         }
 
         public async Task<TurkTelekomSmsResponse> SendSms(TurkTelekomSmsRequest turkTelekomSmsRequest) 
         {
-
-            
             try
             {
                 var requestBody = turkTelekomSmsRequest.SerializeXml();
                 var httpRequest = new StringContent(requestBody, Encoding.UTF8, "text/xml");
-                var httpClientHandler = new HttpClientHandler();
-                httpClientHandler.UseProxy = false;
-                using var httpClient = new HttpClient(httpClientHandler);
-                
-                var httpResponse = await httpClient.PostAsync(OperatorConfig.SendService, httpRequest);
+                _logger.LogInformation("Api Operator :" + OperatorConfig);                
+                var httpResponse = await _httpClient.PostAsync(OperatorConfig.SendService, httpRequest);
                 var response = httpResponse.Content.ReadAsStringAsync().Result;
 
                 if (httpResponse.IsSuccessStatusCode)
@@ -72,10 +67,7 @@ namespace bbt.gateway.messaging.Api.TurkTelekom
             {
                 var requestBody = turkTelekomSmsStatusRequest.SerializeXml();
                 var httpRequest = new StringContent(requestBody, Encoding.UTF8, "text/xml");
-                var httpClientHandler = new HttpClientHandler();
-                httpClientHandler.UseProxy = false;
-                using var httpClient = new HttpClient(httpClientHandler);
-                var httpResponse = await httpClient.PostAsync(OperatorConfig.QueryService, httpRequest);
+                var httpResponse = await _httpClient.PostAsync(OperatorConfig.QueryService, httpRequest);
                 var response = httpResponse.Content.ReadAsStringAsync().Result;
 
                 if (httpResponse.IsSuccessStatusCode)

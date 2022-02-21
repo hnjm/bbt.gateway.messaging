@@ -1,5 +1,6 @@
-﻿using bbt.gateway.messaging.Models;
+﻿using bbt.gateway.common.Models;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace bbt.gateway.messaging.Workers.OperatorGateway
@@ -8,6 +9,8 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
     {
         Task<bool> SendOtp(Phone phone, string content, ConcurrentBag<OtpResponseLog> responses, Header header, bool useControlDays);
         Task<OtpResponseLog> SendOtp(Phone phone, string content, Header header,bool useControlDays);
+
+        Task<OtpTrackingLog> CheckMessageStatus(CheckSmsRequest checkSmsRequest);
 
     }
 }

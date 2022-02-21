@@ -1,16 +1,15 @@
-﻿using bbt.gateway.messaging.Api.TurkTelekom;
-using bbt.gateway.messaging.Api.TurkTelekom.Model;
-using bbt.gateway.messaging.Models;
-using bbt.gateway.messaging.Repositories;
-using Microsoft.EntityFrameworkCore;
+﻿using bbt.gateway.messaging.Api.TurkTelekom.Model;
+using bbt.gateway.common.Models;
+using bbt.gateway.messaging.Api.TurkTelekom;
+using bbt.gateway.common;
 using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace bbt.gateway.messaging.Workers.OperatorGateway
 {
-
 
     public class OperatorTurkTelekom : OperatorGatewayBase, IOperatorGateway
     {
@@ -19,6 +18,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
         {
             _turkTelekomApi = turkTelekomApi;
             Type = OperatorType.TurkTelekom;
+            _turkTelekomApi.SetOperatorType(OperatorConfig);
         }
 
         public async Task<bool> SendOtp(Phone phone, string content, ConcurrentBag<OtpResponseLog> responses, Header header, bool useControlDays)
@@ -27,9 +27,6 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             System.Diagnostics.Debug.WriteLine("TT otp is send");
 
             var response =  turkTelekomResponse.BuildOperatorApiResponse();
-
-            Task.Run(() => TrackMessageStatus(response));
-
             responses.Add(response);
 
             return true;
@@ -41,14 +38,13 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
             var response = turkTelekomResponse.BuildOperatorApiResponse();
 
-            Task.Run(() => TrackMessageStatus(response));
             return response;
         }
 
-        public override async Task<OtpTrackingLog> CheckMessageStatus(OtpResponseLog response)
+        public async Task<OtpTrackingLog> CheckMessageStatus(CheckSmsRequest checkSmsRequest)
         {
-            var turkTelekomResponse = await _turkTelekomApi.CheckSmsStatus(CreateSmsStatusRequest(response.StatusQueryId));
-            return turkTelekomResponse.BuildOperatorApiTrackingResponse(response);
+            var turkTelekomResponse = await _turkTelekomApi.CheckSmsStatus(CreateSmsStatusRequest(checkSmsRequest.StatusQueryId));
+            return turkTelekomResponse.BuildOperatorApiTrackingResponse(checkSmsRequest);
         }
 
         private TurkTelekomSmsRequest CreateSmsRequest(Phone phone, string content, Header header,bool useControlDays)

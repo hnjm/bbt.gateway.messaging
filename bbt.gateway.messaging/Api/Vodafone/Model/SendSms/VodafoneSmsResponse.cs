@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using bbt.gateway.common.Models;
 
 namespace bbt.gateway.messaging.Api.Vodafone.Model
 {
@@ -15,7 +16,7 @@ namespace bbt.gateway.messaging.Api.Vodafone.Model
         public string ResponseBody { get; set; }
         public VodafoneSmsResponse()
         {
-            this.OperatorType = Models.OperatorType.Vodafone;
+            this.OperatorType = OperatorType.Vodafone;
         }
 
         public override string GetMessageId()

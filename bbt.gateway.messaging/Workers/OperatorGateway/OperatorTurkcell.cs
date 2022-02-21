@@ -1,15 +1,12 @@
-﻿using bbt.gateway.messaging.Api.Turkcell;
-using bbt.gateway.messaging.Api.Turkcell.Model;
-using bbt.gateway.messaging.Models;
-using bbt.gateway.messaging.Repositories;
-using Microsoft.EntityFrameworkCore;
+﻿using bbt.gateway.messaging.Api.Turkcell.Model;
+using bbt.gateway.common.Models;
+using bbt.gateway.messaging.Api.Turkcell;
+using bbt.gateway.common;
 using System;
 using System.Collections.Concurrent;
-using System.IO;
 using System.Linq;
-using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace bbt.gateway.messaging.Workers.OperatorGateway
 {
@@ -21,6 +18,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
         {
             _turkcellApi = turkcellApi;
             Type = OperatorType.Turkcell;
+            _turkcellApi.SetOperatorType(OperatorConfig);
         }
 
         private async Task<bool> Auth()
@@ -28,8 +26,8 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             bool isAuthSuccess = false;
             if (OperatorConfig.TokenExpiredAt <= System.DateTime.Now.AddMinutes(-1))
             {
-                var tokenCreatedAt = System.DateTime.Now;
-                var tokenExpiredAt = System.DateTime.Now.AddMinutes(20);
+                var tokenCreatedAt = System.DateTime.Now.SetKindUtc();
+                var tokenExpiredAt = System.DateTime.Now.AddMinutes(20).SetKindUtc();
                 var authResponse = await _turkcellApi.Auth(CreateAuthRequest());
                 if(authResponse.ResultCode == "0")
                 {
@@ -53,8 +51,8 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
         private async Task<bool> RefreshToken()
         {
-            var tokenCreatedAt = System.DateTime.Now;
-            var tokenExpiredAt = System.DateTime.Now.AddMinutes(20);
+            var tokenCreatedAt = System.DateTime.Now.SetKindUtc();
+            var tokenExpiredAt = System.DateTime.Now.AddMinutes(20).SetKindUtc();
             var authResponse = await _turkcellApi.Auth(CreateAuthRequest());
             if (authResponse.ResultCode == "0")
             {
@@ -69,7 +67,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
         private void ExtendToken()
         {
-            OperatorConfig.TokenExpiredAt = DateTime.Now.AddMinutes(20);
+            OperatorConfig.TokenExpiredAt = DateTime.Now.AddMinutes(20).SetKindUtc();
             SaveOperator();
         }
 
@@ -90,8 +88,6 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 var response = turkcellResponse.BuildOperatorApiResponse();
                 responses.Add(response);
 
-                if(response.ResponseCode == SendSmsResponseStatus.Success)
-                    Task.Run(() => TrackMessageStatus(response));
                 ExtendToken();
             }
             else
@@ -104,6 +100,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 };
                 response.ResponseCode = SendSmsResponseStatus.ClientError;
                 response.ResponseMessage = "Turkcell Auth Failed";
+                responses.Add(response);
             }
 
             return true;
@@ -125,9 +122,6 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
                 var response = turkcellResponse.BuildOperatorApiResponse();
 
-                if (response.ResponseCode == SendSmsResponseStatus.Success)
-                    Task.Run(() => TrackMessageStatus(response));
-
                 ExtendToken();
 
                 return response;
@@ -148,11 +142,11 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                         
         }
 
-        public async override Task<OtpTrackingLog> CheckMessageStatus(OtpResponseLog response)
+        public async Task<OtpTrackingLog> CheckMessageStatus(CheckSmsRequest checkSmsRequest)
         {
             var isAuthSuccess = await Auth();
-            var turkcellResponse = await _turkcellApi.CheckSmsStatus(CreateSmsStatusRequest(response.StatusQueryId));
-            return turkcellResponse.BuildOperatorApiTrackingResponse(response);
+            var turkcellResponse = await _turkcellApi.CheckSmsStatus(CreateSmsStatusRequest(checkSmsRequest.StatusQueryId));
+            return turkcellResponse.BuildOperatorApiTrackingResponse(checkSmsRequest);
         }
 
         private TurkcellSmsRequest CreateSmsRequest(Phone phone, string content, Header header, bool useControlDays)

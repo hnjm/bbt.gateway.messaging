@@ -1,7 +1,7 @@
-﻿using bbt.gateway.messaging.Models;
-using bbt.gateway.messaging.Repositories;
+﻿using bbt.gateway.common.Models;
+using bbt.gateway.common.Repositories;
 using bbt.gateway.messaging.Workers.OperatorGateway;
-using Microsoft.EntityFrameworkCore;
+using bbt.gateway.common;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -67,7 +67,7 @@ namespace bbt.gateway.messaging.Workers
                 //Operator Change | Sim Change | Not Subscriber handle edilmeli
                 if (responseLog.ResponseCode == SendSmsResponseStatus.NotSubscriber)
                 {
-                    SendMessageToUnknownProcess(true);
+                    await SendMessageToUnknownProcess(true);
                 }
                 if (responseLog.ResponseCode == SendSmsResponseStatus.OperatorChange
                     || responseLog.ResponseCode == SendSmsResponseStatus.SimChange)
@@ -99,7 +99,7 @@ namespace bbt.gateway.messaging.Workers
                         _repositoryManager.PhoneConfigurations.Add(phoneConfiguration);
                     }
 
-                    SendMessageToUnknownProcess(false);
+                    await SendMessageToUnknownProcess(false);
                 }
 
             }
@@ -113,11 +113,11 @@ namespace bbt.gateway.messaging.Workers
             return returnValue;
         }
 
-        private void SendMessageToUnknownProcess(bool discardCurrentOperator)
+        private async Task SendMessageToUnknownProcess(bool discardCurrentOperator)
         {
 
             //if discardCurrentOperator is true,phone is known number
-            var responseLogs = SendMessageToUnknown(phoneConfiguration, discardCurrentOperator, discardCurrentOperator);
+            var responseLogs = await SendMessageToUnknown(phoneConfiguration, discardCurrentOperator, discardCurrentOperator);
 
             // Decide which response code will be returned
             returnValue = responseLogs.UnifyResponse();
@@ -140,31 +140,47 @@ namespace bbt.gateway.messaging.Workers
 
         }
 
-        private List<OtpResponseLog> SendMessageToUnknown(PhoneConfiguration phoneConfiguration,bool useControlDays, bool discardCurrentOperator = false)
+        private async Task<List<OtpResponseLog>> SendMessageToUnknown(PhoneConfiguration phoneConfiguration,bool useControlDays, bool discardCurrentOperator = false)
         {
             var header = _headerManager.Get(phoneConfiguration, _data.ContentType);
             _requestLog.Content = header.BuildContentForLog(_data.Content);
 
             ConcurrentBag<OtpResponseLog> responses = new ConcurrentBag<OtpResponseLog>();
-
-            Parallel.ForEach(operators,  async(currentElement) =>
+            List<Task> tasks = new List<Task>();
+            foreach (var currentElement in operators)
             {
                 if (discardCurrentOperator)
                 {
                     if (phoneConfiguration.Operator != currentElement.Value)
                     {
-                        IOperatorGateway gateway = (IOperatorGateway)_operatorRepository(currentElement.Value);
-                        await gateway.SendOtp(_data.Phone, header.BuildContentForSms(_data.Content), responses, header, useControlDays);
+                        IOperatorGateway gateway = _operatorRepository(currentElement.Value);
+                        tasks.Add(gateway.SendOtp(_data.Phone, header.BuildContentForSms(_data.Content), responses, header, useControlDays));
                     }
                 }
                 else
                 {
-                    IOperatorGateway gateway = (IOperatorGateway)_operatorRepository(currentElement.Value);
-                    await gateway.SendOtp(_data.Phone, header.BuildContentForSms(_data.Content), responses, header, useControlDays);
+                    IOperatorGateway gateway = _operatorRepository(currentElement.Value);
+                    tasks.Add(gateway.SendOtp(_data.Phone, header.BuildContentForSms(_data.Content), responses, header, useControlDays));
                 }
-                
-            });
+            }
+            //Parallel.ForEach(operators,  (currentElement) =>
+            //{
+            //    if (discardCurrentOperator)
+            //    {
+            //        if (phoneConfiguration.Operator != currentElement.Value)
+            //        {
+            //            IOperatorGateway gateway = _operatorRepository(currentElement.Value);
+            //            gateway.SendOtp(_data.Phone, header.BuildContentForSms(_data.Content), responses, header, useControlDays);
+            //        }
+            //    }
+            //    else
+            //    {
+            //        IOperatorGateway gateway = _operatorRepository(currentElement.Value);
+            //        gateway.SendOtp(_data.Phone, header.BuildContentForSms(_data.Content), responses, header, useControlDays);
+            //    }
 
+            //});
+            await Task.WhenAll(tasks);
             return responses.ToList();
         }
 
@@ -194,6 +210,34 @@ namespace bbt.gateway.messaging.Workers
             }
 
             var result = await gateway.SendOtp(_data.Phone, header.BuildContentForSms(_data.Content), header,useControlDays);
+
+            return result;
+        }
+
+        public async Task<OtpTrackingLog> CheckMessage(CheckSmsRequest checkSmsRequest)
+        {
+            IOperatorGateway gateway = null;
+
+            switch (checkSmsRequest.Operator)
+            {
+                case OperatorType.Turkcell:
+                    gateway = _operatorRepository(OperatorType.Turkcell);
+                    break;
+                case OperatorType.Vodafone:
+                    gateway = _operatorRepository(OperatorType.Vodafone);
+                    break;
+                case OperatorType.TurkTelekom:
+                    gateway = _operatorRepository(OperatorType.TurkTelekom);
+                    break;
+                case OperatorType.IVN:
+                    gateway = _operatorRepository(OperatorType.IVN);
+                    break;
+                default:
+                    // Serious Exception
+                    break;
+            }
+
+            var result = await gateway.CheckMessageStatus(checkSmsRequest);
 
             return result;
         }

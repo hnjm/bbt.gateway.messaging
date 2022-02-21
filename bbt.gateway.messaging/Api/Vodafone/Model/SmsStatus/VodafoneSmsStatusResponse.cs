@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using bbt.gateway.common.Models;
 
 namespace bbt.gateway.messaging.Api.Vodafone.Model
 {
@@ -14,7 +15,7 @@ namespace bbt.gateway.messaging.Api.Vodafone.Model
         private string _fullResponse;
         public VodafoneSmsStatusResponse()
         {
-            OperatorType = Models.OperatorType.Vodafone;
+            OperatorType = OperatorType.Vodafone;
         }
 
         public void SetFullResponse(string fullResponse)

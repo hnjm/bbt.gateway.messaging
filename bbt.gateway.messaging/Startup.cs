@@ -1,28 +1,23 @@
+using bbt.gateway.common.Models;
 using bbt.gateway.messaging.Api.Turkcell;
 using bbt.gateway.messaging.Api.TurkTelekom;
 using bbt.gateway.messaging.Api.Vodafone;
-using bbt.gateway.messaging.Api.Vodafone.Model;
-using bbt.gateway.messaging.Models;
-using bbt.gateway.messaging.Repositories;
+using bbt.gateway.common;
+using bbt.gateway.common.Repositories;
 using bbt.gateway.messaging.Workers;
 using bbt.gateway.messaging.Workers.OperatorGateway;
-using Elastic.Apm.AspNetCore;
 using Elastic.Apm.NetCoreAll;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
-using System.IO;
 
 namespace bbt.gateway.messaging
 {
@@ -75,9 +70,8 @@ namespace bbt.gateway.messaging
             });
             services.AddSwaggerGenNewtonsoftSupport();
             services.ConfigureOptions<ConfigureSwaggerOptions>();
-
-
-            services.AddDbContext<DatabaseContext>(o => o.UseSqlServer(Environment.GetEnvironmentVariable("SQL_CONNECTION")));
+            
+            services.AddDbContext<DatabaseContext>(o => o.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
             services.AddScoped<IRepositoryManager, RepositoryManager>();
             
 
@@ -114,6 +108,7 @@ namespace bbt.gateway.messaging
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IApiVersionDescriptionProvider provider)
         {
+            Console.WriteLine("test ediyoruz");
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -147,6 +142,21 @@ namespace bbt.gateway.messaging
             });
 
             app.UseAllElasticApm(Configuration);
+           
+            SeedData.Initialize(app.ApplicationServices);
+        }
+    }
+
+    public static class SeedData
+    {
+        public static void Initialize(IServiceProvider serviceProvider)
+        {
+            using (var serviceScope = serviceProvider.CreateScope())
+            {
+                var context = serviceScope.ServiceProvider.GetService<DatabaseContext>();
+                // auto migration
+                context.Database.EnsureCreated();
+            }
         }
     }
 }
