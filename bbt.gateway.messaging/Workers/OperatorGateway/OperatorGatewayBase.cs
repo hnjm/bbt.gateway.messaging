@@ -1,20 +1,27 @@
-﻿using bbt.gateway.messaging.Models;
-using bbt.gateway.messaging.Repositories;
-using Microsoft.EntityFrameworkCore;
-using System;
+﻿using bbt.gateway.common.Models;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using bbt.gateway.common;
+using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore;
 
 namespace bbt.gateway.messaging.Workers.OperatorGateway
 {
     public abstract class OperatorGatewayBase
     {
         private OperatorType type;
-       
+        private DbContextOptions<DatabaseContext> _dbOptions;
         protected OperatorGatewayBase() 
         {
-            
+            var configuration = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json")
+                .AddUserSecrets<OperatorGatewayBase>()
+                .Build();
+
+            _dbOptions = new DbContextOptionsBuilder<DatabaseContext>()
+                .UseNpgsql(configuration.GetConnectionString("DefaultConnection"))
+                .Options;
         }
 
         protected OperatorType Type
@@ -23,22 +30,23 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             set
             {
                 type = value;
-                using var databaseContext = new DatabaseContext();
+                using var databaseContext = new DatabaseContext(_dbOptions);
                 OperatorConfig = databaseContext.Operators.FirstOrDefault(o => o.Type == type);
+                System.Console.WriteLine("Base Gateway Operator : " + OperatorConfig.Type );
             }
         }
         protected Operator OperatorConfig { get; set; }
 
         protected void SaveOperator()
         {
-            using var databaseContext = new DatabaseContext();
+            using var databaseContext = new DatabaseContext(_dbOptions);
             databaseContext.Operators.Update(OperatorConfig);
             databaseContext.SaveChanges();
         }
 
         protected PhoneConfiguration GetPhoneConfiguration(Phone phone)
         {
-            using var databaseContext = new DatabaseContext();
+            using var databaseContext = new DatabaseContext(_dbOptions);
             return databaseContext.PhoneConfigurations.Where(i =>
                 i.Phone.CountryCode == phone.CountryCode &&
                 i.Phone.Prefix == phone.Prefix &&
@@ -47,37 +55,6 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 .FirstOrDefault();
         }
 
-        public abstract  Task<OtpTrackingLog> CheckMessageStatus(OtpResponseLog response);
-
-        public async Task<bool> TrackMessageStatus(OtpResponseLog response)
-        {
-            System.Diagnostics.Debug.WriteLine($"{Type} tracking otp is started");
-
-            List<OtpTrackingLog> logs = new List<OtpTrackingLog>();
-
-            var maxRetryCount = 5;
-            while (maxRetryCount-- > 0)
-            {
-                await Task.Delay(1000);
-                var log = await CheckMessageStatus(response);
-                logs.Add(log);
-
-                if (log.Status == SmsTrackingStatus.Delivered || log.Status == SmsTrackingStatus.DeviceRejected || log.Status == SmsTrackingStatus.Expired)
-                    break;
-
-
-                System.Diagnostics.Debug.WriteLine($"{Type} is tracking otp status. Times : {maxRetryCount}");
-            }
-
-
-            using var _databaseContext = new DatabaseContext();
-            _databaseContext.AddRange(logs);
-            _databaseContext.SaveChanges();
-
-            System.Diagnostics.Debug.WriteLine($"{Type} tracking otp is finished");
-            return true;
-
-        }
     }
 
 

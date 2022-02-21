@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using bbt.gateway.common.Models;
 
 namespace bbt.gateway.messaging.Api.TurkTelekom.Model
 {
@@ -19,7 +20,7 @@ namespace bbt.gateway.messaging.Api.TurkTelekom.Model
 
         public TurkTelekomSmsResponse()
         {
-            this.OperatorType = Models.OperatorType.TurkTelekom;
+            this.OperatorType = OperatorType.TurkTelekom;
         }
 
         public override string GetMessageId()

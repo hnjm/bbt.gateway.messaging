@@ -1,8 +1,5 @@
-﻿using bbt.gateway.messaging.Models;
-using System;
-using System.Collections.Generic;
+﻿using bbt.gateway.common.Models;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace bbt.gateway.messaging.Api
 {
@@ -20,10 +17,11 @@ namespace bbt.gateway.messaging.Api
             set
             {
                 _type = value;
-                using var databaseContext = new DatabaseContext();
-                OperatorConfig = databaseContext.Operators.FirstOrDefault(o => o.Type == _type);
             }
         }
+
+        public void SetOperatorType(Operator op) => OperatorConfig = op;
+
         protected Operator OperatorConfig { get; set; }
     }
 }

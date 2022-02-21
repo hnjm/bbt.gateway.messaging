@@ -1,4 +1,4 @@
-﻿using bbt.gateway.messaging.Models;
+﻿using bbt.gateway.common.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;

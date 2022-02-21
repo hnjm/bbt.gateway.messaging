@@ -1,9 +1,6 @@
 ﻿using bbt.gateway.messaging.Api.Vodafone.Model;
-using bbt.gateway.messaging.Models;
-using bbt.gateway.messaging.Workers;
-using Microsoft.Extensions.Configuration;
+using bbt.gateway.common.Models;
 using Microsoft.Extensions.Logging;
-using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,13 +10,12 @@ namespace bbt.gateway.messaging.Api.Vodafone
     public class VodafoneApi:BaseApi
     {
         private readonly ILogger<VodafoneApi> _logger;
-        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly HttpClient _httpClient;
 
-        public VodafoneApi(IHttpClientFactory httpClientFactory,
-            ILogger<VodafoneApi> logger) 
+        public VodafoneApi(ILogger<VodafoneApi> logger) 
         {
             _logger = logger;
-            _httpClientFactory = httpClientFactory;
+            _httpClient = new();
             Type = OperatorType.Vodafone;
         }
 
@@ -28,8 +24,7 @@ namespace bbt.gateway.messaging.Api.Vodafone
             try
             {
                 var httpRequest = new StringContent(getSendSmsXml(vodafoneSmsRequest), Encoding.UTF8, "application/soap+xml");
-                using var httpClient = _httpClientFactory.CreateClient();
-                var httpResponse = await httpClient.PostAsync(OperatorConfig.SendService, httpRequest);
+                var httpResponse = await _httpClient.PostAsync(OperatorConfig.SendService, httpRequest);
                 var response = httpResponse.Content.ReadAsStringAsync().Result;
 
                 if (httpResponse.IsSuccessStatusCode)
@@ -79,8 +74,7 @@ namespace bbt.gateway.messaging.Api.Vodafone
             try
             {
                 var xmlBody = new StringContent(getSmsStatusXml(vodafoneSmsStatusRequest), Encoding.UTF8, "application/soap+xml");
-                using var httpClient = new HttpClient();
-                var httpResponse = await httpClient.PostAsync(OperatorConfig.QueryService, xmlBody);
+                var httpResponse = await _httpClient.PostAsync(OperatorConfig.QueryService, xmlBody);
                 response = httpResponse.Content.ReadAsStringAsync().Result;
 
                 if (httpResponse.IsSuccessStatusCode)
@@ -133,8 +127,7 @@ namespace bbt.gateway.messaging.Api.Vodafone
             {
 
                 var xmlBody = new StringContent(getAuthXml(vodafoneAuthRequest), Encoding.UTF8, "application/soap+xml");
-                using var httpClient = _httpClientFactory.CreateClient();
-                var httpResponse = await httpClient.PostAsync(OperatorConfig.AuthanticationService, xmlBody);
+                var httpResponse = await _httpClient.PostAsync(OperatorConfig.AuthanticationService, xmlBody);
                 var response = httpResponse.Content.ReadAsStringAsync().Result;
 
                 if (httpResponse.IsSuccessStatusCode)

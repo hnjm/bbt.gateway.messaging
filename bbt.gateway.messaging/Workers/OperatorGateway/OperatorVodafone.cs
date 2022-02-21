@@ -1,12 +1,12 @@
-﻿using bbt.gateway.messaging.Api.Vodafone;
-using bbt.gateway.messaging.Api.Vodafone.Model;
-using bbt.gateway.messaging.Models;
-using bbt.gateway.messaging.Repositories;
-using Microsoft.EntityFrameworkCore;
+﻿using bbt.gateway.messaging.Api.Vodafone.Model;
+using bbt.gateway.common.Models;
+using bbt.gateway.messaging.Api.Vodafone;
+using bbt.gateway.common;
 using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace bbt.gateway.messaging.Workers.OperatorGateway
 {
@@ -18,6 +18,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
         {
             _vodafoneApi = vodafoneApi;
             Type = OperatorType.Vodafone;
+            _vodafoneApi.SetOperatorType(OperatorConfig);
         }
 
         private async Task<bool> Auth()
@@ -25,8 +26,8 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             bool isAuthSuccess = false;
             if (OperatorConfig.TokenExpiredAt <= System.DateTime.Now.AddMinutes(-1))
             {
-                var tokenCreatedAt = System.DateTime.Now;
-                var tokenExpiredAt = System.DateTime.Now.AddMinutes(59);
+                var tokenCreatedAt = System.DateTime.Now.SetKindUtc();
+                var tokenExpiredAt = System.DateTime.Now.AddMinutes(59).SetKindUtc();
                 var authResponse = await _vodafoneApi.Auth(CreateAuthRequest());
                 if (authResponse.ResultCode == "0")
                 {
@@ -49,8 +50,8 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
         private async Task<bool> RefreshToken()
         {
-            var tokenCreatedAt = System.DateTime.Now;
-            var tokenExpiredAt = System.DateTime.Now.AddMinutes(59);
+            var tokenCreatedAt = System.DateTime.Now.SetKindUtc();
+            var tokenExpiredAt = System.DateTime.Now.AddMinutes(59).SetKindUtc();
             var authResponse = await _vodafoneApi.Auth(CreateAuthRequest());
             if (authResponse.ResultCode == "0")
             {
@@ -67,7 +68,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
         {
             if (DateTime.Now < OperatorConfig.TokenCreatedAt.AddHours(24))
             {
-                OperatorConfig.TokenExpiredAt = DateTime.Now.AddMinutes(60);
+                OperatorConfig.TokenExpiredAt = DateTime.Now.AddMinutes(60).SetKindUtc();
                 SaveOperator();
             }
         }
@@ -88,11 +89,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 System.Diagnostics.Debug.WriteLine("Vodafone otp is send");
 
                 var response = vodafoneResponse.BuildOperatorApiResponse();
-
                 responses.Add(response);
-
-                if (response.ResponseCode == SendSmsResponseStatus.Success)
-                    Task.Run(() => TrackMessageStatus(response));
                 ExtendToken();
                 
             }
@@ -106,7 +103,9 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 };
                 response.ResponseCode = SendSmsResponseStatus.ClientError;
                 response.ResponseMessage = "Vodafone Auth Failed";
+                responses.Add(response);
             }
+            
             return true;
         }
 
@@ -127,8 +126,6 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
                 var response = vodafoneResponse.BuildOperatorApiResponse();
 
-                if (response.ResponseCode == SendSmsResponseStatus.Success)
-                    Task.Run(() => TrackMessageStatus(response));
                 ExtendToken();
 
                 return response;
@@ -148,11 +145,11 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             }
         }
 
-        public override async Task<OtpTrackingLog> CheckMessageStatus(OtpResponseLog response)
+        public async Task<OtpTrackingLog> CheckMessageStatus(CheckSmsRequest checkSmsRequest)
         {
             var isAuthSuccess = await Auth();
-            var vodafoneResponse = await _vodafoneApi.CheckSmsStatus(CreateSmsStatusRequest(response.StatusQueryId));
-            return vodafoneResponse.BuildOperatorApiTrackingResponse(response);
+            var vodafoneResponse = await _vodafoneApi.CheckSmsStatus(CreateSmsStatusRequest(checkSmsRequest.StatusQueryId));
+            return vodafoneResponse.BuildOperatorApiTrackingResponse(checkSmsRequest);
         }
 
         private VodafoneSmsRequest CreateSmsRequest(Phone phone, string content, Header header, bool useControlDays)

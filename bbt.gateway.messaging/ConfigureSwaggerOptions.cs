@@ -33,7 +33,7 @@ namespace bbt.gateway.messaging
         {
             var info = new OpenApiInfo()
             {
-                Title = "SwaggerHeroes API",
+                Title = "Bbt.Messaging.Gateway",
                 Version = description.ApiVersion.ToString()
             };
 

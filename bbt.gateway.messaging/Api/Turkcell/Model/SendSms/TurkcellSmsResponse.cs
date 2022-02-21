@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using bbt.gateway.common.Models;
 
 namespace bbt.gateway.messaging.Api.Turkcell.Model
 {
-    [XmlRoot(ElementName = "MSGIDRETURN")]
+    
     public class TurkcellSmsResponse : OperatorApiResponse
     {
         
@@ -17,7 +18,7 @@ namespace bbt.gateway.messaging.Api.Turkcell.Model
         public string ResponseBody { get; set; }
         public TurkcellSmsResponse()
         {
-            OperatorType = Models.OperatorType.Turkcell;
+            OperatorType = OperatorType.Turkcell;
         }
 
         public override string GetMessageId()

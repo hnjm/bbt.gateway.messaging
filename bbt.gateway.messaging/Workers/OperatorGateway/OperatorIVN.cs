@@ -1,7 +1,7 @@
-﻿using bbt.gateway.messaging.Models;
-using bbt.gateway.messaging.Repositories;
+﻿using bbt.gateway.common.Models;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace bbt.gateway.messaging.Workers.OperatorGateway
@@ -45,10 +45,11 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             return response;
         }
 
-        public override async Task<OtpTrackingLog> CheckMessageStatus(OtpResponseLog response)
+        public async Task<OtpTrackingLog> CheckMessageStatus(CheckSmsRequest checkSmsRequest)
         {
-            await Task.CompletedTask;
+           await Task.CompletedTask;
            throw new NotSupportedException();
         }
+
     }
 }
