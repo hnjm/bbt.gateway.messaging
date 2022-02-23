@@ -18,14 +18,20 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
+using bbt.gateway.common.Models.Settings;
+using bbt.gateway.common.Models.Extensions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 namespace bbt.gateway.messaging
 {
     public class Startup
     {
+        ConsulSettings consulSettings;
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+            consulSettings = Configuration.GetSection(nameof(ConsulSettings)).Get<ConsulSettings>();
         }
 
         public IConfiguration Configuration { get; }
@@ -33,7 +39,9 @@ namespace bbt.gateway.messaging
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            
+            services.AddHealthChecks();
+            services.AddConsulConfig(consulSettings);
+
             services.AddControllers()
                     //.AddJsonOptions(opts =>
                     //{
@@ -47,7 +55,7 @@ namespace bbt.gateway.messaging
                         opts.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
                         });
 
-            services.AddHttpClient();
+            
 
             services.AddApiVersioning(v =>
             {
@@ -108,7 +116,8 @@ namespace bbt.gateway.messaging
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IApiVersionDescriptionProvider provider)
         {
-            Console.WriteLine("test ediyoruz");
+            app.UseConsul(consulSettings);
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -123,15 +132,19 @@ namespace bbt.gateway.messaging
                             description.GroupName.ToUpperInvariant());
                         options.RoutePrefix = "";
                     }
-                });
-
-                //app.UseSwaggerUI(c => {
-                //    c.SwaggerEndpoint("/swagger/v1/swagger.json", "bbt.gateway.messaging v1");
-                //    c.RoutePrefix = "";
-                //    });
+                });                
             }
 
-            //app.UseHttpsRedirection();
+            app.UseHealthChecks("/hc", new HealthCheckOptions()
+            {
+                ResultStatusCodes =
+            {
+                [Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Healthy] = StatusCodes.Status200OK,
+                [Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Degraded] = StatusCodes.Status503ServiceUnavailable,
+                [Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
+            }
+            });
+
             app.UseRouting();
 
             app.UseAuthorization();
@@ -141,7 +154,7 @@ namespace bbt.gateway.messaging
                 endpoints.MapControllers();
             });
 
-            app.UseAllElasticApm(Configuration);
+            //app.UseAllElasticApm(Configuration);
            
             SeedData.Initialize(app.ApplicationServices);
         }
