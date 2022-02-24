@@ -131,7 +131,9 @@ namespace bbt.gateway.messaging.Workers
 
 
             // Update with valid operator if any otp sending 
-            var successAttempt = responseLogs.FirstOrDefault(l => l.ResponseCode == SendSmsResponseStatus.Success);
+            var successAttempt = responseLogs.FirstOrDefault(l => (l.ResponseCode == SendSmsResponseStatus.Success 
+            || l.ResponseCode == SendSmsResponseStatus.OperatorChange
+            || l.ResponseCode == SendSmsResponseStatus.SimChange ));
             if (successAttempt != null)
                 phoneConfiguration.Operator = successAttempt.Operator;
 
@@ -163,23 +165,7 @@ namespace bbt.gateway.messaging.Workers
                     tasks.Add(gateway.SendOtp(_data.Phone, header.BuildContentForSms(_data.Content), responses, header, useControlDays));
                 }
             }
-            //Parallel.ForEach(operators,  (currentElement) =>
-            //{
-            //    if (discardCurrentOperator)
-            //    {
-            //        if (phoneConfiguration.Operator != currentElement.Value)
-            //        {
-            //            IOperatorGateway gateway = _operatorRepository(currentElement.Value);
-            //            gateway.SendOtp(_data.Phone, header.BuildContentForSms(_data.Content), responses, header, useControlDays);
-            //        }
-            //    }
-            //    else
-            //    {
-            //        IOperatorGateway gateway = _operatorRepository(currentElement.Value);
-            //        gateway.SendOtp(_data.Phone, header.BuildContentForSms(_data.Content), responses, header, useControlDays);
-            //    }
-
-            //});
+            
             await Task.WhenAll(tasks);
             return responses.ToList();
         }

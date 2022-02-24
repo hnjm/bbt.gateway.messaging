@@ -2,11 +2,9 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using bbt.gateway.messaging;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using bbt.gateway.common;
-
 
 #nullable disable
 
@@ -19,37 +17,37 @@ namespace bbt.gateway.messaging.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.0")
-                .HasAnnotation("Relational:MaxIdentifierLength", 128);
+                .HasAnnotation("ProductVersion", "6.0.2")
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("bbt.gateway.messaging.Models.BlackListEntry", b =>
+            modelBuilder.Entity("bbt.gateway.common.Models.BlackListEntry", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("PhoneConfigurationId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Reason")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime?>("ResolvedAt")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Source")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<int>("Status")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("ValidTo")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
@@ -58,29 +56,29 @@ namespace bbt.gateway.messaging.Migrations
                     b.ToTable("BlackListEntries");
                 });
 
-            modelBuilder.Entity("bbt.gateway.messaging.Models.BlackListEntryLog", b =>
+            modelBuilder.Entity("bbt.gateway.common.Models.BlackListEntryLog", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Action")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<Guid?>("BlackListEntryId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("ParameterMaster")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("ParameterSlave")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Type")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -89,41 +87,41 @@ namespace bbt.gateway.messaging.Migrations
                     b.ToTable("BlackListEntryLog");
                 });
 
-            modelBuilder.Entity("bbt.gateway.messaging.Models.Header", b =>
+            modelBuilder.Entity("bbt.gateway.common.Models.Header", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<int?>("Branch")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<string>("BusinessLine")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<int>("ContentType")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<string>("EmailTemplatePrefix")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("EmailTemplateSuffix")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("SmsPrefix")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
-                    b.Property<string>("SmsSender")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("SmsSender")
+                        .HasColumnType("integer");
 
                     b.Property<string>("SmsSuffix")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("SmsTemplatePrefix")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("SmsTemplateSuffix")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -132,75 +130,75 @@ namespace bbt.gateway.messaging.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("b4ec502a-0a79-4a19-a3b4-fdb128e46b33"),
+                            Id = new Guid("59f879de-b0b0-4fe5-a7a9-926392a422d6"),
                             ContentType = 0,
                             EmailTemplatePrefix = "generic",
                             SmsPrefix = "Dear Honey,",
-                            SmsSender = "BATMAN",
+                            SmsSender = 1,
                             SmsSuffix = ":)",
                             SmsTemplatePrefix = "generic"
                         },
                         new
                         {
-                            Id = new Guid("ba5d33b7-1e3e-4d98-a6ca-438409516e63"),
+                            Id = new Guid("549181cb-1511-48c9-b1fe-31dc0185e024"),
                             Branch = 2000,
                             ContentType = 0,
                             EmailTemplatePrefix = "on",
                             SmsPrefix = "OBEY:",
-                            SmsSender = "ZEUS",
+                            SmsSender = 2,
                             SmsTemplatePrefix = "on"
                         });
                 });
 
-            modelBuilder.Entity("bbt.gateway.messaging.Models.Operator", b =>
+            modelBuilder.Entity("bbt.gateway.common.Models.Operator", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("AuthToken")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("AuthanticationService")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<int>("ControlDaysForOtp")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Password")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("QueryService")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("SendService")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<int>("Status")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<string>("SupportDeskMail")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("SupportDeskPhone")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("TokenCreatedAt")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("TokenExpiredAt")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Type")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<bool>("UseIvnWhenDeactive")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("User")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -259,20 +257,20 @@ namespace bbt.gateway.messaging.Migrations
                         });
                 });
 
-            modelBuilder.Entity("bbt.gateway.messaging.Models.OtpRequestLog", b =>
+            modelBuilder.Entity("bbt.gateway.common.Models.OtpRequestLog", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Content")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid?>("PhoneConfigurationId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -281,41 +279,41 @@ namespace bbt.gateway.messaging.Migrations
                     b.ToTable("OtpRequestLogs");
                 });
 
-            modelBuilder.Entity("bbt.gateway.messaging.Models.OtpResponseLog", b =>
+            modelBuilder.Entity("bbt.gateway.common.Models.OtpResponseLog", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Operator")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<Guid?>("OtpRequestLogId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("RequestBody")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("ResponseBody")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<int>("ResponseCode")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<string>("ResponseMessage")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("StatusQueryId")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Topic")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<int>("TrackingStatus")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -324,78 +322,74 @@ namespace bbt.gateway.messaging.Migrations
                     b.ToTable("OtpResponseLog");
                 });
 
-            modelBuilder.Entity("bbt.gateway.messaging.Models.OtpTrackingLog", b =>
+            modelBuilder.Entity("bbt.gateway.common.Models.OtpTrackingLog", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Detail")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<Guid>("LogId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("OtpResponseLogId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("QueriedAt")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("ResponseMessage")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<int>("Status")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OtpResponseLogId");
+                    b.HasIndex("LogId");
 
                     b.ToTable("OtpTrackingLog");
                 });
 
-            modelBuilder.Entity("bbt.gateway.messaging.Models.PhoneConfiguration", b =>
+            modelBuilder.Entity("bbt.gateway.common.Models.PhoneConfiguration", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<int?>("CustomerNo")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<int?>("Operator")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Id");
-
-                    SqlServerIndexBuilderExtensions.IsClustered(b.HasIndex("Id"), false);
+                    b.HasIndex("Id")
+                        .HasAnnotation("SqlServer:Clustered", false);
 
                     b.ToTable("PhoneConfigurations");
                 });
 
-            modelBuilder.Entity("bbt.gateway.messaging.Models.PhoneConfigurationLog", b =>
+            modelBuilder.Entity("bbt.gateway.common.Models.PhoneConfigurationLog", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Action")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid?>("PhoneId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("RelatedId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Type")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -404,32 +398,32 @@ namespace bbt.gateway.messaging.Migrations
                     b.ToTable("PhoneConfigurationLog");
                 });
 
-            modelBuilder.Entity("bbt.gateway.messaging.Models.SmsLog", b =>
+            modelBuilder.Entity("bbt.gateway.common.Models.SmsLog", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Content")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Operator")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<int>("OperatorResponseCode")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<string>("OperatorResponseMessage")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<Guid?>("PhoneConfigurationId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Status")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -438,31 +432,31 @@ namespace bbt.gateway.messaging.Migrations
                     b.ToTable("SmsLogs");
                 });
 
-            modelBuilder.Entity("bbt.gateway.messaging.Models.BlackListEntry", b =>
+            modelBuilder.Entity("bbt.gateway.common.Models.BlackListEntry", b =>
                 {
-                    b.HasOne("bbt.gateway.messaging.Models.PhoneConfiguration", "PhoneConfiguration")
+                    b.HasOne("bbt.gateway.common.Models.PhoneConfiguration", "PhoneConfiguration")
                         .WithMany("BlacklistEntries")
                         .HasForeignKey("PhoneConfigurationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.OwnsOne("bbt.gateway.messaging.Models.Process", "CreatedBy", b1 =>
+                    b.OwnsOne("bbt.gateway.common.Models.Process", "CreatedBy", b1 =>
                         {
                             b1.Property<Guid>("BlackListEntryId")
-                                .HasColumnType("uniqueidentifier");
+                                .HasColumnType("uuid");
 
                             b1.Property<string>("Action")
-                                .HasColumnType("nvarchar(max)");
+                                .HasColumnType("text");
 
                             b1.Property<string>("Identity")
-                                .HasColumnType("nvarchar(max)");
+                                .HasColumnType("text");
 
                             b1.Property<string>("ItemId")
-                                .HasColumnType("nvarchar(max)");
+                                .HasColumnType("text");
 
                             b1.Property<string>("Name")
                                 .IsRequired()
-                                .HasColumnType("nvarchar(max)");
+                                .HasColumnType("text");
 
                             b1.HasKey("BlackListEntryId");
 
@@ -472,23 +466,23 @@ namespace bbt.gateway.messaging.Migrations
                                 .HasForeignKey("BlackListEntryId");
                         });
 
-                    b.OwnsOne("bbt.gateway.messaging.Models.Process", "ResolvedBy", b1 =>
+                    b.OwnsOne("bbt.gateway.common.Models.Process", "ResolvedBy", b1 =>
                         {
                             b1.Property<Guid>("BlackListEntryId")
-                                .HasColumnType("uniqueidentifier");
+                                .HasColumnType("uuid");
 
                             b1.Property<string>("Action")
-                                .HasColumnType("nvarchar(max)");
+                                .HasColumnType("text");
 
                             b1.Property<string>("Identity")
-                                .HasColumnType("nvarchar(max)");
+                                .HasColumnType("text");
 
                             b1.Property<string>("ItemId")
-                                .HasColumnType("nvarchar(max)");
+                                .HasColumnType("text");
 
                             b1.Property<string>("Name")
                                 .IsRequired()
-                                .HasColumnType("nvarchar(max)");
+                                .HasColumnType("text");
 
                             b1.HasKey("BlackListEntryId");
 
@@ -505,29 +499,29 @@ namespace bbt.gateway.messaging.Migrations
                     b.Navigation("ResolvedBy");
                 });
 
-            modelBuilder.Entity("bbt.gateway.messaging.Models.BlackListEntryLog", b =>
+            modelBuilder.Entity("bbt.gateway.common.Models.BlackListEntryLog", b =>
                 {
-                    b.HasOne("bbt.gateway.messaging.Models.BlackListEntry", "BlackListEntry")
+                    b.HasOne("bbt.gateway.common.Models.BlackListEntry", "BlackListEntry")
                         .WithMany("Logs")
                         .HasForeignKey("BlackListEntryId");
 
-                    b.OwnsOne("bbt.gateway.messaging.Models.Process", "CreatedBy", b1 =>
+                    b.OwnsOne("bbt.gateway.common.Models.Process", "CreatedBy", b1 =>
                         {
                             b1.Property<Guid>("BlackListEntryLogId")
-                                .HasColumnType("uniqueidentifier");
+                                .HasColumnType("uuid");
 
                             b1.Property<string>("Action")
-                                .HasColumnType("nvarchar(max)");
+                                .HasColumnType("text");
 
                             b1.Property<string>("Identity")
-                                .HasColumnType("nvarchar(max)");
+                                .HasColumnType("text");
 
                             b1.Property<string>("ItemId")
-                                .HasColumnType("nvarchar(max)");
+                                .HasColumnType("text");
 
                             b1.Property<string>("Name")
                                 .IsRequired()
-                                .HasColumnType("nvarchar(max)");
+                                .HasColumnType("text");
 
                             b1.HasKey("BlackListEntryLogId");
 
@@ -542,29 +536,29 @@ namespace bbt.gateway.messaging.Migrations
                     b.Navigation("CreatedBy");
                 });
 
-            modelBuilder.Entity("bbt.gateway.messaging.Models.OtpRequestLog", b =>
+            modelBuilder.Entity("bbt.gateway.common.Models.OtpRequestLog", b =>
                 {
-                    b.HasOne("bbt.gateway.messaging.Models.PhoneConfiguration", "PhoneConfiguration")
+                    b.HasOne("bbt.gateway.common.Models.PhoneConfiguration", "PhoneConfiguration")
                         .WithMany("OtpLogs")
                         .HasForeignKey("PhoneConfigurationId");
 
-                    b.OwnsOne("bbt.gateway.messaging.Models.Process", "CreatedBy", b1 =>
+                    b.OwnsOne("bbt.gateway.common.Models.Process", "CreatedBy", b1 =>
                         {
                             b1.Property<Guid>("OtpRequestLogId")
-                                .HasColumnType("uniqueidentifier");
+                                .HasColumnType("uuid");
 
                             b1.Property<string>("Action")
-                                .HasColumnType("nvarchar(max)");
+                                .HasColumnType("text");
 
                             b1.Property<string>("Identity")
-                                .HasColumnType("nvarchar(max)");
+                                .HasColumnType("text");
 
                             b1.Property<string>("ItemId")
-                                .HasColumnType("nvarchar(max)");
+                                .HasColumnType("text");
 
                             b1.Property<string>("Name")
                                 .IsRequired()
-                                .HasColumnType("nvarchar(max)");
+                                .HasColumnType("text");
 
                             b1.HasKey("OtpRequestLogId");
 
@@ -574,19 +568,19 @@ namespace bbt.gateway.messaging.Migrations
                                 .HasForeignKey("OtpRequestLogId");
                         });
 
-                    b.OwnsOne("bbt.gateway.messaging.Models.Phone", "Phone", b1 =>
+                    b.OwnsOne("bbt.gateway.common.Models.Phone", "Phone", b1 =>
                         {
                             b1.Property<Guid>("OtpRequestLogId")
-                                .HasColumnType("uniqueidentifier");
+                                .HasColumnType("uuid");
 
                             b1.Property<int>("CountryCode")
-                                .HasColumnType("int");
+                                .HasColumnType("integer");
 
                             b1.Property<int>("Number")
-                                .HasColumnType("int");
+                                .HasColumnType("integer");
 
                             b1.Property<int>("Prefix")
-                                .HasColumnType("int");
+                                .HasColumnType("integer");
 
                             b1.HasKey("OtpRequestLogId");
 
@@ -603,35 +597,39 @@ namespace bbt.gateway.messaging.Migrations
                     b.Navigation("PhoneConfiguration");
                 });
 
-            modelBuilder.Entity("bbt.gateway.messaging.Models.OtpResponseLog", b =>
+            modelBuilder.Entity("bbt.gateway.common.Models.OtpResponseLog", b =>
                 {
-                    b.HasOne("bbt.gateway.messaging.Models.OtpRequestLog", null)
+                    b.HasOne("bbt.gateway.common.Models.OtpRequestLog", null)
                         .WithMany("ResponseLogs")
                         .HasForeignKey("OtpRequestLogId");
                 });
 
-            modelBuilder.Entity("bbt.gateway.messaging.Models.OtpTrackingLog", b =>
+            modelBuilder.Entity("bbt.gateway.common.Models.OtpTrackingLog", b =>
                 {
-                    b.HasOne("bbt.gateway.messaging.Models.OtpResponseLog", null)
+                    b.HasOne("bbt.gateway.common.Models.OtpResponseLog", "OtpResponseLog")
                         .WithMany("TrackingLogs")
-                        .HasForeignKey("OtpResponseLogId");
+                        .HasForeignKey("LogId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("OtpResponseLog");
                 });
 
-            modelBuilder.Entity("bbt.gateway.messaging.Models.PhoneConfiguration", b =>
+            modelBuilder.Entity("bbt.gateway.common.Models.PhoneConfiguration", b =>
                 {
-                    b.OwnsOne("bbt.gateway.messaging.Models.Phone", "Phone", b1 =>
+                    b.OwnsOne("bbt.gateway.common.Models.Phone", "Phone", b1 =>
                         {
                             b1.Property<Guid>("PhoneConfigurationId")
-                                .HasColumnType("uniqueidentifier");
+                                .HasColumnType("uuid");
 
                             b1.Property<int>("CountryCode")
-                                .HasColumnType("int");
+                                .HasColumnType("integer");
 
                             b1.Property<int>("Number")
-                                .HasColumnType("int");
+                                .HasColumnType("integer");
 
                             b1.Property<int>("Prefix")
-                                .HasColumnType("int");
+                                .HasColumnType("integer");
 
                             b1.HasKey("PhoneConfigurationId");
 
@@ -644,29 +642,29 @@ namespace bbt.gateway.messaging.Migrations
                     b.Navigation("Phone");
                 });
 
-            modelBuilder.Entity("bbt.gateway.messaging.Models.PhoneConfigurationLog", b =>
+            modelBuilder.Entity("bbt.gateway.common.Models.PhoneConfigurationLog", b =>
                 {
-                    b.HasOne("bbt.gateway.messaging.Models.PhoneConfiguration", "Phone")
+                    b.HasOne("bbt.gateway.common.Models.PhoneConfiguration", "Phone")
                         .WithMany("Logs")
                         .HasForeignKey("PhoneId");
 
-                    b.OwnsOne("bbt.gateway.messaging.Models.Process", "CreatedBy", b1 =>
+                    b.OwnsOne("bbt.gateway.common.Models.Process", "CreatedBy", b1 =>
                         {
                             b1.Property<Guid>("PhoneConfigurationLogId")
-                                .HasColumnType("uniqueidentifier");
+                                .HasColumnType("uuid");
 
                             b1.Property<string>("Action")
-                                .HasColumnType("nvarchar(max)");
+                                .HasColumnType("text");
 
                             b1.Property<string>("Identity")
-                                .HasColumnType("nvarchar(max)");
+                                .HasColumnType("text");
 
                             b1.Property<string>("ItemId")
-                                .HasColumnType("nvarchar(max)");
+                                .HasColumnType("text");
 
                             b1.Property<string>("Name")
                                 .IsRequired()
-                                .HasColumnType("nvarchar(max)");
+                                .HasColumnType("text");
 
                             b1.HasKey("PhoneConfigurationLogId");
 
@@ -681,29 +679,29 @@ namespace bbt.gateway.messaging.Migrations
                     b.Navigation("Phone");
                 });
 
-            modelBuilder.Entity("bbt.gateway.messaging.Models.SmsLog", b =>
+            modelBuilder.Entity("bbt.gateway.common.Models.SmsLog", b =>
                 {
-                    b.HasOne("bbt.gateway.messaging.Models.PhoneConfiguration", "PhoneConfiguration")
+                    b.HasOne("bbt.gateway.common.Models.PhoneConfiguration", "PhoneConfiguration")
                         .WithMany("SmsLogs")
                         .HasForeignKey("PhoneConfigurationId");
 
-                    b.OwnsOne("bbt.gateway.messaging.Models.Process", "CreatedBy", b1 =>
+                    b.OwnsOne("bbt.gateway.common.Models.Process", "CreatedBy", b1 =>
                         {
                             b1.Property<Guid>("SmsLogId")
-                                .HasColumnType("uniqueidentifier");
+                                .HasColumnType("uuid");
 
                             b1.Property<string>("Action")
-                                .HasColumnType("nvarchar(max)");
+                                .HasColumnType("text");
 
                             b1.Property<string>("Identity")
-                                .HasColumnType("nvarchar(max)");
+                                .HasColumnType("text");
 
                             b1.Property<string>("ItemId")
-                                .HasColumnType("nvarchar(max)");
+                                .HasColumnType("text");
 
                             b1.Property<string>("Name")
                                 .IsRequired()
-                                .HasColumnType("nvarchar(max)");
+                                .HasColumnType("text");
 
                             b1.HasKey("SmsLogId");
 
@@ -718,22 +716,22 @@ namespace bbt.gateway.messaging.Migrations
                     b.Navigation("PhoneConfiguration");
                 });
 
-            modelBuilder.Entity("bbt.gateway.messaging.Models.BlackListEntry", b =>
+            modelBuilder.Entity("bbt.gateway.common.Models.BlackListEntry", b =>
                 {
                     b.Navigation("Logs");
                 });
 
-            modelBuilder.Entity("bbt.gateway.messaging.Models.OtpRequestLog", b =>
+            modelBuilder.Entity("bbt.gateway.common.Models.OtpRequestLog", b =>
                 {
                     b.Navigation("ResponseLogs");
                 });
 
-            modelBuilder.Entity("bbt.gateway.messaging.Models.OtpResponseLog", b =>
+            modelBuilder.Entity("bbt.gateway.common.Models.OtpResponseLog", b =>
                 {
                     b.Navigation("TrackingLogs");
                 });
 
-            modelBuilder.Entity("bbt.gateway.messaging.Models.PhoneConfiguration", b =>
+            modelBuilder.Entity("bbt.gateway.common.Models.PhoneConfiguration", b =>
                 {
                     b.Navigation("BlacklistEntries");
 

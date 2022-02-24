@@ -42,8 +42,14 @@ namespace bbt.gateway.worker
                             OtpRequestLogId = e.Id,
                             StatusQueryId = e.StatusQueryId
                         });
-                        _logger.LogInformation($"Response Delivery Status : {response.Status.ToString()}");
+                        _logger.LogInformation($"Response Delivery Status : {response.Status}");
                         _repositoryManager.OtpTrackingLog.Add(response);
+                        if (response.Status != SmsTrackingStatus.Pending)
+                        {
+                            e.TrackingStatus = response.Status;
+                            _repositoryManager.OtpResponseLogs.Update(e);
+                        }
+                            
                     }
                 });
                 _repositoryManager.SaveChanges();

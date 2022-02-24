@@ -78,8 +78,8 @@ namespace bbt.gateway.messaging
             });
             services.AddSwaggerGenNewtonsoftSupport();
             services.ConfigureOptions<ConfigureSwaggerOptions>();
-            
-            services.AddDbContext<DatabaseContext>(o => o.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
+            Console.WriteLine(Configuration.GetConnectionString("DefaultConnection"));
+            services.AddDbContext<DatabaseContext>(o => o.UseNpgsql(Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("bbt.gateway.messaging")));
             services.AddScoped<IRepositoryManager, RepositoryManager>();
             
 
@@ -154,7 +154,7 @@ namespace bbt.gateway.messaging
                 endpoints.MapControllers();
             });
 
-            //app.UseAllElasticApm(Configuration);
+            app.UseAllElasticApm(Configuration);
            
             SeedData.Initialize(app.ApplicationServices);
         }
