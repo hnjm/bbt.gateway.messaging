@@ -11,7 +11,7 @@ namespace bbt.gateway.common.Models
         public MessageContentType ContentType { get; set; }
         public string BusinessLine { get; set; }
         public int? Branch { get; set; }
-        public string SmsSender { get; set; }
+        public SenderType SmsSender { get; set; }
         public string SmsPrefix { get; set; }
         public string SmsSuffix { get; set; }
         public string EmailTemplatePrefix { get; set; }
