@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using Microsoft.Extensions.Configuration;
 
 namespace bbt.gateway.messaging.Workers.OperatorGateway
 {
@@ -14,7 +15,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
     {
         private string _authToken;
         private readonly VodafoneApi _vodafoneApi;
-        public OperatorVodafone(VodafoneApi vodafoneApi)
+        public OperatorVodafone(VodafoneApi vodafoneApi, IConfiguration configuration) : base(configuration)
         {
             _vodafoneApi = vodafoneApi;
             Type = OperatorType.Vodafone;
@@ -182,7 +183,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 AuthToken = _authToken,
                 User = OperatorConfig.User,
                 ExpiryPeriod = "60",
-                Header = "BURGAN BANK",
+                Header = Constant.OperatorSenders[header.SmsSender][OperatorType.Vodafone],
                 Message = content,
                 PhoneNo = phone.CountryCode.ToString() + phone.Prefix.ToString() + phone.Number.ToString(),
                 ControlHour = controlHour.ToString()

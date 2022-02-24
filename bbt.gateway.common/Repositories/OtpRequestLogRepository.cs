@@ -16,7 +16,7 @@ namespace bbt.gateway.common.Repositories
         {
             return Context.OtpRequestLogs
                 .Where(c => c.Phone.CountryCode == countryCode && c.Phone.Prefix == prefix && c.Phone.Number == number)
-                .Include(c => c.ResponseLogs)
+                .Include(c => c.ResponseLogs).ThenInclude(r => r.TrackingLogs)
                 .Skip(page * pageSize)
                 .Take(pageSize);
         }

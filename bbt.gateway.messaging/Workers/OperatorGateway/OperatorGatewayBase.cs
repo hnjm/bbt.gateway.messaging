@@ -12,12 +12,8 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
     {
         private OperatorType type;
         private DbContextOptions<DatabaseContext> _dbOptions;
-        protected OperatorGatewayBase() 
+        protected OperatorGatewayBase(IConfiguration configuration) 
         {
-            var configuration = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json")
-                .AddUserSecrets<OperatorGatewayBase>()
-                .Build();
 
             _dbOptions = new DbContextOptionsBuilder<DatabaseContext>()
                 .UseNpgsql(configuration.GetConnectionString("DefaultConnection"))

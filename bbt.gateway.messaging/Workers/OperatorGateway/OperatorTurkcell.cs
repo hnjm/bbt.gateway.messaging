@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using Microsoft.Extensions.Configuration;
 
 namespace bbt.gateway.messaging.Workers.OperatorGateway
 {
@@ -14,7 +15,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
     {
         private readonly TurkcellApi _turkcellApi;
         private string _authToken;
-        public OperatorTurkcell(TurkcellApi turkcellApi)
+        public OperatorTurkcell(TurkcellApi turkcellApi,IConfiguration configuration) : base(configuration)
         {
             _turkcellApi = turkcellApi;
             Type = OperatorType.Turkcell;
@@ -174,7 +175,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             }
 
             var request = new TurkcellSmsRequest();
-            request.Header = "BURGANBANK";
+            request.Header = Constant.OperatorSenders[header.SmsSender][OperatorType.Turkcell];
             request.PhoneNo = "00" + phone.CountryCode + phone.Prefix + phone.Number;
             request.SessionId = _authToken;
             request.Content = content;

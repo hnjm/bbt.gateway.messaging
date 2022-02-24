@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using Microsoft.Extensions.Configuration;
 
 namespace bbt.gateway.messaging.Workers.OperatorGateway
 {
@@ -14,7 +15,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
     public class OperatorTurkTelekom : OperatorGatewayBase, IOperatorGateway
     {
         private readonly TurkTelekomApi _turkTelekomApi;
-        public OperatorTurkTelekom(TurkTelekomApi turkTelekomApi)
+        public OperatorTurkTelekom(TurkTelekomApi turkTelekomApi, IConfiguration configuration) : base(configuration)
         {
             _turkTelekomApi = turkTelekomApi;
             Type = OperatorType.TurkTelekom;
@@ -79,7 +80,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 GsmNo = phone.CountryCode.ToString()+phone.Prefix.ToString() + phone.Number.ToString(),
                 IsEncrypted = "False",
                 IsNotification = "True",
-                Header = "BURGAN BANK",
+                Header = Constant.OperatorSenders[header.SmsSender][OperatorType.TurkTelekom],
                 Message = content,
                 OnNetPortInControl = "True",
                 OnNetSimChange = "True",

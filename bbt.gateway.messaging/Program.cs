@@ -20,7 +20,6 @@ namespace bbt.gateway.messaging
                 string consulHost = context.Configuration["ConsulHost"];
                 string applicationName = context.HostingEnvironment.ApplicationName;
                 string environmentName = context.HostingEnvironment.EnvironmentName;
-                Console.WriteLine("env name :" + environmentName);
                 void ConsulConfig(ConsulClientConfiguration configuration)
                 {
                     configuration.Address = new Uri(consulHost);

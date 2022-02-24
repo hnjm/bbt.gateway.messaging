@@ -45,7 +45,7 @@ namespace bbt.gateway.messaging
             var response = new OtpResponseLog
             {
                 Operator = apiResponse.GetOperatorType(),
-                Topic = $"{apiResponse.GetOperatorType().ToString()} otp sending",
+                Topic = $"{apiResponse.GetOperatorType()} otp sending",
                 TrackingStatus = SmsTrackingStatus.Pending,
                 RequestBody = apiResponse.GetRequestBody(),
                 ResponseBody = apiResponse.GetResponseBody()

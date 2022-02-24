@@ -108,6 +108,7 @@ namespace bbt.gateway.messaging
             services.AddScoped<OtpSender>();
             services.AddScoped<HeaderManager>();
             services.AddScoped<OperatorManager>();
+            services.AddScoped<OperatorIVN>();
             services.AddScoped<TurkTelekomApi>();
             services.AddScoped<VodafoneApi>();
             services.AddScoped<TurkcellApi>();

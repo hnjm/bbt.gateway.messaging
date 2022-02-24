@@ -5,6 +5,20 @@ namespace bbt.gateway.messaging
 {
     public class Constant
     {
+        public static readonly Dictionary<OperatorType, string> OperatorBurganSenderNames =
+        new()
+        {
+            { OperatorType.Turkcell, "BURGANBANK" },
+            { OperatorType.Vodafone, "BURGANBANK" },
+            { OperatorType.TurkTelekom, "BURGAN BANK" }
+        };
+
+        public static readonly Dictionary<SenderType, Dictionary<OperatorType, string>> OperatorSenders =
+        new()
+        {
+            {SenderType.Burgan ,OperatorBurganSenderNames }
+        };
+
         public static readonly Dictionary<string, SmsApiResponse> TurkTelekomErrorCodes =
         new()
         {

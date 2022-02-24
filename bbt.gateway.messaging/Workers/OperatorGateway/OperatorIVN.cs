@@ -1,4 +1,5 @@
 ﻿using bbt.gateway.common.Models;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -8,7 +9,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 {
     public class OperatorIVN : OperatorGatewayBase, IOperatorGateway
     {
-        public OperatorIVN()
+        public OperatorIVN(IConfiguration configuration) : base(configuration)
         {
             Type = OperatorType.IVN;
         }
