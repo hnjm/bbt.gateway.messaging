@@ -31,7 +31,7 @@ namespace bbt.gateway.messaging
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-            consulSettings = Configuration.GetSection(nameof(ConsulSettings)).Get<ConsulSettings>();
+            //consulSettings = Configuration.GetSection(nameof(ConsulSettings)).Get<ConsulSettings>();
         }
 
         public IConfiguration Configuration { get; }
@@ -39,8 +39,8 @@ namespace bbt.gateway.messaging
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddHealthChecks();
-            services.AddConsulConfig(consulSettings);
+            //services.AddHealthChecks();
+            //services.AddConsulConfig(consulSettings);
 
             services.AddControllers()
                     //.AddJsonOptions(opts =>
@@ -78,7 +78,7 @@ namespace bbt.gateway.messaging
             });
             services.AddSwaggerGenNewtonsoftSupport();
             services.ConfigureOptions<ConfigureSwaggerOptions>();
-            Console.WriteLine(Configuration.GetConnectionString("DefaultConnection"));
+
             services.AddDbContext<DatabaseContext>(o => o.UseNpgsql(Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("bbt.gateway.messaging")));
             services.AddScoped<IRepositoryManager, RepositoryManager>();
             
@@ -117,7 +117,7 @@ namespace bbt.gateway.messaging
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IApiVersionDescriptionProvider provider)
         {
-            app.UseConsul(consulSettings);
+            //app.UseConsul(consulSettings);
 
             if (env.IsDevelopment())
             {
@@ -136,15 +136,15 @@ namespace bbt.gateway.messaging
                 });                
             }
 
-            app.UseHealthChecks("/hc", new HealthCheckOptions()
-            {
-                ResultStatusCodes =
-            {
-                [Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Healthy] = StatusCodes.Status200OK,
-                [Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Degraded] = StatusCodes.Status503ServiceUnavailable,
-                [Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
-            }
-            });
+            //app.UseHealthChecks("/hc", new HealthCheckOptions()
+            //{
+            //    ResultStatusCodes =
+            //{
+            //    [Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Healthy] = StatusCodes.Status200OK,
+            //    [Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Degraded] = StatusCodes.Status503ServiceUnavailable,
+            //    [Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
+            //}
+            //});
 
             app.UseRouting();
 
@@ -157,7 +157,7 @@ namespace bbt.gateway.messaging
 
             app.UseAllElasticApm(Configuration);
            
-            SeedData.Initialize(app.ApplicationServices);
+            //SeedData.Initialize(app.ApplicationServices);
         }
     }
 

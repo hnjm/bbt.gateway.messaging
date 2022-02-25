@@ -7,42 +7,41 @@ using Microsoft.EntityFrameworkCore;
 using Refit;
 using Consul;
 using Winton.Extensions.Configuration.Consul;
-using Microsoft.Extensions.Configuration;
 
-IConfiguration configuration = null;
 IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureHostConfiguration(builder => { builder.AddJsonFile("appsettings.json", false, true); })
-    .ConfigureAppConfiguration((context, builder) => {
-        string consulHost = context.Configuration["ConsulHost"];
-        string applicationName = context.HostingEnvironment.ApplicationName;
-        string environmentName = context.HostingEnvironment.EnvironmentName;
-        void ConsulConfig(ConsulClientConfiguration configuration)
-        {
-            configuration.Address = new Uri(consulHost);
-        }
+    //.ConfigureAppConfiguration((context, builder) => {
+    //    string consulHost = context.Configuration["ConsulHost"];
+    //    string applicationName = context.HostingEnvironment.ApplicationName;
+    //    string environmentName = context.HostingEnvironment.EnvironmentName;
+    //    void ConsulConfig(ConsulClientConfiguration configuration)
+    //    {
+    //        configuration.Address = new Uri(consulHost);
+    //    }
 
-        builder.AddConsul($"{applicationName}/appsettings.json",
-            source =>
-            {
-                source.ReloadOnChange = true;
-                source.ConsulConfigurationOptions = ConsulConfig;
-            });
-        builder.AddConsul($"{applicationName}/appsettings.{environmentName}.json",
-            source =>
-            {
-                source.Optional = true;
-                source.ConsulConfigurationOptions = ConsulConfig;
-            });
-        configuration = builder.Build();
-    })
-    .ConfigureServices(services =>
+    //    builder.AddConsul($"{applicationName}/appsettings.json",
+    //        source =>
+    //        {
+    //            source.ReloadOnChange = true;
+    //            source.ConsulConfigurationOptions = ConsulConfig;
+    //        });
+    //    builder.AddConsul($"{applicationName}/appsettings.{environmentName}.json",
+    //        source =>
+    //        {
+    //            source.Optional = true;
+    //            source.ConsulConfigurationOptions = ConsulConfig;
+    //        });
+    //    configuration = builder.Build();
+    //})
+    .ConfigureServices((context,services) =>
     {
         services.AddHostedService<Worker>();
-        services.AddDbContext<DatabaseContext>(o => o.UseNpgsql(configuration.GetConnectionString("DefaultConnection")),ServiceLifetime.Singleton);
+        services.AddDbContext<DatabaseContext>(o => o.UseNpgsql(context.Configuration["ConnectionStrings:DefaultConnection"]),ServiceLifetime.Singleton);
         services.AddSingleton<IRepositoryManager, RepositoryManager>();
         services.AddRefitClient<IMessagingGatewayApi>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri("https://localhost:5001"));
     })
     .Build();
+
 
 await host.RunAsync();
