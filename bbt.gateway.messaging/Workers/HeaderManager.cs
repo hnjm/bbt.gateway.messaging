@@ -33,56 +33,64 @@ namespace bbt.gateway.messaging.Workers
             return returnValue;
         }
 
-        public async Task<Header> Get(PhoneConfiguration config, MessageContentType contentType)
+        public async Task<Header> Get(PhoneConfiguration config, MessageContentType contentType,SenderType senderType)
         {
             Header header = null;
 
             string businessLine = null;
             int? branch = null;
 
-            if (config.CustomerNo != null)
+            if (senderType == SenderType.AutoDetect)
             {
-
-                var customerDetail = await _pusulaClient.GetCustomer(new GetCustomerRequest()
+                if (config.CustomerNo != null)
                 {
-                    CustomerNo = config.CustomerNo.Value
-                });
 
-                if (customerDetail.IsSuccess)
-                {
-                    businessLine = customerDetail.BusinessLine;
-                    branch = customerDetail.BranchCode;
-                }
-
-                header = get(contentType, businessLine, branch);
-
-            }
-            else
-            {
-                var customer = await _pusulaClient.GetCustomerByPhoneNumber(new GetByPhoneNumberRequest() { 
-                    CountryCode = config.Phone.CountryCode,
-                    CityCode = config.Phone.Prefix,
-                    TelephoneNumber = config.Phone.Number
-                });
-
-                if (customer.IsSuccess)
-                {
                     var customerDetail = await _pusulaClient.GetCustomer(new GetCustomerRequest()
                     {
-                        CustomerNo = customer.CustomerNo
+                        CustomerNo = config.CustomerNo.Value
                     });
 
                     if (customerDetail.IsSuccess)
                     {
-                        // set customer no of phone configruation for future save
-                        config.CustomerNo = customer.CustomerNo;
-
                         businessLine = customerDetail.BusinessLine;
                         branch = customerDetail.BranchCode;
                     }
-                }
 
-                header = get(contentType, businessLine, branch);
+                    header = get(contentType, businessLine, branch);
+
+                }
+                else
+                {
+                    var customer = await _pusulaClient.GetCustomerByPhoneNumber(new GetByPhoneNumberRequest()
+                    {
+                        CountryCode = config.Phone.CountryCode,
+                        CityCode = config.Phone.Prefix,
+                        TelephoneNumber = config.Phone.Number
+                    });
+
+                    if (customer.IsSuccess)
+                    {
+                        var customerDetail = await _pusulaClient.GetCustomer(new GetCustomerRequest()
+                        {
+                            CustomerNo = customer.CustomerNo
+                        });
+
+                        if (customerDetail.IsSuccess)
+                        {
+                            // set customer no of phone configruation for future save
+                            config.CustomerNo = customer.CustomerNo;
+
+                            businessLine = customerDetail.BusinessLine;
+                            branch = customerDetail.BranchCode;
+                        }
+                    }
+
+                    header = get(contentType, businessLine, branch);
+                }
+            }
+            else
+            {
+                header = get(contentType, businessLine, branch, senderType);
             }
             return header;
         }
@@ -114,7 +122,7 @@ namespace bbt.gateway.messaging.Workers
             loadHeaders();
         }
 
-        private Header get(MessageContentType contentType, string businessLine, int? branch)
+        private Header get(MessageContentType contentType, string businessLine, int? branch, SenderType senderType = SenderType.AutoDetect)
         {
             var firstPass = _repositoryManager.Headers.Find(h => h.BusinessLine == businessLine && h.Branch == branch && h.ContentType == contentType).FirstOrDefault();
             if (firstPass != null) return firstPass;
@@ -129,8 +137,15 @@ namespace bbt.gateway.messaging.Workers
             var lastPass = _repositoryManager.Headers.Find(h => h.BusinessLine == null && h.Branch == null && h.ContentType == contentType).FirstOrDefault();
             if (lastPass != null) return lastPass;
 
+            
+
             //TODO: If db is not consistent, return firt value. Consider firing an enception 
-            return _repositoryManager.Headers.FirstOrDefault();
+            var header = _repositoryManager.Headers.FirstOrDefault();
+
+            if (senderType != SenderType.AutoDetect)
+                header.SmsSender = senderType;
+
+            return header;
         }
 
         private void loadHeaders()

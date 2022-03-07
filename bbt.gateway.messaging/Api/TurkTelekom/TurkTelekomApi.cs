@@ -20,29 +20,35 @@ namespace bbt.gateway.messaging.Api.TurkTelekom
             _httpClient = new(httpClientHandler);
         }
 
-        public async Task<TurkTelekomSmsResponse> SendSms(TurkTelekomSmsRequest turkTelekomSmsRequest) 
+        public async Task<OperatorApiResponse> SendSms(TurkTelekomSmsRequest turkTelekomSmsRequest) 
         {
+            OperatorApiResponse operatorApiResponse = new() { OperatorType = this.Type };
+            string response = "";
             try
             {
                 var requestBody = turkTelekomSmsRequest.SerializeXml();
                 var httpRequest = new StringContent(requestBody, Encoding.UTF8, "text/xml");
                 var httpResponse = await _httpClient.PostAsync(OperatorConfig.SendService, httpRequest);
-                var response = httpResponse.Content.ReadAsStringAsync().Result;
+                response = httpResponse.Content.ReadAsStringAsync().Result;
 
                 turkTelekomSmsRequest.Message = turkTelekomSmsRequest.Message.MaskOtpContent();
+
                 if (httpResponse.IsSuccessStatusCode)
                 { 
                     var turkTelekomSmsResponse = response.DeserializeXml<TurkTelekomSmsResponse>();
-                    turkTelekomSmsResponse.RequestBody = turkTelekomSmsRequest.SerializeXml();
-                    turkTelekomSmsResponse.ResponseBody = response;
-                    return turkTelekomSmsResponse;
+                    operatorApiResponse.ResponseCode = turkTelekomSmsResponse.ResponseSms.ResponseCode;
+                    operatorApiResponse.ResponseMessage = turkTelekomSmsResponse.ResponseSms.ResponseMessage;
+                    operatorApiResponse.MessageId = turkTelekomSmsResponse.ResponseSms.MessageId;
+                    operatorApiResponse.RequestBody = turkTelekomSmsRequest.SerializeXml();
+                    operatorApiResponse.ResponseBody = response;
                 }
                 else
                 {
-                    var turkTelekomSmsResponse = response.DeserializeXml<TurkTelekomSmsResponse>();
-                    turkTelekomSmsResponse.RequestBody = turkTelekomSmsRequest.SerializeXml();
-                    turkTelekomSmsResponse.ResponseBody = response;
-                    return turkTelekomSmsResponse;
+                    operatorApiResponse.ResponseCode = "-99999";
+                    operatorApiResponse.ResponseMessage = "Http Status Code : 500";
+                    operatorApiResponse.MessageId = "";
+                    operatorApiResponse.RequestBody = turkTelekomSmsRequest.SerializeXml();
+                    operatorApiResponse.ResponseBody = response;
                 }
 
                 
@@ -50,37 +56,40 @@ namespace bbt.gateway.messaging.Api.TurkTelekom
             catch (System.Exception ex)
             {
                 _logger.LogError("TurkTelekom Send Sms Failed | Exception : " + ex.ToString());
-                var response = new TurkTelekomSmsResponse();
-                response.ResponseSms = new();
-                response.ResponseSms.MessageId = "";
-                response.ResponseSms.ResponseCode = "-99999";
-                response.ResponseSms.ResponseMessage = ex.ToString();
-                return response;
+                operatorApiResponse.ResponseCode = "-99999";
+                operatorApiResponse.ResponseMessage = ex.ToString();
+                operatorApiResponse.MessageId = "";
+                operatorApiResponse.RequestBody = turkTelekomSmsRequest.SerializeXml();
+                operatorApiResponse.ResponseBody = response;
             }
+
+            return operatorApiResponse;
 
         }
 
-        public async Task<TurkTelekomSmsStatusResponse> CheckSmsStatus(TurkTelekomSmsStatusRequest turkTelekomSmsStatusRequest)
-        {           
-
+        public async Task<OperatorApiTrackingResponse> CheckSmsStatus(TurkTelekomSmsStatusRequest turkTelekomSmsStatusRequest)
+        {
+            OperatorApiTrackingResponse operatorApiTrackingResponse = new() { OperatorType = this.Type };
+            string response = "";
             try
             {
                 var requestBody = turkTelekomSmsStatusRequest.SerializeXml();
                 var httpRequest = new StringContent(requestBody, Encoding.UTF8, "text/xml");
                 var httpResponse = await _httpClient.PostAsync(OperatorConfig.QueryService, httpRequest);
-                var response = httpResponse.Content.ReadAsStringAsync().Result;
+                response = httpResponse.Content.ReadAsStringAsync().Result;
 
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var turkTelekomSmsStatusResponse = response.DeserializeXml<TurkTelekomSmsStatusResponse>();
-                    turkTelekomSmsStatusResponse.SetFullResponse(response);
-                    return turkTelekomSmsStatusResponse;
+                    operatorApiTrackingResponse.ResponseCode = turkTelekomSmsStatusResponse.ResponseCode;
+                    operatorApiTrackingResponse.ResponseMessage = turkTelekomSmsStatusResponse.ResponseMessage;
+                    turkTelekomSmsStatusResponse.ResponseBody = response;
                 }
                 else
                 {
-                    var turkTelekomSmsStatusResponse = response.DeserializeXml<TurkTelekomSmsStatusResponse>();
-                    turkTelekomSmsStatusResponse.SetFullResponse(response);
-                    return turkTelekomSmsStatusResponse;
+                    operatorApiTrackingResponse.ResponseCode = "-99999";
+                    operatorApiTrackingResponse.ResponseMessage = "Http Status Code : 500";
+                    operatorApiTrackingResponse.ResponseBody = response;
                 }
 
                 
@@ -88,12 +97,12 @@ namespace bbt.gateway.messaging.Api.TurkTelekom
             catch (System.Exception ex)
             {
                 _logger.LogError("TurkTelekom Sms Status Failed | Exception : " + ex.ToString());
-                var response = new TurkTelekomSmsStatusResponse();
-                response.ResponseSmsStatus = new();
-                response.ResponseSmsStatus.Status = "-99999";
-                response.ResponseSmsStatus.StatusDesc = ex.ToString();
-                return response;
+                operatorApiTrackingResponse.ResponseCode = "-99999";
+                operatorApiTrackingResponse.ResponseMessage = ex.ToString();
+                operatorApiTrackingResponse.ResponseBody = response;
             }
+
+            return operatorApiTrackingResponse;
         }
     }
 }

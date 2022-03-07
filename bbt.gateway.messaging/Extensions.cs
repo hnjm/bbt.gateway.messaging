@@ -59,33 +59,33 @@ namespace bbt.gateway.messaging
         {
             var response = new OtpResponseLog
             {
-                Operator = apiResponse.GetOperatorType(),
-                Topic = $"{apiResponse.GetOperatorType()} otp sending",
+                Operator = apiResponse.OperatorType,
+                Topic = $"{apiResponse.OperatorType} otp sending",
                 TrackingStatus = SmsTrackingStatus.Pending,
-                RequestBody = apiResponse.GetRequestBody(),
-                ResponseBody = apiResponse.GetResponseBody()
+                RequestBody = apiResponse.RequestBody,
+                ResponseBody = apiResponse.ResponseBody
             };
             
-            response.StatusQueryId = apiResponse.GetMessageId();
-            if (Constant.OperatorErrorCodes.ContainsKey(apiResponse.GetOperatorType()))
+            response.StatusQueryId = apiResponse.MessageId;
+            if (Constant.OperatorErrorCodes.ContainsKey(apiResponse.OperatorType))
             {
-                var errorCodes = Constant.OperatorErrorCodes[apiResponse.GetOperatorType()];
-                if (errorCodes.ContainsKey(apiResponse.GetResponseCode().Trim()))
+                var errorCodes = Constant.OperatorErrorCodes[apiResponse.OperatorType];
+                if (errorCodes.ContainsKey(apiResponse.ResponseCode.Trim()))
                 {
-                    response.ResponseCode = errorCodes[apiResponse.GetResponseCode()].SmsResponseStatus;
-                    if (string.IsNullOrEmpty(apiResponse.GetResponseMessage()))
-                        response.ResponseMessage = errorCodes[apiResponse.GetResponseCode()].ReturnMessage;
+                    response.ResponseCode = errorCodes[apiResponse.ResponseCode].SmsResponseStatus;
+                    if (string.IsNullOrEmpty(apiResponse.ResponseMessage))
+                        response.ResponseMessage = errorCodes[apiResponse.ResponseCode].ReturnMessage;
                 }
                 else 
                 {
                     response.ResponseCode = SendSmsResponseStatus.ClientError;
-                    response.ResponseMessage = $"Given Error Code Not Exist In Dictionary | Operator Type : {apiResponse.GetOperatorType()} | Error Code : {apiResponse.GetResponseCode()}";
+                    response.ResponseMessage = $"Given Error Code Not Exist In Dictionary | Operator Type : {apiResponse.OperatorType} | Error Code : {apiResponse.ResponseCode}";
                 }
             }
             else 
             {
                 response.ResponseCode = SendSmsResponseStatus.ClientError;
-                response.ResponseMessage =  $"Given Operator Type Not Exist In Dictionary | Operator Type : {apiResponse.GetOperatorType()}";
+                response.ResponseMessage =  $"Given Operator Type Not Exist In Dictionary | Operator Type : {apiResponse.OperatorType}";
             }
 
             return response;
@@ -95,26 +95,26 @@ namespace bbt.gateway.messaging
         {
             var otpTrackingLog = new OtpTrackingLog();
             otpTrackingLog.LogId = checkSmsRequest.OtpRequestLogId;
-            otpTrackingLog.Detail = apiTrackingResponse.GetFullResponse();
-            if (Constant.OperatorTrackingErrorCodes.ContainsKey(apiTrackingResponse.GetOperatorType()))
+            otpTrackingLog.Detail = apiTrackingResponse.ResponseBody;
+            if (Constant.OperatorTrackingErrorCodes.ContainsKey(apiTrackingResponse.OperatorType))
             {
-                var errorCodes = Constant.OperatorTrackingErrorCodes[apiTrackingResponse.GetOperatorType()];
-                if (errorCodes.ContainsKey(apiTrackingResponse.GetResponseCode().Trim()))
+                var errorCodes = Constant.OperatorTrackingErrorCodes[apiTrackingResponse.OperatorType];
+                if (errorCodes.ContainsKey(apiTrackingResponse.ResponseCode.Trim()))
                 {
-                    otpTrackingLog.Status = errorCodes[apiTrackingResponse.GetResponseCode()].SmsTrackingStatus;
-                    if (string.IsNullOrEmpty(apiTrackingResponse.GetResponseMessage()))
-                        otpTrackingLog.ResponseMessage = errorCodes[apiTrackingResponse.GetResponseCode()].ReturnMessage;
+                    otpTrackingLog.Status = errorCodes[apiTrackingResponse.ResponseCode].SmsTrackingStatus;
+                    if (string.IsNullOrEmpty(apiTrackingResponse.ResponseMessage))
+                        otpTrackingLog.ResponseMessage = errorCodes[apiTrackingResponse.ResponseCode].ReturnMessage;
                 }
                 else
                 {
                     otpTrackingLog.Status = SmsTrackingStatus.SystemError;
-                    otpTrackingLog.ResponseMessage = $"Given Error Code Not Exist In Dictionary | Operator Type : {apiTrackingResponse.GetOperatorType()} | Error Code : {apiTrackingResponse.GetResponseCode()}";
+                    otpTrackingLog.ResponseMessage = $"Given Error Code Not Exist In Dictionary | Operator Type : {apiTrackingResponse.OperatorType} | Error Code : {apiTrackingResponse.ResponseCode}";
                 }
             }
             else
             {
                     otpTrackingLog.Status = SmsTrackingStatus.SystemError;
-                    otpTrackingLog.ResponseMessage = $"Given Operator Type Not Exist In Dictionary | Operator Type : {apiTrackingResponse.GetOperatorType()}";
+                    otpTrackingLog.ResponseMessage = $"Given Operator Type Not Exist In Dictionary | Operator Type : {apiTrackingResponse.OperatorType}";
             }
             return otpTrackingLog;
         }

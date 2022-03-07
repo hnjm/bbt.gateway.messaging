@@ -21,7 +21,7 @@ namespace bbt.gateway.messaging.Api.Turkcell
         }
 
         public async Task<OperatorApiResponse> SendSms(TurkcellSmsRequest turkcellSmsRequest) {
-            OperatorApiResponse turkcellSmsResponse = new();
+            OperatorApiResponse turkcellSmsResponse = new() { OperatorType = this.Type};
             var requests = getSendSmsXml(turkcellSmsRequest);
             string response = "";
             try
@@ -39,7 +39,7 @@ namespace bbt.gateway.messaging.Api.Turkcell
                     if (textResponse.Contains("NOK"))
                     {
                         turkcellSmsResponse.ResponseCode = textResponse.Split(",")[1];
-                        turkcellSmsResponse.responseMessage = textResponse.Split(",")[2];
+                        turkcellSmsResponse.ResponseMessage = textResponse.Split(",")[2];
                         turkcellSmsResponse.MessageId = "";
                         turkcellSmsResponse.RequestBody = requests.Item2;
                         turkcellSmsResponse.ResponseBody = response;
@@ -107,7 +107,7 @@ namespace bbt.gateway.messaging.Api.Turkcell
                 {
                     var parsedXml = response.DeserializeXml<Model.Auth.ErrorXml.Envelope>();
                     turkcellAuthResponse.ResponseCode = "-99999";
-                    turkcellAuthResponse.ReponseMessage = parsedXml.Body.Fault.faultstring;
+                    turkcellAuthResponse.ResponseMessage = parsedXml.Body.Fault.faultstring;
                     turkcellAuthResponse.AuthToken = "";
                 }
             }
@@ -122,49 +122,54 @@ namespace bbt.gateway.messaging.Api.Turkcell
             return turkcellAuthResponse;  
         }
 
-        public async Task<TurkcellSmsStatusResponse> CheckSmsStatus(TurkcellSmsStatusRequest turkcellSmsStatusRequest)
+        public async Task<OperatorApiTrackingResponse> CheckSmsStatus(TurkcellSmsStatusRequest turkcellSmsStatusRequest)
         {
-            TurkcellSmsStatusResponse turkcellSmsStatusResponse = new();
+            OperatorApiTrackingResponse turkcellSmsStatusResponse = new() { OperatorType = this.Type };
             string response = "";
             try
             {
                 HttpContent httpRequest = new StringContent(getSmsStatusXml(turkcellSmsStatusRequest), Encoding.UTF8, "text/xml");
                 var httpResponse = await _httpClient.PostAsync(OperatorConfig.QueryService, httpRequest);
                 response = httpResponse.Content.ReadAsStringAsync().Result;
-                response = response.Replace("&lt;", "<");
-                response = response.Replace("&gt;", ">");
+                
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var parsedXml = response.DeserializeXml<Model.SmsStatus.SuccessXml.Envelope>();
                     var textResponse = parsedXml.Body.getStatusResponse.result;
                     if (textResponse.Contains("NOK"))
                     {
-                        turkcellSmsStatusResponse.ResultCode = textResponse.Split(",")[1];
-                        turkcellSmsStatusResponse.ResultMessage = textResponse.Split(",")[2];
-                        turkcellSmsStatusResponse.SetFullResponse();
+                        turkcellSmsStatusResponse.ResponseCode = textResponse.Split(",")[1];
+                        turkcellSmsStatusResponse.ResponseMessage = textResponse.Split(",")[2];
+                        turkcellSmsStatusResponse.ResponseBody = response;
                     }
                     else
                     {
-                        var smsStatusResponse = new TurkcellSmsStatusResponse { ResultCode = msgStat, ResultMessage = "" };
-                        smsStatusResponse.SetFullResponse(responseMessage);
-                        return smsStatusResponse;
+                        textResponse = textResponse.Replace("&lt;", "<");
+                        textResponse = textResponse.Replace("&gt;", ">");
+                        var parsedResponse = textResponse.DeserializeXml<Model.SmsStatus.BodyXml.STATUSRETURN>();
+                        turkcellSmsStatusResponse.ResponseCode = parsedResponse.STATUS_LIST.STATUS.MSGSTAT.ToString();
+                        turkcellSmsStatusResponse.ResponseMessage = parsedResponse.STATUS_LIST.STATUS.REASON.ToString();
+                        turkcellSmsStatusResponse.ResponseBody = response;
                     }
 
                 }
                 else
                 {
-                    var smsStatusResponse = new TurkcellSmsStatusResponse { ResultCode = "-99999", ResultMessage = "" };
-                    smsStatusResponse.SetFullResponse(response);
-                    return smsStatusResponse;
+                    var parsedXml = response.DeserializeXml<Model.SmsStatus.ErrorXml.Envelope>();
+                    turkcellSmsStatusResponse.ResponseCode = parsedXml.Body.Fault.faultcode;
+                    turkcellSmsStatusResponse.ResponseMessage = parsedXml.Body.Fault.faultstring;
+                    turkcellSmsStatusResponse.ResponseBody = response;
                 }
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError("Turkcell Check Sms Status Failed | Exception : " + ex.ToString());
-                var smsStatusResponse = new TurkcellSmsStatusResponse { ResultCode = "-99999", ResultMessage = "Check Sms Status Failed" };
-                smsStatusResponse.SetFullResponse(ex.ToString());
-                return smsStatusResponse;
+                turkcellSmsStatusResponse.ResponseCode = "-99999";
+                turkcellSmsStatusResponse.ResponseMessage = ex.ToString();
+                turkcellSmsStatusResponse.ResponseBody = response;
             }
+
+            return turkcellSmsStatusResponse;
         }
 
         private string getAuthXml(TurkcellAuthRequest turkcellAuthRequest)
@@ -297,17 +302,5 @@ namespace bbt.gateway.messaging.Api.Turkcell
             return xml;
         }
 
-        private string getBetween(string strSource, string strStart, string strEnd)
-        {
-            if (strSource.Contains(strStart) && strSource.Contains(strEnd))
-            {
-                int Start, End;
-                Start = strSource.IndexOf(strStart, 0) + strStart.Length;
-                End = strSource.IndexOf(strEnd, Start);
-                return strSource.Substring(Start, End - Start);
-            }
-
-            return "";
-        }
     }
 }

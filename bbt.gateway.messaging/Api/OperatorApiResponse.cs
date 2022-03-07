@@ -5,7 +5,7 @@ namespace bbt.gateway.messaging.Api
 {
     public class OperatorApiResponse
     {
-        public OperatorType OperatorType { get; set; };
+        public OperatorType OperatorType { get; set; }
         public string ResponseCode { get; set; }
         public string ResponseMessage { get; set; }
         public string MessageId { get; set; }
