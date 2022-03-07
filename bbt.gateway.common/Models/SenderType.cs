@@ -8,6 +8,7 @@ namespace bbt.gateway.common.Models
 {
     public enum SenderType
     {
+        AutoDetect = 0,
         Burgan = 1,
         On = 2
     }
