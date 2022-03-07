@@ -27,6 +27,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             bool isAuthSuccess = false;
             if (OperatorConfig.TokenExpiredAt <= System.DateTime.Now.AddMinutes(-1))
             {
+
                 var tokenCreatedAt = System.DateTime.Now.SetKindUtc();
                 var tokenExpiredAt = System.DateTime.Now.AddMinutes(59).SetKindUtc();
                 var authResponse = await _vodafoneApi.Auth(CreateAuthRequest());

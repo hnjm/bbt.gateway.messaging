@@ -65,7 +65,7 @@ namespace bbt.gateway.messaging.Migrations
                     Phone_CountryCode = table.Column<int>(type: "integer", nullable: true),
                     Phone_Prefix = table.Column<int>(type: "integer", nullable: true),
                     Phone_Number = table.Column<int>(type: "integer", nullable: true),
-                    CustomerNo = table.Column<int>(type: "integer", nullable: true),
+                    CustomerNo = table.Column<decimal>(type: "numeric(20,0)", nullable: true),
                     Operator = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
@@ -262,8 +262,8 @@ namespace bbt.gateway.messaging.Migrations
                 columns: new[] { "Id", "Branch", "BusinessLine", "ContentType", "EmailTemplatePrefix", "EmailTemplateSuffix", "SmsPrefix", "SmsSender", "SmsSuffix", "SmsTemplatePrefix", "SmsTemplateSuffix" },
                 values: new object[,]
                 {
-                    { new Guid("549181cb-1511-48c9-b1fe-31dc0185e024"), 2000, null, 0, "on", null, "OBEY:", 2, null, "on", null },
-                    { new Guid("59f879de-b0b0-4fe5-a7a9-926392a422d6"), null, null, 0, "generic", null, "Dear Honey,", 1, ":)", "generic", null }
+                    { new Guid("96de8e85-83ad-4e57-83fa-6e0925fd3bab"), null, null, 0, "generic", null, "Dear Honey,", 1, ":)", "generic", null },
+                    { new Guid("b1b6e3af-7473-4c7d-91ca-26e2489a44a4"), 2000, null, 0, "on", null, "OBEY:", 2, null, "on", null }
                 });
 
             migrationBuilder.InsertData(

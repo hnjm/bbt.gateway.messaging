@@ -7,6 +7,8 @@ using Microsoft.EntityFrameworkCore;
 using Refit;
 using Consul;
 using Winton.Extensions.Configuration.Consul;
+using System;
+using Microsoft.Extensions.Configuration;
 
 IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureHostConfiguration(builder => { builder.AddJsonFile("appsettings.json", false, true); })
@@ -33,13 +35,13 @@ IHost host = Host.CreateDefaultBuilder(args)
     //        });
     //    configuration = builder.Build();
     //})
-    .ConfigureServices((context,services) =>
+    .ConfigureServices((context, services) =>
     {
         services.AddHostedService<Worker>();
-        services.AddDbContext<DatabaseContext>(o => o.UseNpgsql(context.Configuration["ConnectionStrings:DefaultConnection"]),ServiceLifetime.Singleton);
+        services.AddDbContext<DatabaseContext>(o => o.UseNpgsql(context.Configuration["ConnectionStrings:DefaultConnection"]), ServiceLifetime.Singleton);
         services.AddSingleton<IRepositoryManager, RepositoryManager>();
         services.AddRefitClient<IMessagingGatewayApi>()
-            .ConfigureHttpClient(c => c.BaseAddress = new Uri("https://localhost:5001"));
+            .ConfigureHttpClient(c => c.BaseAddress = new Uri(context.Configuration["Api:ServiceUrl"]));
     })
     .Build();
 

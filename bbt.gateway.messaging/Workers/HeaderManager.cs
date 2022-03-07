@@ -1,9 +1,14 @@
 ﻿using bbt.gateway.common.Models;
 using bbt.gateway.common.Repositories;
+using bbt.gateway.messaging.Api.Pusula;
+using bbt.gateway.messaging.Api.Pusula.Model.GetByPhone;
+using bbt.gateway.messaging.Api.Pusula.Model.GetCustomer;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace bbt.gateway.messaging.Workers
 {
@@ -11,10 +16,12 @@ namespace bbt.gateway.messaging.Workers
     {
         public List<Header> Headers = new List<Header>();
         private readonly IRepositoryManager _repositoryManager;
+        private readonly PusulaClient _pusulaClient;
 
-        public HeaderManager(IRepositoryManager repositoryManager)
+        public HeaderManager(IRepositoryManager repositoryManager, PusulaClient pusulaClient)
         {
             _repositoryManager = repositoryManager;
+            _pusulaClient = pusulaClient;
             loadHeaders();
         }
 
@@ -26,7 +33,7 @@ namespace bbt.gateway.messaging.Workers
             return returnValue;
         }
 
-        public Header Get(PhoneConfiguration config, MessageContentType contentType)
+        public async Task<Header> Get(PhoneConfiguration config, MessageContentType contentType)
         {
             Header header = null;
 
@@ -35,19 +42,45 @@ namespace bbt.gateway.messaging.Workers
 
             if (config.CustomerNo != null)
             {
-                // TODO: Find related headear record from customer no 
-                // Assumption! using querying with customer no is better than phone number.
-                header = get(contentType, businessLine, branch);
 
+                var customerDetail = await _pusulaClient.GetCustomer(new GetCustomerRequest()
+                {
+                    CustomerNo = config.CustomerNo.Value
+                });
+
+                if (customerDetail.IsSuccess)
+                {
+                    businessLine = customerDetail.BusinessLine;
+                    branch = customerDetail.BranchCode;
+                }
+
+                header = get(contentType, businessLine, branch);
 
             }
             else
             {
-                // TODO: Find related headear record from phone number than update phone config
-                var customerNo = 555;
+                var customer = await _pusulaClient.GetCustomerByPhoneNumber(new GetByPhoneNumberRequest() { 
+                    CountryCode = config.Phone.CountryCode,
+                    CityCode = config.Phone.Prefix,
+                    TelephoneNumber = config.Phone.Number
+                });
 
-                // set customer no of phone configruation for future save
-                config.CustomerNo = customerNo;
+                if (customer.IsSuccess)
+                {
+                    var customerDetail = await _pusulaClient.GetCustomer(new GetCustomerRequest()
+                    {
+                        CustomerNo = customer.CustomerNo
+                    });
+
+                    if (customerDetail.IsSuccess)
+                    {
+                        // set customer no of phone configruation for future save
+                        config.CustomerNo = customer.CustomerNo;
+
+                        businessLine = customerDetail.BusinessLine;
+                        branch = customerDetail.BranchCode;
+                    }
+                }
 
                 header = get(contentType, businessLine, branch);
             }

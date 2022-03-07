@@ -22,6 +22,7 @@ using bbt.gateway.common.Models.Settings;
 using bbt.gateway.common.Models.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using bbt.gateway.messaging.Api.Pusula;
 
 namespace bbt.gateway.messaging
 {
@@ -31,7 +32,7 @@ namespace bbt.gateway.messaging
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-            //consulSettings = Configuration.GetSection(nameof(ConsulSettings)).Get<ConsulSettings>();
+            consulSettings = Configuration.GetSection(nameof(ConsulSettings)).Get<ConsulSettings>();
         }
 
         public IConfiguration Configuration { get; }
@@ -39,8 +40,8 @@ namespace bbt.gateway.messaging
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            //services.AddHealthChecks();
-            //services.AddConsulConfig(consulSettings);
+            services.AddHealthChecks();
+            services.AddConsulConfig(consulSettings);
 
             services.AddControllers()
                     //.AddJsonOptions(opts =>
@@ -53,9 +54,9 @@ namespace bbt.gateway.messaging
                     .AddNewtonsoftJson(opts => {
                         opts.SerializerSettings.Converters.Add(new StringEnumConverter());
                         opts.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-                        });
+                    });
 
-            
+
 
             services.AddApiVersioning(v =>
             {
@@ -81,7 +82,7 @@ namespace bbt.gateway.messaging
 
             services.AddDbContext<DatabaseContext>(o => o.UseNpgsql(Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("bbt.gateway.messaging")));
             services.AddScoped<IRepositoryManager, RepositoryManager>();
-            
+
 
             services.AddScoped<OperatorTurkTelekom>();
             services.AddScoped<OperatorVodafone>();
@@ -103,7 +104,7 @@ namespace bbt.gateway.messaging
                         throw new KeyNotFoundException();
                 }
             });
-            
+
 
             services.AddScoped<OtpSender>();
             services.AddScoped<HeaderManager>();
@@ -112,6 +113,7 @@ namespace bbt.gateway.messaging
             services.AddScoped<TurkTelekomApi>();
             services.AddScoped<VodafoneApi>();
             services.AddScoped<TurkcellApi>();
+            services.AddScoped<PusulaClient>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -133,18 +135,18 @@ namespace bbt.gateway.messaging
                             description.GroupName.ToUpperInvariant());
                         options.RoutePrefix = "";
                     }
-                });                
+                });
             }
 
-            //app.UseHealthChecks("/hc", new HealthCheckOptions()
-            //{
-            //    ResultStatusCodes =
-            //{
-            //    [Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Healthy] = StatusCodes.Status200OK,
-            //    [Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Degraded] = StatusCodes.Status503ServiceUnavailable,
-            //    [Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
-            //}
-            //});
+            app.UseHealthChecks("/hc", new HealthCheckOptions()
+            {
+                ResultStatusCodes =
+            {
+                [Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Healthy] = StatusCodes.Status200OK,
+                [Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Degraded] = StatusCodes.Status503ServiceUnavailable,
+                [Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
+            }
+            });
 
             app.UseRouting();
 
@@ -155,8 +157,8 @@ namespace bbt.gateway.messaging
                 endpoints.MapControllers();
             });
 
-            app.UseAllElasticApm(Configuration);
-           
+            //app.UseAllElasticApm(Configuration);
+
             //SeedData.Initialize(app.ApplicationServices);
         }
     }

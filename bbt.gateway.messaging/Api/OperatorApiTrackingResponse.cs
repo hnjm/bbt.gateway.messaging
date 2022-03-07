@@ -2,17 +2,11 @@
 
 namespace bbt.gateway.messaging.Api
 {
-    public abstract class OperatorApiTrackingResponse
+    public class OperatorApiTrackingResponse
     {
-        protected OperatorType OperatorType;
-
-        public OperatorType GetOperatorType()
-        {
-            return this.OperatorType;
-        }
-
-        public abstract string GetResponseCode();
-        public abstract string GetResponseMessage();
-        public abstract string GetFullResponse();
+        public OperatorType OperatorType { get; set; }
+        public string ResponseCode { get; set; }
+        public string ResponseMessage { get; set; }
+        public string ResponseBody { get; set; }
     }
 }

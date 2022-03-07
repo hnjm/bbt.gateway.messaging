@@ -15,7 +15,7 @@ namespace bbt.gateway.worker
         private readonly ILogger<Worker> _logger;
         private readonly IRepositoryManager _repositoryManager;
         private readonly IMessagingGatewayApi _messagingGatewayApi;
-        public Worker(ILogger<Worker> logger,IRepositoryManager repositoryManager,
+        public Worker(ILogger<Worker> logger, IRepositoryManager repositoryManager,
             IMessagingGatewayApi messagingGatewayApi)
         {
             _logger = logger;
@@ -31,7 +31,7 @@ namespace bbt.gateway.worker
                     o => o.ResponseCode == SendSmsResponseStatus.Success &&
                     o.TrackingStatus == SmsTrackingStatus.Pending)
                     .ToList();
-                otpResponseLogs.ForEach(async(e) =>
+                otpResponseLogs.ForEach(async (e) =>
                 {
                     _logger.LogInformation($"Tracking log count : {e.TrackingLogs.Count}");
                     if (e.TrackingLogs.Count <= 5)
@@ -49,7 +49,7 @@ namespace bbt.gateway.worker
                             e.TrackingStatus = response.Status;
                             _repositoryManager.OtpResponseLogs.Update(e);
                         }
-                            
+
                     }
                 });
                 _repositoryManager.SaveChanges();

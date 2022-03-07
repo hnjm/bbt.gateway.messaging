@@ -12,7 +12,7 @@ using bbt.gateway.common;
 namespace bbt.gateway.messaging.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20220224114703_InitialCreate")]
+    [Migration("20220228223027_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -132,7 +132,7 @@ namespace bbt.gateway.messaging.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("59f879de-b0b0-4fe5-a7a9-926392a422d6"),
+                            Id = new Guid("96de8e85-83ad-4e57-83fa-6e0925fd3bab"),
                             ContentType = 0,
                             EmailTemplatePrefix = "generic",
                             SmsPrefix = "Dear Honey,",
@@ -142,7 +142,7 @@ namespace bbt.gateway.messaging.Migrations
                         },
                         new
                         {
-                            Id = new Guid("549181cb-1511-48c9-b1fe-31dc0185e024"),
+                            Id = new Guid("b1b6e3af-7473-4c7d-91ca-26e2489a44a4"),
                             Branch = 2000,
                             ContentType = 0,
                             EmailTemplatePrefix = "on",
@@ -358,8 +358,8 @@ namespace bbt.gateway.messaging.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<int?>("CustomerNo")
-                        .HasColumnType("integer");
+                    b.Property<decimal?>("CustomerNo")
+                        .HasColumnType("numeric(20,0)");
 
                     b.Property<int?>("Operator")
                         .HasColumnType("integer");

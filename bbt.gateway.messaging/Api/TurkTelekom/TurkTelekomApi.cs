@@ -26,21 +26,21 @@ namespace bbt.gateway.messaging.Api.TurkTelekom
             {
                 var requestBody = turkTelekomSmsRequest.SerializeXml();
                 var httpRequest = new StringContent(requestBody, Encoding.UTF8, "text/xml");
-                _logger.LogInformation("Api Operator :" + OperatorConfig);                
                 var httpResponse = await _httpClient.PostAsync(OperatorConfig.SendService, httpRequest);
                 var response = httpResponse.Content.ReadAsStringAsync().Result;
 
+                turkTelekomSmsRequest.Message = turkTelekomSmsRequest.Message.MaskOtpContent();
                 if (httpResponse.IsSuccessStatusCode)
                 { 
                     var turkTelekomSmsResponse = response.DeserializeXml<TurkTelekomSmsResponse>();
-                    turkTelekomSmsResponse.RequestBody = requestBody;
+                    turkTelekomSmsResponse.RequestBody = turkTelekomSmsRequest.SerializeXml();
                     turkTelekomSmsResponse.ResponseBody = response;
                     return turkTelekomSmsResponse;
                 }
                 else
                 {
                     var turkTelekomSmsResponse = response.DeserializeXml<TurkTelekomSmsResponse>();
-                    turkTelekomSmsResponse.RequestBody = requestBody;
+                    turkTelekomSmsResponse.RequestBody = turkTelekomSmsRequest.SerializeXml();
                     turkTelekomSmsResponse.ResponseBody = response;
                     return turkTelekomSmsResponse;
                 }

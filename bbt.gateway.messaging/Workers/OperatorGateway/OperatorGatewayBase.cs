@@ -28,7 +28,6 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 type = value;
                 using var databaseContext = new DatabaseContext(_dbOptions);
                 OperatorConfig = databaseContext.Operators.FirstOrDefault(o => o.Type == type);
-                System.Console.WriteLine("Base Gateway Operator : " + OperatorConfig.Type );
             }
         }
         protected Operator OperatorConfig { get; set; }

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Xml.Serialization;
 using bbt.gateway.messaging.Api;
 using bbt.gateway.common.Models;
-
+using System.Text.RegularExpressions;
 
 namespace bbt.gateway.messaging
 {
@@ -12,6 +12,20 @@ namespace bbt.gateway.messaging
 
     public static class Extensions
     {
+       
+        public static string Mask(this string str, string pattern, MatchEvaluator match)
+        {
+            return Regex.Replace(str, pattern, match);
+        }
+
+        public static string MaskOtpContent(this string content)
+        {
+            return content.Mask("[0-9]{6}", m =>
+            {
+                return $"{m.Value.Substring(0, 1)}{new string('*', 5)}";
+
+            });
+        }
 
         public static SendSmsResponseStatus UnifyResponse(this ICollection<OtpResponseLog> logs)
         {
@@ -32,7 +46,8 @@ namespace bbt.gateway.messaging
 
         public static string BuildContentForSms(this Header header, string content)
         {
-            return $"{header.SmsPrefix} {content} {header.SmsSuffix}";
+            string maskedContent = content.MaskOtpContent();
+            return $"{header.SmsPrefix} {maskedContent} {header.SmsSuffix}";
         }
 
         public static string BuildContentForLog(this Header header, string content)
@@ -54,7 +69,6 @@ namespace bbt.gateway.messaging
             response.StatusQueryId = apiResponse.GetMessageId();
             if (Constant.OperatorErrorCodes.ContainsKey(apiResponse.GetOperatorType()))
             {
-                System.Console.WriteLine("Hata kodu : "+apiResponse.GetResponseCode());
                 var errorCodes = Constant.OperatorErrorCodes[apiResponse.GetOperatorType()];
                 if (errorCodes.ContainsKey(apiResponse.GetResponseCode().Trim()))
                 {
@@ -105,9 +119,11 @@ namespace bbt.gateway.messaging
             return otpTrackingLog;
         }
 
+
         public static T DeserializeXml<T>(this string toDeserialize)
         {
             XmlSerializer xmlSerializer = new XmlSerializer(typeof(T));
+          
             using (StringReader textReader = new StringReader(toDeserialize))
             {
                 return (T)xmlSerializer.Deserialize(textReader);
@@ -129,6 +145,7 @@ namespace bbt.gateway.messaging
         public static T SoapDeserializeXml<T>(this string toDeserialize)
         {
             XmlSerializer xmlSerializer = new XmlSerializer(typeof(T));
+
             using (StringReader textReader = new StringReader(toDeserialize))
             {
                 return (T)xmlSerializer.Deserialize(textReader);
@@ -138,10 +155,12 @@ namespace bbt.gateway.messaging
         public static string SoapSerializeXml<T>(this T toSerialize)
         {
             XmlSerializer xmlSerializer = new XmlSerializer(typeof(T));
-           
+            var xmlnsEmpty = new XmlSerializerNamespaces();
+            xmlnsEmpty.Add("env", "http://schemas.xmlsoap.org/soap/encoding/");
+            xmlnsEmpty.Add("m", "http://www.turkcell.com.tr/sms/webservices/register");
             using (StringWriter textWriter = new StringWriter())
             {
-                xmlSerializer.Serialize(textWriter, toSerialize);
+                xmlSerializer.Serialize(textWriter, toSerialize,xmlnsEmpty);
                 return textWriter.ToString();
             }
         }
