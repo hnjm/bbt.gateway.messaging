@@ -8,6 +8,9 @@ EXPOSE 443
 COPY . ./
 RUN dotnet restore bbt.gateway.messaging/*.csproj
 RUN dotnet publish bbt.gateway.messaging/*.csproj -c Release -o out
+COPY . ./
+RUN dotnet restore bbt.gateway.common/*.csproj
+RUN dotnet publish bbt.gateway.common/*.csproj -c Release -o out
 
 # build runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:6.0
