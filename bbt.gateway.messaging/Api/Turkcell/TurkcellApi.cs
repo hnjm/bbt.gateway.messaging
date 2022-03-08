@@ -48,6 +48,7 @@ namespace bbt.gateway.messaging.Api.Turkcell
                     {
                         textResponse = textResponse.Replace("&lt;", "<");
                         textResponse = textResponse.Replace("&gt;", ">");
+                        
                         var parsedResponse = textResponse.DeserializeXml<Model.SendSms.BodyXml.MSGIDRETURN>();
                         turkcellSmsResponse.ResponseCode = "0";
                         turkcellSmsResponse.ResponseMessage = "";

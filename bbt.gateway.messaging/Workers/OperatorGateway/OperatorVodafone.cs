@@ -25,11 +25,11 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
         private async Task<bool> Auth()
         {
             bool isAuthSuccess = false;
-            if (OperatorConfig.TokenExpiredAt <= System.DateTime.Now.AddMinutes(-1))
+            if (string.IsNullOrEmpty(OperatorConfig.AuthToken) || OperatorConfig.TokenExpiredAt <= System.DateTime.Now.AddMinutes(-1))
             {
 
-                var tokenCreatedAt = System.DateTime.Now.SetKindUtc();
-                var tokenExpiredAt = System.DateTime.Now.AddMinutes(59).SetKindUtc();
+                var tokenCreatedAt = System.DateTime.Now;
+                var tokenExpiredAt = System.DateTime.Now.AddMinutes(59);
                 var authResponse = await _vodafoneApi.Auth(CreateAuthRequest());
                 if (authResponse.ResponseCode == "0")
                 {
@@ -52,8 +52,8 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
         private async Task<bool> RefreshToken()
         {
-            var tokenCreatedAt = System.DateTime.Now.SetKindUtc();
-            var tokenExpiredAt = System.DateTime.Now.AddMinutes(59).SetKindUtc();
+            var tokenCreatedAt = System.DateTime.Now;
+            var tokenExpiredAt = System.DateTime.Now.AddMinutes(59);
             var authResponse = await _vodafoneApi.Auth(CreateAuthRequest());
             if (authResponse.ResponseCode == "0")
             {
@@ -70,7 +70,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
         {
             if (DateTime.Now < OperatorConfig.TokenCreatedAt.AddHours(24))
             {
-                OperatorConfig.TokenExpiredAt = DateTime.Now.AddMinutes(60).SetKindUtc();
+                OperatorConfig.TokenExpiredAt = DateTime.Now.AddMinutes(60);
                 SaveOperator();
             }
         }

@@ -75,6 +75,8 @@ namespace bbt.gateway.messaging
                     response.ResponseCode = errorCodes[apiResponse.ResponseCode].SmsResponseStatus;
                     if (string.IsNullOrEmpty(apiResponse.ResponseMessage))
                         response.ResponseMessage = errorCodes[apiResponse.ResponseCode].ReturnMessage;
+                    else
+                        response.ResponseMessage = apiResponse.ResponseMessage;
                 }
                 else 
                 {

@@ -13,10 +13,19 @@ namespace bbt.gateway.messaging
             { OperatorType.TurkTelekom, "BURGAN BANK" }
         };
 
+        public static readonly Dictionary<OperatorType, string> OperatorOnSenderNames =
+        new()
+        {
+            { OperatorType.Turkcell, "ON." },
+            { OperatorType.Vodafone, "ON." },
+            { OperatorType.TurkTelekom, "ON." }
+        };
+
         public static readonly Dictionary<SenderType, Dictionary<OperatorType, string>> OperatorSenders =
         new()
         {
-            {SenderType.Burgan ,OperatorBurganSenderNames }
+            {SenderType.Burgan ,OperatorBurganSenderNames },
+            {SenderType.On,OperatorOnSenderNames}
         };
 
         public static readonly Dictionary<string, SmsApiResponse> TurkTelekomErrorCodes =
@@ -56,7 +65,8 @@ namespace bbt.gateway.messaging
             { "36", new SmsApiResponse { ReturnMessage = "", SmsResponseStatus = SendSmsResponseStatus.RejectedByOperator } },
             { "37", new SmsApiResponse { ReturnMessage = "", SmsResponseStatus = SendSmsResponseStatus.RejectedByOperator } },
             { "38", new SmsApiResponse { ReturnMessage = "", SmsResponseStatus = SendSmsResponseStatus.RejectedByOperator } },
-            { "30", new SmsApiResponse { ReturnMessage = "", SmsResponseStatus = SendSmsResponseStatus.RejectedByOperator } }
+            { "30", new SmsApiResponse { ReturnMessage = "", SmsResponseStatus = SendSmsResponseStatus.RejectedByOperator } },
+            { "-99999", new SmsApiResponse { ReturnMessage = "", SmsResponseStatus = SendSmsResponseStatus.ClientError } }
         };
 
         public static readonly Dictionary<string, SmsApiResponse> VodafoneErrorCodes =
@@ -83,7 +93,7 @@ namespace bbt.gateway.messaging
             { "613", new SmsApiResponse { ReturnMessage = "Delivery cancelled due to SIMCARD CHANGE check. OTP SMS has not been delivered. Notification SMS sent to subscriber.", SmsResponseStatus = SendSmsResponseStatus.Success } },
             { "615", new SmsApiResponse { ReturnMessage = "Sim Popup parameter error", SmsResponseStatus = SendSmsResponseStatus.ServerError } },
             { "616", new SmsApiResponse { ReturnMessage = "No Sim Popup support", SmsResponseStatus = SendSmsResponseStatus.RejectedByOperator } },
-           
+            { "-99999", new SmsApiResponse { ReturnMessage = "", SmsResponseStatus = SendSmsResponseStatus.ClientError } }
         };
 
         public static readonly Dictionary<string, SmsApiResponse> TurkcellErrorCodes =
@@ -120,7 +130,7 @@ namespace bbt.gateway.messaging
             { "-423", new SmsApiResponse { ReturnMessage = "", SmsResponseStatus = SendSmsResponseStatus.RejectedByOperator } },
             { "-424", new SmsApiResponse { ReturnMessage = "", SmsResponseStatus = SendSmsResponseStatus.RejectedByOperator } },
             { "-425", new SmsApiResponse { ReturnMessage = "", SmsResponseStatus = SendSmsResponseStatus.RejectedByOperator } },
-            { "-426", new SmsApiResponse { ReturnMessage = "", SmsResponseStatus = SendSmsResponseStatus.RejectedByOperator } },
+            { "-426", new SmsApiResponse { ReturnMessage = "İlgili numaraya mesaj gönderim izni yok", SmsResponseStatus = SendSmsResponseStatus.NotSubscriber } },
             { "-427", new SmsApiResponse { ReturnMessage = "", SmsResponseStatus = SendSmsResponseStatus.RejectedByOperator } },
             { "-428", new SmsApiResponse { ReturnMessage = "", SmsResponseStatus = SendSmsResponseStatus.RejectedByOperator } },
             { "-429", new SmsApiResponse { ReturnMessage = "", SmsResponseStatus = SendSmsResponseStatus.RejectedByOperator } },

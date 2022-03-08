@@ -35,7 +35,7 @@ namespace bbt.gateway.messaging.Api.Vodafone
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var parsedXml = response.DeserializeXml<Model.SendSms.SuccessXml.Envelope>();
-                    vodafoneSmsResponse.ResponseCode = parsedXml.Body.sendSMSPacketResponse.@return.errorCode.ToString();
+                    vodafoneSmsResponse.ResponseCode = parsedXml.Body.sendSMSPacketResponse.@return.deliveryResponseList.deliveryResponse.deliveryInfoList.deliveryInfo.errorCode.ToString();
                     vodafoneSmsResponse.ResponseMessage = "";
                     vodafoneSmsResponse.MessageId = parsedXml.Body.sendSMSPacketResponse.@return.deliveryResponseList.deliveryResponse.messageId;
                     vodafoneSmsResponse.ResponseBody = response;

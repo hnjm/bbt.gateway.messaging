@@ -15,7 +15,7 @@ namespace bbt.gateway.common.Models
         public BlacklistStatus Status { get; set; } = BlacklistStatus.NotResolved;
         public DateTime ValidTo { get; set; }
         public Process CreatedBy { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.Now.SetKindUtc();
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
         public Process ResolvedBy { get; set; }
         public DateTime? ResolvedAt { get; set; }
         public ICollection<BlackListEntryLog> Logs { get; set; }

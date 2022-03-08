@@ -13,7 +13,7 @@ namespace bbt.gateway.common.Models
         public string Action { get; set; }
         public Guid RelatedId { get; set; }
         public Process CreatedBy { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.Now.SetKindUtc();
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
 
     }
 }

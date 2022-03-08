@@ -16,7 +16,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
         {
 
             _dbOptions = new DbContextOptionsBuilder<DatabaseContext>()
-                .UseNpgsql(configuration.GetConnectionString("DefaultConnection"))
+                .UseSqlServer(configuration.GetConnectionString("DefaultConnection"))
                 .Options;
         }
 

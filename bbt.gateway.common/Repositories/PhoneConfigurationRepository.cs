@@ -20,7 +20,7 @@ namespace bbt.gateway.common.Repositories
                 i.Phone.Prefix == prefix &&
                 i.Phone.Number == number
                 )
-                .Include(c => c.BlacklistEntries.Where(b => b.ValidTo > blackListValidDate.SetKindUtc()))
+                .Include(c => c.BlacklistEntries.Where(b => b.ValidTo > blackListValidDate))
                 .FirstOrDefault();
         }
 

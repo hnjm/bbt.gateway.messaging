@@ -15,7 +15,7 @@ namespace bbt.gateway.common.Models
         public string StatusQueryId { get; set; }
         public SmsTrackingStatus TrackingStatus { get; set; }
         public ICollection<OtpTrackingLog> TrackingLogs { get; set; } = new List<OtpTrackingLog>();
-        public DateTime CreatedAt { get; set; } = DateTime.Now.SetKindUtc();
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
         public string RequestBody { get; set; }
         public string ResponseBody { get; set; }
     }

@@ -12,7 +12,7 @@ namespace bbt.gateway.common.Models
 
         public string ResponseMessage { get; set; }
         public string Detail { get; set; }
-        public DateTime QueriedAt { get; set; } = DateTime.Now.SetKindUtc();
+        public DateTime QueriedAt { get; set; } = DateTime.Now;
         public OtpResponseLog OtpResponseLog { get; set; }
     }
 }

@@ -80,7 +80,7 @@ namespace bbt.gateway.messaging
             services.AddSwaggerGenNewtonsoftSupport();
             services.ConfigureOptions<ConfigureSwaggerOptions>();
 
-            services.AddDbContext<DatabaseContext>(o => o.UseNpgsql(Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("bbt.gateway.messaging")));
+            services.AddDbContext<DatabaseContext>(o => o.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("bbt.gateway.messaging")));
             services.AddScoped<IRepositoryManager, RepositoryManager>();
 
 

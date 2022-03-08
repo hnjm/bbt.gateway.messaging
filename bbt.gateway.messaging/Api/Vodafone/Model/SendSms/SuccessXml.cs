@@ -94,13 +94,13 @@ namespace bbt.gateway.messaging.Api.Vodafone.Model.SendSms
 
             private object descriptionField;
 
-            private byte errorCodeField;
+            private int errorCodeField;
 
             private string logIdField;
 
             private string packetIdField;
 
-            private byte resultField;
+            private int resultField;
 
             private object serviceParametersField;
 
@@ -132,7 +132,7 @@ namespace bbt.gateway.messaging.Api.Vodafone.Model.SendSms
             }
 
             /// <remarks/>
-            public byte errorCode
+            public int errorCode
             {
                 get
                 {
@@ -171,7 +171,7 @@ namespace bbt.gateway.messaging.Api.Vodafone.Model.SendSms
             }
 
             /// <remarks/>
-            public byte result
+            public int result
             {
                 get
                 {
@@ -305,7 +305,7 @@ namespace bbt.gateway.messaging.Api.Vodafone.Model.SendSms
         public partial class returnDeliveryResponseListDeliveryResponseDeliveryInfoListDeliveryInfo
         {
 
-            private byte errorCodeField;
+            private int errorCodeField;
 
             private ulong msisdnField;
 
@@ -314,7 +314,7 @@ namespace bbt.gateway.messaging.Api.Vodafone.Model.SendSms
             private string transactionIdField;
 
             /// <remarks/>
-            public byte errorCode
+            public int errorCode
             {
                 get
                 {
