@@ -5,6 +5,7 @@ using System.Xml.Serialization;
 using bbt.gateway.messaging.Api;
 using bbt.gateway.common.Models;
 using System.Text.RegularExpressions;
+using System;
 
 namespace bbt.gateway.messaging
 {
@@ -12,7 +13,16 @@ namespace bbt.gateway.messaging
 
     public static class Extensions
     {
-       
+        public static string ConvertToTurkish(this string str)
+        {
+            char[] turkishCharacters = {'ç','Ç','ğ','Ğ','ı','İ','Ö','ö','Ü','ü','ş','Ş'};            
+            char[] englishCharacters = {'c','C','g','G','i','I','O','o','U','u','s','S'};
+            
+            for (int i = 0; i < turkishCharacters.Length; i++) str = str.Replace(turkishCharacters[i], englishCharacters[i]);
+            return str;
+
+        }
+
         public static string Mask(this string str, string pattern, MatchEvaluator match)
         {
             return Regex.Replace(str, pattern, match);
@@ -46,13 +56,13 @@ namespace bbt.gateway.messaging
 
         public static string BuildContentForSms(this Header header, string content)
         {
-            string maskedContent = content.MaskOtpContent();
-            return $"{header.SmsPrefix} {maskedContent} {header.SmsSuffix}";
+            return $"{header.SmsPrefix} {content} {header.SmsSuffix}";
         }
 
         public static string BuildContentForLog(this Header header, string content)
         {
-            return $"[{header.SmsSender}]{header.SmsPrefix} {content} {header.SmsSuffix}";
+            string maskedContent = content.MaskOtpContent();
+            return $"[{header.SmsSender}]{header.SmsPrefix} {maskedContent} {header.SmsSuffix}";
         }
 
         public static OtpResponseLog BuildOperatorApiResponse(this OperatorApiResponse apiResponse)

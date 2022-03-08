@@ -33,14 +33,14 @@ namespace bbt.gateway.messaging.Workers
             return returnValue;
         }
 
-        public async Task<Header> Get(PhoneConfiguration config, MessageContentType contentType,SenderType senderType)
+        public async Task<Header> Get(PhoneConfiguration config, MessageContentType contentType,HeaderInfo headerInfo)
         {
             Header header = null;
 
             string businessLine = null;
             int? branch = null;
 
-            if (senderType == SenderType.AutoDetect)
+            if (headerInfo.Sender == SenderType.AutoDetect)
             {
                 if (config.CustomerNo != null)
                 {
@@ -90,7 +90,7 @@ namespace bbt.gateway.messaging.Workers
             }
             else
             {
-                header = get(contentType, businessLine, branch, senderType);
+                header = get(contentType, businessLine, branch, headerInfo);
             }
             return header;
         }
@@ -122,8 +122,23 @@ namespace bbt.gateway.messaging.Workers
             loadHeaders();
         }
 
-        private Header get(MessageContentType contentType, string businessLine, int? branch, SenderType senderType = SenderType.AutoDetect)
+        private Header get(MessageContentType contentType, string businessLine, int? branch, HeaderInfo headerInfo = null)
         {
+            if (headerInfo.Sender != SenderType.AutoDetect)
+            {
+                var defaultHeader = new Header();
+                defaultHeader.SmsSender = headerInfo.Sender;
+                defaultHeader.SmsPrefix = headerInfo.SmsPrefix;
+                defaultHeader.SmsSuffix = headerInfo.SmsSuffix;
+
+                defaultHeader.SmsTemplatePrefix = headerInfo.SmsTemplatePrefix;
+                defaultHeader.SmsTemplateSuffix = headerInfo.SmsTemplateSuffix;
+
+                defaultHeader.EmailTemplatePrefix = headerInfo.EmailTemplatePrefix;
+                defaultHeader.EmailTemplateSuffix = headerInfo.EmailTemplateSuffix;
+                return defaultHeader;
+            }
+                
             var firstPass = _repositoryManager.Headers.Find(h => h.BusinessLine == businessLine && h.Branch == branch && h.ContentType == contentType).FirstOrDefault();
             if (firstPass != null) return firstPass;
 
@@ -142,8 +157,7 @@ namespace bbt.gateway.messaging.Workers
             //TODO: If db is not consistent, return firt value. Consider firing an enception 
             var header = _repositoryManager.Headers.FirstOrDefault();
 
-            if (senderType != SenderType.AutoDetect)
-                header.SmsSender = senderType;
+            
 
             return header;
         }

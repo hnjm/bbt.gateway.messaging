@@ -52,8 +52,12 @@ namespace bbt.gateway.messaging.Controllers
             
             if (ModelState.IsValid)
             {
-                var res = await _otpSender.SendMessage(data);
-                return Ok(res);
+                if(data.ContentType == MessageContentType.Otp)
+                {
+                    var res = await _otpSender.SendMessage(data);
+                    return Ok(res);
+                }
+                return Ok();
             }
             else 
             {

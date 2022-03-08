@@ -12,6 +12,7 @@ namespace bbt.gateway.common.Models
         NotSubscriber = 464,
         ClientError = 465,
         ServerError = 466,
+        MaximumCharactersCountExceed = 467,
     }
 
    

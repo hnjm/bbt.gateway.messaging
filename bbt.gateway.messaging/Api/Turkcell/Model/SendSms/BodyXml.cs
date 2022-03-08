@@ -17,12 +17,12 @@ namespace bbt.gateway.messaging.Api.Turkcell.Model.SendSms
         public partial class MSGIDRETURN
         {
 
-            private decimal vERSIONField;
+            private string vERSIONField;
 
             private MSGIDRETURNMSGID_LIST mSGID_LISTField;
 
             /// <remarks/>
-            public decimal VERSION
+            public string VERSION
             {
                 get
                 {
@@ -55,10 +55,10 @@ namespace bbt.gateway.messaging.Api.Turkcell.Model.SendSms
         public partial class MSGIDRETURNMSGID_LIST
         {
 
-            private ulong mSGIDField;
+            private long mSGIDField;
 
             /// <remarks/>
-            public ulong MSGID
+            public long MSGID
             {
                 get
                 {

@@ -23,6 +23,9 @@ using bbt.gateway.common.Models.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using bbt.gateway.messaging.Api.Pusula;
+using Refit;
+using bbt.gateway.messaging.Api.dEngage;
+
 
 namespace bbt.gateway.messaging
 {
@@ -79,6 +82,9 @@ namespace bbt.gateway.messaging
             });
             services.AddSwaggerGenNewtonsoftSupport();
             services.ConfigureOptions<ConfigureSwaggerOptions>();
+
+            services.AddRefitClient<IMessagingGatewayApi>()
+            .ConfigureHttpClient(c => c.BaseAddress = new Uri(context.Configuration["Api:dEngage:BaseUrl"]));
 
             services.AddDbContext<DatabaseContext>(o => o.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("bbt.gateway.messaging")));
             services.AddScoped<IRepositoryManager, RepositoryManager>();

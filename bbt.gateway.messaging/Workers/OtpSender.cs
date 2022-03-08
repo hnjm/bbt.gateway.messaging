@@ -43,6 +43,13 @@ namespace bbt.gateway.messaging.Workers
             returnValue = SendSmsResponseStatus.ClientError;
 
             _data = sendMessageSmsRequest;
+            _data.Content = _data.Content.ConvertToTurkish();
+            if(_data.Content.Length > 160)
+            {
+                returnValue = SendSmsResponseStatus.MaximumCharactersCountExceed;
+                return returnValue;
+            }
+
             _requestLog = new OtpRequestLog
             {
                 CreatedBy = _data.Process,
@@ -61,13 +68,13 @@ namespace bbt.gateway.messaging.Workers
             )
             {
                 //TODO: Operator ghonderemezse? Sim değişmişse?
-                var responseLog = await SendMessageToKnown(phoneConfiguration,true,sendMessageSmsRequest.Sender);
+                var responseLog = await SendMessageToKnown(phoneConfiguration,true);
                 _requestLog.ResponseLogs.Add(responseLog);
 
                 //Operator Change | Sim Change | Not Subscriber handle edilmeli
                 if (responseLog.ResponseCode == SendSmsResponseStatus.NotSubscriber)
                 {
-                    await SendMessageToUnknownProcess(true, sendMessageSmsRequest.Sender);
+                    await SendMessageToUnknownProcess(true);
                 }
                 if (responseLog.ResponseCode == SendSmsResponseStatus.OperatorChange
                     || responseLog.ResponseCode == SendSmsResponseStatus.SimChange)
@@ -99,7 +106,7 @@ namespace bbt.gateway.messaging.Workers
                         _repositoryManager.PhoneConfigurations.Add(phoneConfiguration);
                     }
 
-                    await SendMessageToUnknownProcess(false, sendMessageSmsRequest.Sender);
+                    await SendMessageToUnknownProcess(false);
                 }
 
             }
@@ -113,11 +120,11 @@ namespace bbt.gateway.messaging.Workers
             return returnValue;
         }
 
-        private async Task SendMessageToUnknownProcess(bool discardCurrentOperator,SenderType sender)
+        private async Task SendMessageToUnknownProcess(bool discardCurrentOperator)
         {
 
             //if discardCurrentOperator is true,phone is known number
-            var responseLogs = await SendMessageToUnknown(phoneConfiguration, discardCurrentOperator, sender, discardCurrentOperator);
+            var responseLogs = await SendMessageToUnknown(phoneConfiguration, discardCurrentOperator, discardCurrentOperator);
 
             // Decide which response code will be returned
             returnValue = responseLogs.UnifyResponse();
@@ -142,9 +149,9 @@ namespace bbt.gateway.messaging.Workers
 
         }
 
-        private async Task<List<OtpResponseLog>> SendMessageToUnknown(PhoneConfiguration phoneConfiguration,bool useControlDays,SenderType sender,bool discardCurrentOperator = false)
+        private async Task<List<OtpResponseLog>> SendMessageToUnknown(PhoneConfiguration phoneConfiguration,bool useControlDays,bool discardCurrentOperator = false)
         {
-            var header = await _headerManager.Get(phoneConfiguration, _data.ContentType,sender);
+            var header = await _headerManager.Get(phoneConfiguration, _data.ContentType,_data.HeaderInfo);
             _requestLog.Content = header.BuildContentForLog(_data.Content);
 
             ConcurrentBag<OtpResponseLog> responses = new ConcurrentBag<OtpResponseLog>();
@@ -170,10 +177,10 @@ namespace bbt.gateway.messaging.Workers
             return responses.ToList();
         }
 
-        private async Task<OtpResponseLog> SendMessageToKnown(PhoneConfiguration phoneConfiguration,bool useControlDays,SenderType sender)
+        private async Task<OtpResponseLog> SendMessageToKnown(PhoneConfiguration phoneConfiguration,bool useControlDays)
         {
             IOperatorGateway gateway = null;
-             var header = await _headerManager.Get(phoneConfiguration, _data.ContentType, sender);
+             var header = await _headerManager.Get(phoneConfiguration, _data.ContentType, _data.HeaderInfo);
             _requestLog.Content = header.BuildContentForLog(_data.Content);
 
             switch (phoneConfiguration.Operator)

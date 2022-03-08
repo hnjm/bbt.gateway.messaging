@@ -15,7 +15,7 @@ namespace bbt.gateway.messaging
     {
         public static void Main(string[] args)
         {
-            
+                        
             Host.CreateDefaultBuilder(args)
             .ConfigureHostConfiguration(builder => { builder.AddJsonFile("appsettings.json", false, true).AddEnvironmentVariables(); })
             .ConfigureAppConfiguration((context, builder) =>

@@ -1,6 +1,7 @@
 ﻿using bbt.gateway.messaging.Api.Vodafone.Model;
 using bbt.gateway.common.Models;
 using bbt.gateway.messaging.Api.Vodafone;
+using bbt.gateway.messaging.Api;
 using bbt.gateway.common;
 using System;
 using System.Collections.Concurrent;
@@ -22,18 +23,17 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             _vodafoneApi.SetOperatorType(OperatorConfig);
         }
 
-        private async Task<bool> Auth()
+        private async Task<OperatorApiAuthResponse> Auth()
         {
-            bool isAuthSuccess = false;
+            OperatorApiAuthResponse authResponse = new();
             if (string.IsNullOrEmpty(OperatorConfig.AuthToken) || OperatorConfig.TokenExpiredAt <= System.DateTime.Now.AddMinutes(-1))
             {
 
                 var tokenCreatedAt = System.DateTime.Now;
                 var tokenExpiredAt = System.DateTime.Now.AddMinutes(59);
-                var authResponse = await _vodafoneApi.Auth(CreateAuthRequest());
+                authResponse = await _vodafoneApi.Auth(CreateAuthRequest());
                 if (authResponse.ResponseCode == "0")
                 {
-                    isAuthSuccess = true;
                     OperatorConfig.AuthToken = authResponse.AuthToken;
                     OperatorConfig.TokenCreatedAt = tokenCreatedAt;
                     OperatorConfig.TokenExpiredAt = tokenExpiredAt;
@@ -43,11 +43,11 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             }
             else
             {
-                isAuthSuccess = true;
+                authResponse.ResponseCode = "0";
                 _authToken = OperatorConfig.AuthToken;
             }
 
-            return isAuthSuccess;
+            return authResponse;
         }
 
         private async Task<bool> RefreshToken()
@@ -77,8 +77,8 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
         public async Task<bool> SendOtp(Phone phone, string content, ConcurrentBag<OtpResponseLog> responses, Header header, bool useControlDays)
         {
-            var isAuthSuccess = await Auth();
-            if (isAuthSuccess)
+            var authResponse = await Auth();
+            if (authResponse.ResponseCode == "0")
             {
                 var vodafoneResponse = await _vodafoneApi.SendSms(CreateSmsRequest(phone, content, header, useControlDays));
                 if (vodafoneResponse.ResponseCode.Trim().Equals("1008") ||
@@ -104,7 +104,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                     TrackingStatus = SmsTrackingStatus.SystemError
                 };
                 response.ResponseCode = SendSmsResponseStatus.ClientError;
-                response.ResponseMessage = "Vodafone Auth Failed";
+                response.ResponseMessage = authResponse.ResponseMessage;
                 responses.Add(response);
             }
             
@@ -113,8 +113,8 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
         public async Task<OtpResponseLog> SendOtp(Phone phone, string content, Header header, bool useControlDays)
         {
-            var isAuthSuccess = await Auth();
-            if (isAuthSuccess)
+            var authResponse = await Auth();
+            if (authResponse.ResponseCode == "0")
             {
                 var vodafoneResponse = await _vodafoneApi.SendSms(CreateSmsRequest(phone, content, header, useControlDays));
                 if (vodafoneResponse.ResponseCode.Trim().Equals("1008") ||
@@ -141,7 +141,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                     TrackingStatus = SmsTrackingStatus.SystemError
                 };
                 response.ResponseCode = SendSmsResponseStatus.ClientError;
-                response.ResponseMessage = "Vodafone Auth Failed";
+                response.ResponseMessage = authResponse.ResponseMessage;
 
                 return response;
             }

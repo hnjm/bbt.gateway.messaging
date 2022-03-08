@@ -50,9 +50,9 @@ namespace bbt.gateway.messaging.Api.Turkcell
                         textResponse = textResponse.Replace("&gt;", ">");
                         
                         var parsedResponse = textResponse.DeserializeXml<Model.SendSms.BodyXml.MSGIDRETURN>();
-                        turkcellSmsResponse.ResponseCode = "0";
+                        turkcellSmsResponse.ResponseCode = parsedResponse.MSGID_LIST.MSGID > 0 ? "0" : parsedResponse.MSGID_LIST.MSGID.ToString();
                         turkcellSmsResponse.ResponseMessage = "";
-                        turkcellSmsResponse.MessageId = parsedResponse.MSGID_LIST.MSGID.ToString();
+                        turkcellSmsResponse.MessageId = parsedResponse.MSGID_LIST.MSGID > 0 ? parsedResponse.MSGID_LIST.MSGID.ToString() : "";
                         turkcellSmsResponse.RequestBody = requests.Item2;
                         turkcellSmsResponse.ResponseBody = response;
                     }
