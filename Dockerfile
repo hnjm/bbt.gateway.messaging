@@ -5,7 +5,7 @@ USER smsgatewayuser
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["bbt.gateway.messaging.csproj", "."]
+COPY ["bbt.gateway.messaging/bbt.gateway.messaging.csproj", "."]
 COPY ["../bbt.gateway.common/bbt.gateway.common.csproj", "../bbt.gateway.common/"]
 RUN dotnet restore "./bbt.gateway.messaging.csproj"
 COPY . .
