@@ -23,8 +23,6 @@ using bbt.gateway.common.Models.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using bbt.gateway.messaging.Api.Pusula;
-using Refit;
-using bbt.gateway.messaging.Api.dEngage;
 
 
 namespace bbt.gateway.messaging
