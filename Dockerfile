@@ -1,18 +1,23 @@
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build-env
+FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
 WORKDIR /app
-
 RUN adduser -u 5679 --disabled-password --gecos "" smsgatewayuser && chown -R smsgatewayuser:smsgatewayuser /app
 USER smsgatewayuser
 
-# copy everything and build the project
-COPY . ./
-RUN dotnet restore bbt.gateway.messaging/*.csproj
-RUN dotnet publish bbt.gateway.messaging/*.csproj -c Release -o out
+FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
+WORKDIR /src
+COPY ["bbt.gateway.messaging.csproj", "."]
+COPY ["../bbt.gateway.common/bbt.gateway.common.csproj", "../bbt.gateway.common/"]
+RUN dotnet restore "./bbt.gateway.messaging.csproj"
+COPY . .
+WORKDIR "/src/."
+RUN dotnet build "bbt.gateway.messaging.csproj" -c Release -o /app/build
 
-# build runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:6.0
+FROM build AS publish
+RUN dotnet publish "bbt.gateway.messaging.csproj" -c Release -o /app/publish
+
+FROM base AS final
 WORKDIR /app
-COPY --from=build-env /app/out ./
+COPY --from=publish /app/publish .
 EXPOSE 5000
 ENV ASPNETCORE_URLS=http://*:5000
 ENTRYPOINT ["dotnet", "bbt.gateway.messaging.dll"]
