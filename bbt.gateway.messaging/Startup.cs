@@ -83,9 +83,6 @@ namespace bbt.gateway.messaging
             services.AddSwaggerGenNewtonsoftSupport();
             services.ConfigureOptions<ConfigureSwaggerOptions>();
 
-            services.AddRefitClient<IMessagingGatewayApi>()
-            .ConfigureHttpClient(c => c.BaseAddress = new Uri(context.Configuration["Api:dEngage:BaseUrl"]));
-
             services.AddDbContext<DatabaseContext>(o => o.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("bbt.gateway.messaging")));
             services.AddScoped<IRepositoryManager, RepositoryManager>();
 
