@@ -4,11 +4,11 @@ RUN adduser -u 5679 --disabled-password --gecos "" smsgatewayuser && chown -R sm
 USER smsgatewayuser
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
-WORKDIR /src
+WORKDIR . ./
 COPY ["bbt.gateway.messaging/bbt.gateway.messaging.csproj", "."]
 RUN dotnet restore "./bbt.gateway.messaging.csproj"
 COPY . .
-WORKDIR "/src/."
+WORKDIR ". ./"
 RUN dotnet build "bbt.gateway.messaging.csproj" -c Release -o /app/build
 
 FROM build AS publish
