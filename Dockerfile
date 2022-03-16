@@ -2,8 +2,6 @@ FROM mcr.microsoft.com/dotnet/aspnet:6.0-focal AS base
 WORKDIR /app
 
 
-ENV ASPNETCORE_URLS=http://+:5000
-
 RUN adduser -u 5679 --disabled-password --gecos "" smsgatewayuser && chown -R smsgatewayuser:smsgatewayuser /app
 USER smsgatewayuser
 
@@ -22,4 +20,5 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 EXPOSE 5000
+ENV ASPNETCORE_URLS=http://+:5000
 ENTRYPOINT ["dotnet", "bbt.gateway.messaging.dll"]
