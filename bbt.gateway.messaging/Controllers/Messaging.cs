@@ -89,8 +89,6 @@ namespace bbt.gateway.messaging.Controllers
 
         }
 
-        /* For Future development
-
         [SwaggerOperation(
            Summary = "Send templated Email message",
            Description = "Templates are defined in dEngage"
@@ -114,9 +112,17 @@ namespace bbt.gateway.messaging.Controllers
         {
             return Ok();
         }
-        */
 
-
+        //[SwaggerOperation(
+        //   Summary = "Send Push Notification",
+        //   Description = "Send push notification to device."
+        //   )]
+        //[HttpPost("/messaging/push-notification")]
+        //[SwaggerResponse(200, "Push notification was sent successfully", typeof(SendEmailResponse))]
+        //public IActionResult SendPushNotification([FromBody] SendPushNotification data)
+        //{
+        //    return Ok();
+        //}
 
     }
 }

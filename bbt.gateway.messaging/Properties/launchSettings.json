@@ -19,7 +19,6 @@
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {
-        "SQL_CONNECTION": "Data Source=localhost;Initial Catalog=Messaging;User Id=SA;Password=Qwert123;",
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
       "applicationUrl": "http://localhost:5000;https://localhost:5001;"

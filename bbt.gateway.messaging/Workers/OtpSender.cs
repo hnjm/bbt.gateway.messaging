@@ -21,7 +21,6 @@ namespace bbt.gateway.messaging.Workers
         OtpRequestLog _requestLog;
         PhoneConfiguration phoneConfiguration;
 
-        //Type[] operators = new Type[] { typeof(OperatorTurkcell), typeof(OperatorVodafone), typeof(OperatorTurkTelekom) };
         private readonly Dictionary<Type, OperatorType> operators = new Dictionary<Type, OperatorType>()
         {
             { typeof(OperatorTurkcell) , OperatorType.Turkcell},

@@ -120,7 +120,7 @@ namespace bbt.gateway.messaging
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IApiVersionDescriptionProvider provider)
         {
-            //app.UseConsul(consulSettings);
+            app.UseConsul(consulSettings);
 
             if (env.IsDevelopment())
             {
@@ -160,20 +160,7 @@ namespace bbt.gateway.messaging
 
             //app.UseAllElasticApm(Configuration);
 
-            //SeedData.Initialize(app.ApplicationServices);
         }
     }
 
-    public static class SeedData
-    {
-        public static void Initialize(IServiceProvider serviceProvider)
-        {
-            using (var serviceScope = serviceProvider.CreateScope())
-            {
-                var context = serviceScope.ServiceProvider.GetService<DatabaseContext>();
-                // auto migration
-                context.Database.EnsureCreated();
-            }
-        }
-    }
 }

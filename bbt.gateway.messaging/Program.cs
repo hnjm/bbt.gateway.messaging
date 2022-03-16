@@ -17,7 +17,7 @@ namespace bbt.gateway.messaging
         {
                         
             Host.CreateDefaultBuilder(args)
-            .ConfigureHostConfiguration(builder => { builder.AddJsonFile("appsettings.json", false, true).AddEnvironmentVariables(); })
+            .ConfigureHostConfiguration(builder => { builder.AddUserSecrets(typeof(Program).Assembly).AddJsonFile("appsettings.json", false, true).AddEnvironmentVariables(); })
             .ConfigureAppConfiguration((context, builder) =>
             {
                 string consulHost = context.Configuration["ConsulHost"];
@@ -25,6 +25,7 @@ namespace bbt.gateway.messaging
                 string environmentName = context.HostingEnvironment.EnvironmentName;
                 void ConsulConfig(ConsulClientConfiguration configuration)
                 {
+                    configuration.Token = context.Configuration["ConsulToken"];
                     configuration.Address = new Uri(consulHost);
                 }
 

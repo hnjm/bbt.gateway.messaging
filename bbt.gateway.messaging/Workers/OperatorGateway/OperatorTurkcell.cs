@@ -175,7 +175,16 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             }
 
             var request = new TurkcellSmsRequest();
-            request.Header = Constant.OperatorSenders[header.SmsSender][OperatorType.Turkcell];
+            request.IsAbroad = phone.CountryCode != 90;
+            request.MsgCode = this.Configuration.GetSection("Operators:Turkcell:MsgCode").Get<string>();
+            request.VariantId =
+                request.IsAbroad ?
+                this.Configuration.GetSection("Operators:Turkcell:UVariantId").Get<string>():
+                this.Configuration.GetSection("Operators:Turkcell:VariantId").Get<string>();
+            request.Header =
+                request.IsAbroad ?
+                this.Configuration.GetSection("Operators:Turkcell:SrcMsIsdn").Get<string>() :
+                Constant.OperatorSenders[header.SmsSender][OperatorType.Turkcell];
             request.PhoneNo = "00" + phone.CountryCode + phone.Prefix + phone.Number;
             request.SessionId = _authToken;
             request.Content = content;

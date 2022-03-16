@@ -19,6 +19,7 @@ namespace bbt.gateway.common.Models.Extensions
             services.AddSingleton<IConsulClient, ConsulClient>(p => new ConsulClient(consulConfig =>
             {
                 consulConfig.Address = new Uri(consulSettings.ConsoleHost);
+                consulConfig.Token = consulSettings.Token;
             }));
             return services;
         }
@@ -44,15 +45,8 @@ namespace bbt.gateway.common.Models.Extensions
 
             AgentCheckRegistration httpCheck = new AgentCheckRegistration()
             {
-                // TODO : Added test purpose you can delete
-
-#if DEBUG
-                HTTP = $"{uri.Scheme}://host.docker.internal:{uri.Port}/{consulSettings.HealthyCheckURL}",
-#else
 
                 HTTP = $"{uri.Scheme}://{uri.Host}:{uri.Port}/{consulSettings.HealthyCheckURL}",
-#endif
-
 
                 Notes = "Checks hc",
                 Timeout = TimeSpan.FromSeconds(3),

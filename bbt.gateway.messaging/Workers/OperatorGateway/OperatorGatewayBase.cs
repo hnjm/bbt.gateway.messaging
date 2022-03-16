@@ -11,10 +11,11 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
     public abstract class OperatorGatewayBase
     {
         private OperatorType type;
+        protected readonly IConfiguration Configuration;
         private DbContextOptions<DatabaseContext> _dbOptions;
         protected OperatorGatewayBase(IConfiguration configuration) 
         {
-
+            Configuration = configuration;
             _dbOptions = new DbContextOptionsBuilder<DatabaseContext>()
                 .UseSqlServer(configuration.GetConnectionString("DefaultConnection"))
                 .Options;
