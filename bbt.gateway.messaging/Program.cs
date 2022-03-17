@@ -5,6 +5,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections;
+using System.Net;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
 using Winton.Extensions.Configuration.Consul;
 
@@ -15,16 +18,26 @@ namespace bbt.gateway.messaging
     {
         public static void Main(string[] args)
         {
-                        
+            ServicePointManager.ServerCertificateValidationCallback =
+            delegate (
+                object s,
+                X509Certificate certificate,
+                X509Chain chain,
+                SslPolicyErrors sslPolicyErrors
+            )
+            {
+                return true;
+            };
             Host.CreateDefaultBuilder(args)
             .ConfigureHostConfiguration(builder => { builder.AddUserSecrets(typeof(Program).Assembly).AddJsonFile("appsettings.Test.json", false, true).AddEnvironmentVariables(); })
             .ConfigureAppConfiguration((context, builder) =>
             {
+                
                 string consulHost = context.Configuration["ConsulHost"];
                 string applicationName = context.HostingEnvironment.ApplicationName;
                 string environmentName = context.HostingEnvironment.EnvironmentName;
                 void ConsulConfig(ConsulClientConfiguration configuration)
-                {
+                {                    
                     configuration.Token = context.Configuration["ConsulToken"];
                     configuration.Address = new Uri(consulHost);
                 }
