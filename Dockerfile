@@ -1,5 +1,4 @@
 FROM mcr.microsoft.com/dotnet/aspnet:6.0-focal AS base
-COPY ./https://api.nonprod.ebt.bank:6443-certificate.pem /etc/ssl/certs/https://api.nonprod.ebt.bank:6443-certificate.pem
 WORKDIR /app
 
 
