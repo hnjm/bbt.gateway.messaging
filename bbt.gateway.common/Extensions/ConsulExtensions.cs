@@ -39,7 +39,7 @@ namespace bbt.gateway.common.Models.Extensions
 
             var addresses = features.Get<IServerAddressesFeature>();
             var address = addresses.Addresses.First();
-
+            Console.WriteLine("gelen adres : " +address);
             var uri = new Uri(address);
 
 

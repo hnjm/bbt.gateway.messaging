@@ -122,22 +122,21 @@ namespace bbt.gateway.messaging
         {
             app.UseConsul(consulSettings);
 
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-                app.UseSwagger();
+            
+            app.UseDeveloperExceptionPage();
+            app.UseSwagger();
 
-                app.UseSwaggerUI(options =>
+            app.UseSwaggerUI(options =>
+            {
+                foreach (var description in provider.ApiVersionDescriptions)
                 {
-                    foreach (var description in provider.ApiVersionDescriptions)
-                    {
-                        options.SwaggerEndpoint(
-                            $"/swagger/{description.GroupName}/swagger.json",
-                            description.GroupName.ToUpperInvariant());
-                        options.RoutePrefix = "";
-                    }
-                });
-            }
+                    options.SwaggerEndpoint(
+                        $"/swagger/{description.GroupName}/swagger.json",
+                        description.GroupName.ToUpperInvariant());
+                    options.RoutePrefix = "";
+                }
+            });
+            
 
             app.UseHealthChecks("/hc", new HealthCheckOptions()
             {
