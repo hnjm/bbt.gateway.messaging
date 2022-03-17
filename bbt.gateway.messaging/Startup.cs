@@ -42,7 +42,7 @@ namespace bbt.gateway.messaging
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddHealthChecks();
-            services.AddConsulConfig(consulSettings);
+            //services.AddConsulConfig(consulSettings);
 
             services.AddControllers()
                     //.AddJsonOptions(opts =>
@@ -120,7 +120,7 @@ namespace bbt.gateway.messaging
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IApiVersionDescriptionProvider provider)
         {
-            app.UseConsul(consulSettings);
+            //app.UseConsul(consulSettings);
 
             
             app.UseDeveloperExceptionPage();

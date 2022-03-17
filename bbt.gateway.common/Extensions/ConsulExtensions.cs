@@ -45,7 +45,6 @@ namespace bbt.gateway.common.Models.Extensions
 
             AgentCheckRegistration httpCheck = new AgentCheckRegistration()
             {
-
                 HTTP = $"{uri.Scheme}://{uri.Host}:{uri.Port}/{consulSettings.HealthyCheckURL}",
 
                 Notes = "Checks hc",
