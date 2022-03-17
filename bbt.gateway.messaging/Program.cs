@@ -18,16 +18,7 @@ namespace bbt.gateway.messaging
     {
         public static void Main(string[] args)
         {
-            ServicePointManager.ServerCertificateValidationCallback =
-            delegate (
-                object s,
-                X509Certificate certificate,
-                X509Chain chain,
-                SslPolicyErrors sslPolicyErrors
-            )
-            {
-                return true;
-            };
+            
             Host.CreateDefaultBuilder(args)
             .ConfigureHostConfiguration(builder => { builder.AddUserSecrets(typeof(Program).Assembly).AddJsonFile("appsettings.Test.json", false, true).AddEnvironmentVariables(); })
             .ConfigureAppConfiguration((context, builder) =>
