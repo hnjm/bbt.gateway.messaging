@@ -11,7 +11,7 @@ using System;
 using Microsoft.Extensions.Configuration;
 
 IHost host = Host.CreateDefaultBuilder(args)
-    .ConfigureHostConfiguration(builder => { builder.AddJsonFile("appsettings.json", false, true); })
+    .ConfigureHostConfiguration(builder => { builder.AddJsonFile("appsettings.Test.json", false, true); })
     //.ConfigureAppConfiguration((context, builder) => {
     //    string consulHost = context.Configuration["ConsulHost"];
     //    string applicationName = context.HostingEnvironment.ApplicationName;
