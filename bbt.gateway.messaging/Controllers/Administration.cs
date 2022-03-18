@@ -36,6 +36,7 @@ namespace bbt.gateway.messaging.Controllers
         [SwaggerResponse(200, "Headers is returned successfully", typeof(Header[]))]
         public IActionResult GetHeaders([FromQuery][Range(0, 100)] int page = 0, [FromQuery][Range(1, 100)] int pageSize = 20)
         {
+            Console.WriteLine("Headerlar getiriliyor");
             return Ok(_headerManager.Get(page, pageSize));
         }
 
