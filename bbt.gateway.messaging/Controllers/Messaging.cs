@@ -93,7 +93,7 @@ namespace bbt.gateway.messaging.Controllers
            Summary = "Send templated Email message",
            Description = "Templates are defined in dEngage"
            )]
-        [HttpPost("/messaging/email/templated")]
+        [HttpPost("messaging/email/templated")]
         [SwaggerResponse(200, "Email was sent successfully", typeof(SendEmailResponse))]
         [SwaggerResponse(460, "Given template is not found on dEngage", typeof(void))]
         public IActionResult SendTemplatedEmail([FromBody] SendTemplatedEmailRequest data)
@@ -106,7 +106,7 @@ namespace bbt.gateway.messaging.Controllers
            Summary = "Send Email message",
            Description = "Send given content directly."
            )]
-        [HttpPost("/messaging/email/message")]
+        [HttpPost("messaging/email/message")]
         [SwaggerResponse(200, "Email was sent successfully", typeof(SendEmailResponse))]
         public IActionResult SendMessageEmail([FromBody] SendMessageEmailRequest data)
         {
@@ -117,7 +117,7 @@ namespace bbt.gateway.messaging.Controllers
            Summary = "Send Push Notification",
            Description = "Send push notification to device."
            )]
-        [HttpPost("/messaging/push-notification")]
+        [HttpPost("messaging/push-notification")]
         [SwaggerResponse(200, "Push notification was sent successfully", typeof(SendPushNotificationResponse))]
         public IActionResult SendPushNotification([FromBody] SendMessagePushNotificationRequest data)
         {
