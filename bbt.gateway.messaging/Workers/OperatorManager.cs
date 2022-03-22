@@ -1,4 +1,5 @@
-﻿using bbt.gateway.common.Models;
+﻿using bbt.gateway.common.Extensions;
+using bbt.gateway.common.Models;
 using bbt.gateway.common.Repositories;
 using System;
 using System.Collections.Generic;
@@ -16,9 +17,17 @@ namespace bbt.gateway.messaging.Workers
             loadOperators();
         }
 
-        public Operator[] Get()
+        public OperatorInfo[] Get()
         {            
-            return _repositoryManager.Operators.GetAll().ToArray();
+            var operatorList = _repositoryManager.Operators.GetAll();
+            var operatorInfoList = new List<OperatorInfo>();
+
+            foreach (var item in operatorList)
+            {
+                operatorInfoList.Add(item.MapTo<OperatorInfo>());
+            }
+
+            return operatorInfoList.ToArray();
         }
 
         public Operator Get(OperatorType type)

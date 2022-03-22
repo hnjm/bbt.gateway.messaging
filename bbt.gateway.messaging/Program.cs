@@ -4,11 +4,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using System;
-using System.Collections;
-using System.Net;
-using System.Net.Security;
-using System.Security.Cryptography.X509Certificates;
-using System.Text.RegularExpressions;
 using Winton.Extensions.Configuration.Consul;
 
 namespace bbt.gateway.messaging
@@ -20,7 +15,7 @@ namespace bbt.gateway.messaging
         {
             
             Host.CreateDefaultBuilder(args)
-            .ConfigureHostConfiguration(builder => { builder.AddJsonFile("appsettings.Test.json", false, true)
+            .ConfigureHostConfiguration((builder) => { builder.AddJsonFile("appsettings.Test.json", false, true)
                 .AddUserSecrets(typeof(Program).Assembly).AddEnvironmentVariables(); })
             .ConfigureAppConfiguration((context, builder) =>
             {

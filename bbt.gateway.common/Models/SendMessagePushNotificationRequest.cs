@@ -5,12 +5,10 @@ using System.Threading.Tasks;
 
 namespace bbt.gateway.common.Models
 {
-    public class SendTemplatedEmailRequest : SendEmailRequest
+    public class SendMessagePushNotificationRequest : SendPushNotificationRequest
     {
-        
         public string CustomerNo { get; set; }
-        public string Subject { get; set; }
+        public string Title { get; set; }
         public string Content { get; set; }
-        public string Template { get; set; }
     }
 }

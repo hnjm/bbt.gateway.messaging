@@ -12,6 +12,8 @@ namespace bbt.gateway.common.Repositories
         ISmsLogRepository SmsLogs { get;  }
         IOtpResponseLogRepository OtpResponseLogs { get; }
         IOtpTrackingLogRepository OtpTrackingLog { get; }
+        IUserRepository Users { get; }
         int SaveChanges();
+        int SaveDodgeChanges();
     }
 }

@@ -5,6 +5,8 @@ namespace bbt.gateway.common
     public class RepositoryManager : IRepositoryManager
     {
         private readonly DatabaseContext _databaseContext;
+        private readonly DodgeDatabaseContext _dodgeDatabaseContext;
+        private UserRepository _userRepository;
         private HeaderRepository _headerRepository;
         private OperatorRepository _operatorRepository;
         private BlacklistEntryRepository _blacklistEntryRepository;
@@ -14,9 +16,10 @@ namespace bbt.gateway.common
         private OtpResponseLogRepository _otpResponseLogRepository;
         private OtpTrackingLogRepository _otpTrackingLogRepository;
 
-        public RepositoryManager(DatabaseContext databaseContext)
+        public RepositoryManager(DatabaseContext databaseContext,DodgeDatabaseContext dodgeDatabaseContext)
         {
             _databaseContext = databaseContext;
+            _dodgeDatabaseContext = dodgeDatabaseContext;
         }
 
         public IHeaderRepository Headers => _headerRepository ??= new HeaderRepository(_databaseContext);
@@ -35,14 +38,22 @@ namespace bbt.gateway.common
 
         public IOtpTrackingLogRepository OtpTrackingLog => _otpTrackingLogRepository ??= new OtpTrackingLogRepository(_databaseContext);
 
+        public IUserRepository Users => _userRepository ??= new UserRepository(_dodgeDatabaseContext);
+
         public int SaveChanges()
         {
             return _databaseContext.SaveChanges();
         }
 
+        public int SaveDodgeChanges()
+        {
+            return _dodgeDatabaseContext.SaveChanges();
+        }
+
         public void Dispose()
         {
             _databaseContext.Dispose();
+            _dodgeDatabaseContext.Dispose();
         }
     }
 }

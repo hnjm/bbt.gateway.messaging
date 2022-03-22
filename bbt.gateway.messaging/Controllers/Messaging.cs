@@ -113,16 +113,16 @@ namespace bbt.gateway.messaging.Controllers
             return Ok();
         }
 
-        //[SwaggerOperation(
-        //   Summary = "Send Push Notification",
-        //   Description = "Send push notification to device."
-        //   )]
-        //[HttpPost("/messaging/push-notification")]
-        //[SwaggerResponse(200, "Push notification was sent successfully", typeof(SendEmailResponse))]
-        //public IActionResult SendPushNotification([FromBody] SendPushNotification data)
-        //{
-        //    return Ok();
-        //}
+        [SwaggerOperation(
+           Summary = "Send Push Notification",
+           Description = "Send push notification to device."
+           )]
+        [HttpPost("/messaging/push-notification")]
+        [SwaggerResponse(200, "Push notification was sent successfully", typeof(SendPushNotificationResponse))]
+        public IActionResult SendPushNotification([FromBody] SendMessagePushNotificationRequest data)
+        {
+            return Ok();
+        }
 
     }
 }

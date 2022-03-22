@@ -7,6 +7,7 @@ namespace bbt.gateway.common.Models
 {
     public class SendMessageEmailRequest : SendEmailRequest
     {
+        public string CustomerNo { get; set; }
         public string Subject { get; set; }
         public string Content { get; set; }
     }

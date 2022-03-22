@@ -23,7 +23,7 @@ using bbt.gateway.common.Models.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using bbt.gateway.messaging.Api.Pusula;
-
+using bbt.gateway.common.Extensions;
 
 namespace bbt.gateway.messaging
 {
@@ -41,7 +41,8 @@ namespace bbt.gateway.messaging
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddHealthChecks();
+            
+            services.AddHealthChecks(); 
             //services.AddConsulConfig(consulSettings);
 
             services.AddControllers()
@@ -82,6 +83,7 @@ namespace bbt.gateway.messaging
             services.ConfigureOptions<ConfigureSwaggerOptions>();
 
             services.AddDbContext<DatabaseContext>(o => o.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("bbt.gateway.messaging")));
+            services.AddDbContext<DodgeDatabaseContext>(o => o.UseSqlServer(Configuration.GetConnectionString("DodgeConnection")));
             services.AddScoped<IRepositoryManager, RepositoryManager>();
 
 
