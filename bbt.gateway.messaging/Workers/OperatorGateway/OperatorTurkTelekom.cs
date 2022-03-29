@@ -1,12 +1,10 @@
 ﻿using bbt.gateway.messaging.Api.TurkTelekom.Model;
 using bbt.gateway.common.Models;
 using bbt.gateway.messaging.Api.TurkTelekom;
-using bbt.gateway.common;
 using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 
 namespace bbt.gateway.messaging.Workers.OperatorGateway
@@ -25,7 +23,6 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
         public async Task<bool> SendOtp(Phone phone, string content, ConcurrentBag<OtpResponseLog> responses, Header header, bool useControlDays)
         {
             var turkTelekomResponse = await _turkTelekomApi.SendSms(CreateSmsRequest(phone,content,header,useControlDays));
-            System.Diagnostics.Debug.WriteLine("TT otp is send");
 
             var response =  turkTelekomResponse.BuildOperatorApiResponse();
             responses.Add(response);
@@ -35,7 +32,6 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
         public async Task<OtpResponseLog> SendOtp(Phone phone, string content, Header header, bool useControlDays)
         {
             var turkTelekomResponse = await _turkTelekomApi.SendSms(CreateSmsRequest(phone, content, header, useControlDays));
-            System.Diagnostics.Debug.WriteLine("TurkTelekom otp is send");
 
             var response = turkTelekomResponse.BuildOperatorApiResponse();
 

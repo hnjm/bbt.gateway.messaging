@@ -40,6 +40,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
                     SaveOperator();
                 }
+                //LOGGING AUTH BAŞARISIZ
             }
             else
             {
@@ -63,6 +64,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 _authToken = OperatorConfig.AuthToken;
                 SaveOperator();
             }
+            //LOGGING AUTH BAŞARISIZ
             return authResponse.ResponseCode == "0";
         }
 
@@ -145,9 +147,16 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
         public async Task<OtpTrackingLog> CheckMessageStatus(CheckSmsRequest checkSmsRequest)
         {
-            var isAuthSuccess = await Auth();
-            var turkcellResponse = await _turkcellApi.CheckSmsStatus(CreateSmsStatusRequest(checkSmsRequest.StatusQueryId));
-            return turkcellResponse.BuildOperatorApiTrackingResponse(checkSmsRequest);
+            var authResponse = await Auth();
+            if (authResponse.ResponseCode == "0")
+            {
+                var turkcellResponse = await _turkcellApi.CheckSmsStatus(CreateSmsStatusRequest(checkSmsRequest.StatusQueryId));
+                return turkcellResponse.BuildOperatorApiTrackingResponse(checkSmsRequest);
+            }
+            else
+            {
+                return null;
+            }
         }
 
         private TurkcellSmsRequest CreateSmsRequest(Phone phone, string content, Header header, bool useControlDays)

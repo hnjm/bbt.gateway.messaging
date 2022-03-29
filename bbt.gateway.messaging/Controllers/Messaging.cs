@@ -12,12 +12,11 @@ namespace bbt.gateway.messaging.Controllers
     [ApiVersion("1.0")]
     public class Messaging : ControllerBase
     {
-        private readonly ILogger<Messaging> _logger;
         private readonly OtpSender _otpSender;
-
-        public Messaging(ILogger<Messaging> logger,OtpSender otpSender)
+        private readonly TransactionManager _transactionManager;
+        public Messaging(OtpSender otpSender,TransactionManager transactionManager)
         {
-            _logger = logger;
+            _transactionManager = transactionManager;
             _otpSender = otpSender;
         }
 
@@ -49,7 +48,6 @@ namespace bbt.gateway.messaging.Controllers
         [SwaggerResponse(460, "Has Blacklist Record.", typeof(void))]
         public async Task<IActionResult> SendMessageSms([FromBody] SendMessageSmsRequest data)
         {
-            
             if (ModelState.IsValid)
             {
                 if(data.ContentType == MessageContentType.Otp)
@@ -120,6 +118,17 @@ namespace bbt.gateway.messaging.Controllers
         [HttpPost("messaging/push-notification")]
         [SwaggerResponse(200, "Push notification was sent successfully", typeof(SendPushNotificationResponse))]
         public IActionResult SendPushNotification([FromBody] SendMessagePushNotificationRequest data)
+        {
+            return Ok();
+        }
+
+        [SwaggerOperation(
+           Summary = "Send Templated Push Notification",
+           Description = "Send templated push notification to device."
+           )]
+        [HttpPost("messaging/push-notification/templated")]
+        [SwaggerResponse(200, "Push notification was sent successfully", typeof(SendPushNotificationResponse))]
+        public IActionResult SendTemplatedPushNotification([FromBody] SendTemplatedPushNotificationRequest data)
         {
             return Ok();
         }

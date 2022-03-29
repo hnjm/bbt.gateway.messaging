@@ -156,9 +156,22 @@ namespace bbt.gateway.messaging.Controllers
             var config = _repositoryManager.BlackListEntries.FirstOrDefault(b => b.Id == entryId);
             if (config == null)
                 return NotFound(entryId);
+            var resolvedAt = DateTime.Now;
             config.ResolvedBy = data.ResolvedBy;
             config.Status = BlacklistStatus.Resolved;
-            config.ResolvedAt = DateTime.UtcNow;
+            config.ResolvedAt = resolvedAt;
+
+            //Update Old System
+            var oldBlacklistEntry = _repositoryManager.DirectBlacklists.FirstOrDefault(b => b.SmsId == config.SmsId);
+            if (oldBlacklistEntry != null)
+            {
+                oldBlacklistEntry.VerifyDate = resolvedAt;
+                oldBlacklistEntry.IsVerified = true;
+                oldBlacklistEntry.VerifiedBy = data.ResolvedBy.Identity;
+                oldBlacklistEntry.Explanation = "Messaging Gateway Tarafından Onaylandı.";
+                _repositoryManager.SaveSmsBankingChanges();
+            }
+
             _repositoryManager.SaveChanges();
             
             return StatusCode(201);

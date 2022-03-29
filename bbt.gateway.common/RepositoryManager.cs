@@ -6,7 +6,9 @@ namespace bbt.gateway.common
     {
         private readonly DatabaseContext _databaseContext;
         private readonly DodgeDatabaseContext _dodgeDatabaseContext;
+        private readonly SmsBankingDatabaseContext _smsBankingDatabaseContext;
         private UserRepository _userRepository;
+        private DirectBlacklistRepository _directBlacklistRepository;
         private HeaderRepository _headerRepository;
         private OperatorRepository _operatorRepository;
         private BlacklistEntryRepository _blacklistEntryRepository;
@@ -16,10 +18,12 @@ namespace bbt.gateway.common
         private OtpResponseLogRepository _otpResponseLogRepository;
         private OtpTrackingLogRepository _otpTrackingLogRepository;
 
-        public RepositoryManager(DatabaseContext databaseContext,DodgeDatabaseContext dodgeDatabaseContext)
+        public RepositoryManager(DatabaseContext databaseContext,DodgeDatabaseContext dodgeDatabaseContext,
+            SmsBankingDatabaseContext smsBankingDatabaseContext)
         {
             _databaseContext = databaseContext;
             _dodgeDatabaseContext = dodgeDatabaseContext;
+            _smsBankingDatabaseContext = smsBankingDatabaseContext;
         }
 
         public IHeaderRepository Headers => _headerRepository ??= new HeaderRepository(_databaseContext);
@@ -40,6 +44,8 @@ namespace bbt.gateway.common
 
         public IUserRepository Users => _userRepository ??= new UserRepository(_dodgeDatabaseContext);
 
+        public IDirectBlacklistRepository DirectBlacklists => _directBlacklistRepository ??= new DirectBlacklistRepository(_smsBankingDatabaseContext);
+
         public int SaveChanges()
         {
             return _databaseContext.SaveChanges();
@@ -48,6 +54,11 @@ namespace bbt.gateway.common
         public int SaveDodgeChanges()
         {
             return _dodgeDatabaseContext.SaveChanges();
+        }
+
+        public int SaveSmsBankingChanges()
+        {
+            return _smsBankingDatabaseContext.SaveChanges();
         }
 
         public void Dispose()

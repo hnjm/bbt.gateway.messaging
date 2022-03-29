@@ -3,7 +3,6 @@ using bbt.gateway.common.Repositories;
 using bbt.gateway.messaging.Api.Pusula;
 using bbt.gateway.messaging.Api.Pusula.Model.GetByPhone;
 using bbt.gateway.messaging.Api.Pusula.Model.GetCustomer;
-using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,6 +16,9 @@ namespace bbt.gateway.messaging.Workers
         public List<Header> Headers = new List<Header>();
         private readonly IRepositoryManager _repositoryManager;
         private readonly PusulaClient _pusulaClient;
+        private ulong _customerNo;
+
+        public long CustomerNo { get { return (long)_customerNo; } }
 
         public HeaderManager(IRepositoryManager repositoryManager, PusulaClient pusulaClient)
         {
@@ -40,53 +42,41 @@ namespace bbt.gateway.messaging.Workers
             string businessLine = null;
             int? branch = null;
 
+            if (config.CustomerNo != null)
+            {
+                _customerNo = config.CustomerNo.Value;
+            }
+            else
+            {
+                var customer = await _pusulaClient.GetCustomerByPhoneNumber(new GetByPhoneNumberRequest()
+                {
+                    CountryCode = config.Phone.CountryCode,
+                    CityCode = config.Phone.Prefix,
+                    TelephoneNumber = config.Phone.Number
+                });
+
+                if (customer.IsSuccess)
+                {
+                    _customerNo = customer.CustomerNo;
+                }
+                //LOGGING SERVIS HATALI BITERSE
+            }
+            
+
             if (headerInfo.Sender == SenderType.AutoDetect)
             {
-                if (config.CustomerNo != null)
+                var customerDetail = await _pusulaClient.GetCustomer(new GetCustomerRequest()
                 {
+                    CustomerNo = _customerNo
+                }); 
 
-                    var customerDetail = await _pusulaClient.GetCustomer(new GetCustomerRequest()
-                    {
-                        CustomerNo = config.CustomerNo.Value
-                    });
-
-                    if (customerDetail.IsSuccess)
-                    {
-                        businessLine = customerDetail.BusinessLine;
-                        branch = customerDetail.BranchCode;
-                    }
-
-                    header = get(contentType, businessLine, branch);
-
-                }
-                else
+                if (customerDetail.IsSuccess)
                 {
-                    var customer = await _pusulaClient.GetCustomerByPhoneNumber(new GetByPhoneNumberRequest()
-                    {
-                        CountryCode = config.Phone.CountryCode,
-                        CityCode = config.Phone.Prefix,
-                        TelephoneNumber = config.Phone.Number
-                    });
-
-                    if (customer.IsSuccess)
-                    {
-                        var customerDetail = await _pusulaClient.GetCustomer(new GetCustomerRequest()
-                        {
-                            CustomerNo = customer.CustomerNo
-                        });
-
-                        if (customerDetail.IsSuccess)
-                        {
-                            // set customer no of phone configruation for future save
-                            config.CustomerNo = customer.CustomerNo;
-
-                            businessLine = customerDetail.BusinessLine;
-                            branch = customerDetail.BranchCode;
-                        }
-                    }
-
-                    header = get(contentType, businessLine, branch);
+                    businessLine = customerDetail.BusinessLine;
+                    branch = customerDetail.BranchCode;
                 }
+                //LOGGING SERVIS HATALI BITERSE
+                header = get(contentType, businessLine, branch);                
             }
             else
             {
@@ -109,8 +99,7 @@ namespace bbt.gateway.messaging.Workers
             }
 
             _repositoryManager.SaveChanges();
-            //TODO: Meanwhile, dont forget to inform other pods to invalidate headers cahce.
-            //loadHeaders();
+            loadHeaders();
         }
 
         public void Delete(Guid id)
@@ -118,13 +107,12 @@ namespace bbt.gateway.messaging.Workers
             var itemToDelete = new Header { Id = id };
             _repositoryManager.Headers.Remove(itemToDelete);
 
-            //TODO: Meanwhile, dont forget to inform other pods to invalidate headers cahce.
             loadHeaders();
         }
 
         private Header get(MessageContentType contentType, string businessLine, int? branch, HeaderInfo headerInfo = null)
         {
-            if (headerInfo.Sender != SenderType.AutoDetect)
+            if (headerInfo != null)
             {
                 var defaultHeader = new Header();
                 defaultHeader.SmsSender = headerInfo.Sender;
@@ -155,6 +143,7 @@ namespace bbt.gateway.messaging.Workers
             
 
             //TODO: If db is not consistent, return firt value. Consider firing an enception 
+            //LOGGING HEADER BULUNAMADI
             var header = _repositoryManager.Headers.FirstOrDefault();
 
             

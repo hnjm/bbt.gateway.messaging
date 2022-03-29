@@ -10,5 +10,10 @@ namespace bbt.gateway.common.Models
         public int CountryCode { get; set; }
         public int Prefix { get; set; }
         public int Number { get; set; }
+
+        public override string ToString()
+        {
+            return $"+{CountryCode}{Prefix}{Number}";
+        }
     }
 }

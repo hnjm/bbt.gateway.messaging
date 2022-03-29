@@ -61,6 +61,43 @@ namespace bbt.gateway.messaging.Api.Pusula
             return getByPhoneNumberResponse;
         }
 
+        //public async Task<GetByPhoneNumberResponse> GetCustomerByEmail(GetByEmailRequest getByEmailRequest)
+        //{
+            //GetByPhoneNumberResponse getByPhoneNumberResponse = new GetByPhoneNumberResponse();
+            //try
+            //{
+            //    var queryParams = new Dictionary<string, string>()
+            //    {
+            //        {"CountryCode", getByPhoneNumberRequest.CountryCode.ToString()},
+            //        {"CityCode",getByPhoneNumberRequest.CityCode.ToString()},
+            //        {"TelephoneNumber",getByPhoneNumberRequest.TelephoneNumber.ToString()}
+            //    };
+
+            //    var httpResponse = await _httpClient.GetAsync(
+            //        QueryHelpers.AddQueryString(_configuration.GetValue<string>("Api:Pusula:EndPoints:GetByPhoneNumber"), queryParams));
+
+
+            //    if (httpResponse.IsSuccessStatusCode)
+            //    {
+            //        var response = httpResponse.Content.ReadAsStringAsync().Result.DeserializeXml<DataTable>();
+            //        getByPhoneNumberResponse.IsSuccess = true;
+            //        getByPhoneNumberResponse.CustomerNo = response.diffgram.DocumentElement[0].CustomerNumber;
+            //    }
+            //    else
+            //    {
+            //        _logger.LogError("Pusula Client Hata Oluştu." + httpResponse.Content.ReadAsStringAsync().Result);
+            //        getByPhoneNumberResponse.IsSuccess = false;
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+            //    getByPhoneNumberResponse.IsSuccess = false;
+            //    _logger.LogError("Pusula Client Hata Oluştu." + ex.ToString());
+            //}
+
+            //return getByPhoneNumberResponse;
+        //}
+
         public async Task<GetCustomerResponse> GetCustomer(GetCustomerRequest getCustomerRequest)
         {
             GetCustomerResponse getCustomerResponse = new GetCustomerResponse();

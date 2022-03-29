@@ -5,11 +5,13 @@ using System.Threading.Tasks;
 
 namespace bbt.gateway.common.Models
 {
-    public class SendTemplatedSmsRequest : SendSmsRequest
+    public class SendTemplatedPushNotificationRequest : SendPushNotificationRequest
     {
-        public string TeamplateParams { get; set; }
+        public string TemplateParams { get; set; }
         public string Template { get; set; }
         public string CustomerNo { get; set; }
         public string ContactId { get; set; }
+        public string Title { get; set; }
+        public string Content { get; set; }
     }
 }

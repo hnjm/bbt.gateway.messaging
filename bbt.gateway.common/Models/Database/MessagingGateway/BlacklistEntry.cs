@@ -8,6 +8,7 @@ namespace bbt.gateway.common.Models
     public class BlackListEntry
     {
         public Guid Id { get; set; } = Guid.NewGuid();
+        public long SmsId { get; set; }
         public Guid PhoneConfigurationId { get; set; }
         public PhoneConfiguration PhoneConfiguration { get; set; }
         public string Reason { get; set; }

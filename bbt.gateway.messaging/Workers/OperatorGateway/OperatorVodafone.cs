@@ -40,6 +40,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                     _authToken = OperatorConfig.AuthToken;
                     SaveOperator();
                 }
+                //Logging
             }
             else
             {
@@ -63,6 +64,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 _authToken = OperatorConfig.AuthToken;
                 SaveOperator();
             }
+            //Login
             return authResponse.ResponseCode == "0";
         }
 
@@ -88,7 +90,6 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                     if (await RefreshToken())
                         vodafoneResponse = await _vodafoneApi.SendSms(CreateSmsRequest(phone, content, header, false));
                 }
-                System.Diagnostics.Debug.WriteLine("Vodafone otp is send");
 
                 var response = vodafoneResponse.BuildOperatorApiResponse();
                 responses.Add(response);
@@ -124,7 +125,6 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                     if (await RefreshToken())
                         vodafoneResponse = await _vodafoneApi.SendSms(CreateSmsRequest(phone, content, header, useControlDays));
                 }
-                System.Diagnostics.Debug.WriteLine("Vodafone otp is send");
 
                 var response = vodafoneResponse.BuildOperatorApiResponse();
 
@@ -149,9 +149,16 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
         public async Task<OtpTrackingLog> CheckMessageStatus(CheckSmsRequest checkSmsRequest)
         {
-            var isAuthSuccess = await Auth();
-            var vodafoneResponse = await _vodafoneApi.CheckSmsStatus(CreateSmsStatusRequest(checkSmsRequest.StatusQueryId));
-            return vodafoneResponse.BuildOperatorApiTrackingResponse(checkSmsRequest);
+            var authResponse = await Auth();
+            if (authResponse.ResponseCode == "0")
+            {
+                var vodafoneResponse = await _vodafoneApi.CheckSmsStatus(CreateSmsStatusRequest(checkSmsRequest.StatusQueryId));
+                return vodafoneResponse.BuildOperatorApiTrackingResponse(checkSmsRequest);
+            }
+            else
+            {
+                return null;
+            }
         }
 
         private VodafoneSmsRequest CreateSmsRequest(Phone phone, string content, Header header, bool useControlDays)

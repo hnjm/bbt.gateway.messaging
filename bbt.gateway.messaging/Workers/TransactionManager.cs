@@ -1,0 +1,99 @@
+﻿using bbt.gateway.common.Models;
+using bbt.gateway.messaging.Api.Pusula;
+using bbt.gateway.messaging.Api.Pusula.Model.GetByPhone;
+using bbt.gateway.messaging.Api.Pusula.Model.GetCustomer;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Threading.Tasks;
+
+namespace bbt.gateway.messaging.Workers
+{
+    public class TransactionManager
+    {
+        private readonly Guid _txnId;
+        private ILogger<TransactionManager> _logger;
+        private readonly PusulaClient _pusulaClient;
+
+        private ulong _customerNo;
+        private string _businessLine;
+        private int _branchCode;
+
+        public ulong CustomerNo{ get { return _customerNo; } }
+        public string BusinessLine { get { return _businessLine; } }
+        public int BranchCode { get { return _branchCode; } }
+        
+        public TransactionManager(ILogger<TransactionManager> logger, PusulaClient pusulaClient)
+        {
+            _txnId = Guid.NewGuid();
+            _logger = logger;
+            _pusulaClient = pusulaClient;
+        }
+
+        public async Task GetCustomerInfoByPhone(Phone Phone)
+        {
+            var customer = await _pusulaClient.GetCustomerByPhoneNumber(new GetByPhoneNumberRequest()
+            {
+                CountryCode = Phone.CountryCode,
+                CityCode = Phone.Prefix,
+                TelephoneNumber = Phone.Number
+            });
+
+            if (customer.IsSuccess)
+            {
+                _customerNo = customer.CustomerNo;
+
+                var customerDetail = await _pusulaClient.GetCustomer(new GetCustomerRequest()
+                {
+                    CustomerNo = _customerNo
+                });
+
+                if (customerDetail.IsSuccess)
+                {
+                    _businessLine = customerDetail.BusinessLine;
+                    _branchCode = customerDetail.BranchCode;
+                }
+            }
+            
+        }
+
+        public void GetCustomerInfoByEmail()
+        {
+
+        }
+
+        public void GetCustomerInfoByCustomerNo()
+        {
+
+        }
+
+        public void LogCritical(string LogMessage)
+        {
+            _logger.LogCritical("TxnId:"+_txnId + " " + LogMessage);             
+        }
+
+        public void LogError(string LogMessage)
+        {
+            _logger.LogError("TxnId:" + _txnId + " " + LogMessage);
+        }
+
+        public void LogDebug(string LogMessage)
+        {
+            _logger.LogDebug("TxnId:" + _txnId + " " + LogMessage);
+        }
+
+        public void LogTrace(string LogMessage)
+        {
+            _logger.LogTrace("TxnId:" + _txnId + " " + LogMessage);
+        }
+
+        public void LogInformation(string LogMessage)
+        {
+            _logger.LogInformation("TxnId:" + _txnId + " " + LogMessage);
+        }
+
+        public void LogWarning(string LogMessage)
+        {
+            _logger.LogWarning("TxnId:" + _txnId + " " + LogMessage);
+        }
+    }
+}
