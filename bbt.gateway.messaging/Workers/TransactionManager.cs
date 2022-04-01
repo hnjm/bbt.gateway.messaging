@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace bbt.gateway.messaging.Workers
 {
-    public class TransactionManager
+    public class TransactionManager : ITransactionManager
     {
         private readonly Guid _txnId;
         private ILogger<TransactionManager> _logger;
@@ -56,14 +56,44 @@ namespace bbt.gateway.messaging.Workers
             
         }
 
-        public void GetCustomerInfoByEmail()
+        public async Task GetCustomerInfoByEmail(string Email)
         {
+            var customer = await _pusulaClient.GetCustomerByEmail(new GetByEmailRequest()
+            {
+                Email = Email
+            });
 
+            if (customer.IsSuccess)
+            {
+                _customerNo = customer.CustomerNo;
+
+                var customerDetail = await _pusulaClient.GetCustomer(new GetCustomerRequest()
+                {
+                    CustomerNo = _customerNo
+                });
+
+                if (customerDetail.IsSuccess)
+                {
+                    _businessLine = customerDetail.BusinessLine;
+                    _branchCode = customerDetail.BranchCode;
+                }
+            }
         }
 
-        public void GetCustomerInfoByCustomerNo()
+        public async Task GetCustomerInfoByCustomerNo(ulong CustomerNo)
         {
+            _customerNo = CustomerNo;
 
+            var customerDetail = await _pusulaClient.GetCustomer(new GetCustomerRequest()
+            {
+                CustomerNo = _customerNo
+            });
+
+            if (customerDetail.IsSuccess)
+            {
+                _businessLine = customerDetail.BusinessLine;
+                _branchCode = customerDetail.BranchCode;
+            }
         }
 
         public void LogCritical(string LogMessage)

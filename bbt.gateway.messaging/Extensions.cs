@@ -131,7 +131,6 @@ namespace bbt.gateway.messaging
             return otpTrackingLog;
         }
 
-
         public static T DeserializeXml<T>(this string toDeserialize)
         {
             XmlSerializer xmlSerializer = new XmlSerializer(typeof(T));
@@ -154,28 +153,6 @@ namespace bbt.gateway.messaging
             }
         }
 
-        public static T SoapDeserializeXml<T>(this string toDeserialize)
-        {
-            XmlSerializer xmlSerializer = new XmlSerializer(typeof(T));
-
-            using (StringReader textReader = new StringReader(toDeserialize))
-            {
-                return (T)xmlSerializer.Deserialize(textReader);
-            }
-        }
-
-        public static string SoapSerializeXml<T>(this T toSerialize)
-        {
-            XmlSerializer xmlSerializer = new XmlSerializer(typeof(T));
-            var xmlnsEmpty = new XmlSerializerNamespaces();
-            xmlnsEmpty.Add("env", "http://schemas.xmlsoap.org/soap/encoding/");
-            xmlnsEmpty.Add("m", "http://www.turkcell.com.tr/sms/webservices/register");
-            using (StringWriter textWriter = new StringWriter())
-            {
-                xmlSerializer.Serialize(textWriter, toSerialize,xmlnsEmpty);
-                return textWriter.ToString();
-            }
-        }
 
     };
 

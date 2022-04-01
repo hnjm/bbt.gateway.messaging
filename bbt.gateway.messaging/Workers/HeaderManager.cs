@@ -14,14 +14,18 @@ namespace bbt.gateway.messaging.Workers
     public class HeaderManager
     {
         public List<Header> Headers = new List<Header>();
+        private readonly ITransactionManager _transactionManager;
         private readonly IRepositoryManager _repositoryManager;
         private readonly PusulaClient _pusulaClient;
         private ulong _customerNo;
 
         public long CustomerNo { get { return (long)_customerNo; } }
 
-        public HeaderManager(IRepositoryManager repositoryManager, PusulaClient pusulaClient)
+        public HeaderManager(IRepositoryManager repositoryManager, PusulaClient pusulaClient,
+            ITransactionManager transactionManager
+            )
         {
+            _transactionManager = transactionManager;
             _repositoryManager = repositoryManager;
             _pusulaClient = pusulaClient;
             loadHeaders();
@@ -39,49 +43,26 @@ namespace bbt.gateway.messaging.Workers
         {
             Header header = null;
 
-            string businessLine = null;
-            int? branch = null;
+            string businessLine = string.IsNullOrEmpty(_transactionManager.BusinessLine) ? null : _transactionManager.BusinessLine;
+            int? branch = _transactionManager.BranchCode != 0 ? _transactionManager.BranchCode : null;
 
-            if (config.CustomerNo != null)
+            if (headerInfo.Sender != SenderType.AutoDetect)
             {
-                _customerNo = config.CustomerNo.Value;
-            }
-            else
-            {
-                var customer = await _pusulaClient.GetCustomerByPhoneNumber(new GetByPhoneNumberRequest()
-                {
-                    CountryCode = config.Phone.CountryCode,
-                    CityCode = config.Phone.Prefix,
-                    TelephoneNumber = config.Phone.Number
-                });
+                var defaultHeader = new Header();
+                defaultHeader.SmsSender = headerInfo.Sender;
+                defaultHeader.SmsPrefix = headerInfo.SmsPrefix;
+                defaultHeader.SmsSuffix = headerInfo.SmsSuffix;
 
-                if (customer.IsSuccess)
-                {
-                    _customerNo = customer.CustomerNo;
-                }
-                //LOGGING SERVIS HATALI BITERSE
+                defaultHeader.SmsTemplatePrefix = headerInfo.SmsTemplatePrefix;
+                defaultHeader.SmsTemplateSuffix = headerInfo.SmsTemplateSuffix; 
+
+                defaultHeader.EmailTemplatePrefix = headerInfo.EmailTemplatePrefix;
+                defaultHeader.EmailTemplateSuffix = headerInfo.EmailTemplateSuffix;
+                return defaultHeader;
             }
+
+            header = get(contentType, businessLine, branch);
             
-
-            if (headerInfo.Sender == SenderType.AutoDetect)
-            {
-                var customerDetail = await _pusulaClient.GetCustomer(new GetCustomerRequest()
-                {
-                    CustomerNo = _customerNo
-                }); 
-
-                if (customerDetail.IsSuccess)
-                {
-                    businessLine = customerDetail.BusinessLine;
-                    branch = customerDetail.BranchCode;
-                }
-                //LOGGING SERVIS HATALI BITERSE
-                header = get(contentType, businessLine, branch);                
-            }
-            else
-            {
-                header = get(contentType, businessLine, branch, headerInfo);
-            }
             return header;
         }
 
@@ -110,22 +91,8 @@ namespace bbt.gateway.messaging.Workers
             loadHeaders();
         }
 
-        private Header get(MessageContentType contentType, string businessLine, int? branch, HeaderInfo headerInfo = null)
+        private Header get(MessageContentType contentType, string businessLine, int? branch)
         {
-            if (headerInfo != null)
-            {
-                var defaultHeader = new Header();
-                defaultHeader.SmsSender = headerInfo.Sender;
-                defaultHeader.SmsPrefix = headerInfo.SmsPrefix;
-                defaultHeader.SmsSuffix = headerInfo.SmsSuffix;
-
-                defaultHeader.SmsTemplatePrefix = headerInfo.SmsTemplatePrefix;
-                defaultHeader.SmsTemplateSuffix = headerInfo.SmsTemplateSuffix;
-
-                defaultHeader.EmailTemplatePrefix = headerInfo.EmailTemplatePrefix;
-                defaultHeader.EmailTemplateSuffix = headerInfo.EmailTemplateSuffix;
-                return defaultHeader;
-            }
                 
             var firstPass = _repositoryManager.Headers.Find(h => h.BusinessLine == businessLine && h.Branch == branch && h.ContentType == contentType).FirstOrDefault();
             if (firstPass != null) return firstPass;

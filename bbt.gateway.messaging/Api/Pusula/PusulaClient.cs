@@ -26,7 +26,7 @@ namespace bbt.gateway.messaging.Api.Pusula
 
         public async Task<GetByPhoneNumberResponse> GetCustomerByPhoneNumber(GetByPhoneNumberRequest getByPhoneNumberRequest)
         {
-            GetByPhoneNumberResponse getByPhoneNumberResponse = new GetByPhoneNumberResponse();
+            GetByPhoneNumberResponse getByPhoneNumberResponse = new();
             try
             {
                 var queryParams = new Dictionary<string, string>()
@@ -35,7 +35,7 @@ namespace bbt.gateway.messaging.Api.Pusula
                     {"CityCode",getByPhoneNumberRequest.CityCode.ToString()},
                     {"TelephoneNumber",getByPhoneNumberRequest.TelephoneNumber.ToString()}
                 };
-
+            
                 var httpResponse = await _httpClient.GetAsync(
                     QueryHelpers.AddQueryString(_configuration.GetValue<string>("Api:Pusula:EndPoints:GetByPhoneNumber"),queryParams));
                 
@@ -61,53 +61,59 @@ namespace bbt.gateway.messaging.Api.Pusula
             return getByPhoneNumberResponse;
         }
 
-        //public async Task<GetByPhoneNumberResponse> GetCustomerByEmail(GetByEmailRequest getByEmailRequest)
-        //{
-            //GetByPhoneNumberResponse getByPhoneNumberResponse = new GetByPhoneNumberResponse();
-            //try
-            //{
-            //    var queryParams = new Dictionary<string, string>()
-            //    {
-            //        {"CountryCode", getByPhoneNumberRequest.CountryCode.ToString()},
-            //        {"CityCode",getByPhoneNumberRequest.CityCode.ToString()},
-            //        {"TelephoneNumber",getByPhoneNumberRequest.TelephoneNumber.ToString()}
-            //    };
+        public async Task<GetByEmailResponse> GetCustomerByEmail(GetByEmailRequest getByEmailRequest)
+        {
+            GetByEmailResponse getByEmailResponse = new();
+            try
+            {
+                var queryParams = new Dictionary<string, string>()
+                {
+                    {"eMail", getByEmailRequest.Email}
+                };
 
-            //    var httpResponse = await _httpClient.GetAsync(
-            //        QueryHelpers.AddQueryString(_configuration.GetValue<string>("Api:Pusula:EndPoints:GetByPhoneNumber"), queryParams));
+                var httpResponse = await _httpClient.GetAsync(
+                    QueryHelpers.AddQueryString(_configuration.GetValue<string>("Api:Pusula:EndPoints:GetByEmail"), queryParams));
 
 
-            //    if (httpResponse.IsSuccessStatusCode)
-            //    {
-            //        var response = httpResponse.Content.ReadAsStringAsync().Result.DeserializeXml<DataTable>();
-            //        getByPhoneNumberResponse.IsSuccess = true;
-            //        getByPhoneNumberResponse.CustomerNo = response.diffgram.DocumentElement[0].CustomerNumber;
-            //    }
-            //    else
-            //    {
-            //        _logger.LogError("Pusula Client Hata Oluştu." + httpResponse.Content.ReadAsStringAsync().Result);
-            //        getByPhoneNumberResponse.IsSuccess = false;
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    getByPhoneNumberResponse.IsSuccess = false;
-            //    _logger.LogError("Pusula Client Hata Oluştu." + ex.ToString());
-            //}
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var customerNo = (long)System.Xml.Linq.XElement.Parse(httpResponse.Content.ReadAsStringAsync().Result);
+                    if (customerNo > 0 && customerNo != 55)
+                    {
+                        getByEmailResponse.IsSuccess = true;
+                        getByEmailResponse.CustomerNo = (ulong)customerNo;
+                    }
+                    else 
+                    {
+                        getByEmailResponse.IsSuccess = false;
+                        //logging
+                    }
+                }
+                else
+                {
+                    _logger.LogError("Pusula Client Hata Oluştu." + httpResponse.Content.ReadAsStringAsync().Result);
+                    getByEmailResponse.IsSuccess = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                getByEmailResponse.IsSuccess = false;
+                _logger.LogError("Pusula Client Hata Oluştu." + ex.ToString());
+            }
 
-            //return getByPhoneNumberResponse;
-        //}
+            return getByEmailResponse;
+        }
 
         public async Task<GetCustomerResponse> GetCustomer(GetCustomerRequest getCustomerRequest)
         {
-            GetCustomerResponse getCustomerResponse = new GetCustomerResponse();
+            GetCustomerResponse getCustomerResponse = new();
             try
             {
                 var queryParams = new Dictionary<string, string>()
                 {
                     {"custNo", getCustomerRequest.CustomerNo.ToString()},
                 };
-
+                var t = QueryHelpers.AddQueryString(_configuration.GetValue<string>("Api:Pusula:EndPoints:GetCustomer"), queryParams);
                 var httpResponse = await _httpClient.GetAsync(
                     QueryHelpers.AddQueryString(_configuration.GetValue<string>("Api:Pusula:EndPoints:GetCustomer"), queryParams));
 

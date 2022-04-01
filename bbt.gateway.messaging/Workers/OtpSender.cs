@@ -14,7 +14,7 @@ namespace bbt.gateway.messaging.Workers
         private readonly HeaderManager _headerManager;
         private readonly Func<OperatorType, IOperatorGateway> _operatorRepository;
         private readonly IRepositoryManager _repositoryManager;
-        private readonly TransactionManager _transactionManager;
+        private readonly ITransactionManager _transactionManager;
 
         SendMessageSmsRequest _data;
         SendSmsResponseStatus returnValue;
@@ -31,7 +31,7 @@ namespace bbt.gateway.messaging.Workers
         public OtpSender(HeaderManager headerManager,
             Func<OperatorType, IOperatorGateway> operatorRepository,
             IRepositoryManager repositoryManager,
-            TransactionManager transactionManager)
+            ITransactionManager transactionManager)
         {
             _headerManager = headerManager;
             _operatorRepository = operatorRepository;

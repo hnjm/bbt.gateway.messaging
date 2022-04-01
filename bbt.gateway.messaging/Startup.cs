@@ -24,6 +24,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using bbt.gateway.messaging.Api.Pusula;
 using bbt.gateway.common.Extensions;
+using bbt.gateway.messaging.Middlewares;
 
 namespace bbt.gateway.messaging
 {
@@ -88,7 +89,7 @@ namespace bbt.gateway.messaging
 
             services.AddScoped<IRepositoryManager, RepositoryManager>();
 
-            services.AddScoped<TransactionManager>();
+            services.AddScoped<ITransactionManager,TransactionManager>();
             services.AddScoped<OperatorTurkTelekom>();
             services.AddScoped<OperatorVodafone>();
             services.AddScoped<OperatorTurkcell>();
@@ -110,7 +111,6 @@ namespace bbt.gateway.messaging
                 }
             });
 
-            services.AddScoped<TransactionManager>();
             services.AddScoped<OtpSender>();
             services.AddScoped<HeaderManager>();
             services.AddScoped<OperatorManager>();
@@ -124,8 +124,7 @@ namespace bbt.gateway.messaging
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IApiVersionDescriptionProvider provider)
         {
-            //app.UseConsul(consulSettings);
-
+            app.UseCustomerInfoMiddleware();
             
             app.UseDeveloperExceptionPage();
             app.UseSwagger();

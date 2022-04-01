@@ -13,8 +13,8 @@ namespace bbt.gateway.messaging.Controllers
     public class Messaging : ControllerBase
     {
         private readonly OtpSender _otpSender;
-        private readonly TransactionManager _transactionManager;
-        public Messaging(OtpSender otpSender,TransactionManager transactionManager)
+        private readonly ITransactionManager _transactionManager;
+        public Messaging(OtpSender otpSender,ITransactionManager transactionManager)
         {
             _transactionManager = transactionManager;
             _otpSender = otpSender;
@@ -33,6 +33,10 @@ namespace bbt.gateway.messaging.Controllers
 
         public IActionResult SendTemplatedSms([FromBody] SendTemplatedSmsRequest data)
         {
+            _transactionManager.LogError("BBTGATEWAYMESSAGING Elastic Test Logu");
+            _transactionManager.LogCritical("BBTGATEWAYMESSAGING Elastic Test Logu");
+            _transactionManager.LogInformation("BBTGATEWAYMESSAGING Elastic Test Logu");
+            _transactionManager.LogDebug("BBTGATEWAYMESSAGING Elastic Test Logu");
             return Ok();
         }
 
@@ -50,6 +54,7 @@ namespace bbt.gateway.messaging.Controllers
         {
             if (ModelState.IsValid)
             {
+                await _transactionManager.GetCustomerInfoByPhone(data.Phone);
                 if(data.ContentType == MessageContentType.Otp)
                 {
                     var res = await _otpSender.SendMessage(data);
