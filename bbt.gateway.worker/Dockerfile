@@ -7,8 +7,8 @@ RUN adduser -u 5679 --disabled-password --gecos "" smsgateway-consoleuser && cho
 USER smsgateway-consoleuser
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0-focal AS build
-WORKDIR /src/bbt.gateway.worker
-COPY ["bbt.gateway.worker.csproj", "./"]
+WORKDIR /src/
+COPY . .
 RUN dotnet restore "bbt.gateway.worker/bbt.gateway.worker.csproj"
 COPY . .
 WORKDIR "/src/."
