@@ -11,7 +11,7 @@ WORKDIR /src
 COPY ["bbt.gateway.worker.csproj", "./"]
 RUN dotnet restore "bbt.gateway.worker.csproj"
 COPY . .
-WORKDIR "/src/bbt.gateway.worker"
+WORKDIR "/src/."
 RUN dotnet build "bbt.gateway.worker.csproj" -c Release -o /app/build
 
 FROM build AS publish
