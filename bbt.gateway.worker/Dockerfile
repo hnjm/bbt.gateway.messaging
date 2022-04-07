@@ -10,7 +10,7 @@ FROM mcr.microsoft.com/dotnet/sdk:6.0-focal AS build
 WORKDIR /src
 COPY ["bbt.gateway.worker.csproj", "./"]
 RUN dotnet restore "bbt.gateway.worker.csproj"
-COPY . .
+COPY ["bbt.gateway.worker.csproj", "./"]
 WORKDIR "/src/."
 RUN dotnet build "bbt.gateway.worker.csproj" -c Release -o /app/build
 
