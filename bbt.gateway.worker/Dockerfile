@@ -12,7 +12,7 @@ USER smsgateway-consoleuser
 FROM mcr.microsoft.com/dotnet/sdk:6.0-focal AS build
 WORKDIR /src
 COPY ["bbt.gateway.worker.csproj", "bbt.gateway.worker/"]
-RUN dotnet restore "bbt.gateway.worker.csproj"
+RUN dotnet restore "bbt.gateway.worker/bbt.gateway.worker.csproj"
 COPY . .
 WORKDIR "/src/bbt.gateway.worker"
 RUN dotnet build "bbt.gateway.worker.csproj" -c Release -o /app/build
