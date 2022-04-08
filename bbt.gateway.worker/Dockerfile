@@ -12,7 +12,7 @@ COPY ["bbt.gateway.worker.csproj", "./"]
 RUN dotnet restore "bbt.gateway.worker.csproj"
 COPY . .
 WORKDIR /bbt.gateway.worker
-RUN dotnet build "bbt.gateway.worker.csproj" -c Release -o /bbt.gateway.worker --no restore
+RUN dotnet build "bbt.gateway.worker.csproj" -c Release -o /bbt.gateway.worker
 
 FROM build AS publish
 RUN dotnet publish "bbt.gateway.worker.csproj" -c Release -o /app/publish /p:UseAppHost=false
