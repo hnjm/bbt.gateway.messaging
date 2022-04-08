@@ -22,7 +22,7 @@ namespace bbt.gateway.common
             return host.ConfigureAppConfiguration((context, builder) =>
             {
                 string applicationName = context.HostingEnvironment.ApplicationName;
-                string environmentName = context.HostingEnvironment.EnvironmentName;
+                string environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
                 builder.AddJsonFile($"appsettings.{environmentName}.json", false, true)
                 .AddUserSecrets(type.Assembly).AddEnvironmentVariables();
@@ -65,7 +65,7 @@ namespace bbt.gateway.common
         {
             return host.ConfigureAppConfiguration((context, builder) =>
             {
-                string environmentName = context.HostingEnvironment.EnvironmentName;
+                string environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
                 var configuration = builder.Build();
                 Serilog.Debugging.SelfLog.Enable(msg => Console.WriteLine(msg));
                 ApiKeyAuthenticationCredentials k = new ApiKeyAuthenticationCredentials(configuration["ElasticSearch:ApiKey"]);

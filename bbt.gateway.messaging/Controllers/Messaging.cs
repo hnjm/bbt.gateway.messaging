@@ -110,7 +110,7 @@ namespace bbt.gateway.messaging.Controllers
         [SwaggerResponse(460, "Given template is not found on dEngage", typeof(void))]
         public async Task<IActionResult> SendTemplatedEmail([FromBody] SendTemplatedEmailRequest data)
         {
-            await _operatordEngage.SendMail(data.Email, null, null, data.Template, null);
+            await _operatordEngage.SendMail(data.Email, null, null, data.Template, data.TeamplateParams);
             return Ok();
         }
 
