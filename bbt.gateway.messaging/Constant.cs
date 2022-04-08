@@ -5,6 +5,12 @@ namespace bbt.gateway.messaging
 {
     public class Constant
     {
+        public static readonly Dictionary<SmsTypes, string> smsTypes = new()
+        {
+            { SmsTypes.Bulk, "codec" },
+            { SmsTypes.Fast, "codec-fast" }
+        };
+
         public static readonly Dictionary<OperatorType, string> OperatorBurganSenderNames =
         new()
         {

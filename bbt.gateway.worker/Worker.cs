@@ -54,7 +54,7 @@ namespace bbt.gateway.worker
                 });
                 _repositoryManager.SaveChanges();
                 _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-                await Task.Delay(1000, stoppingToken);
+                await Task.Delay(3600, stoppingToken);
             }
         }
     }

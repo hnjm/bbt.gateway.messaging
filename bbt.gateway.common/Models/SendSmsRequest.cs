@@ -23,8 +23,7 @@ namespace bbt.gateway.common.Models
         public HeaderInfo HeaderInfo;
         [JsonProperty(Order = -50)]
         public Process Process { get; set; }
-        [JsonProperty(Order = -85)]
-        public MessageContentType ContentType { get; set; }
+        
 
     }
 }

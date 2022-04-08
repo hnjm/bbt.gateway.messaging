@@ -4,7 +4,7 @@ using System.Xml.Serialization;
 namespace bbt.gateway.messaging.Api.TurkTelekom.Model
 {
     [XmlRoot(ElementName = "VIPSMS_REPORT")]
-    public class TurkTelekomSmsStatusResponse : OperatorApiTrackingResponse
+    public class TurkTelekomSmsStatusResponse
     {
 
 

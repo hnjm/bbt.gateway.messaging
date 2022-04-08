@@ -12,5 +12,7 @@ namespace bbt.gateway.common.Models
         [JsonProperty(Order = -80)]
         [Required(AllowEmptyStrings = false,ErrorMessage = "Bu alan boş bırakılamaz.")]
         public string Content { get; set; }
+        [JsonProperty(Order = -85)]
+        public MessageContentType ContentType { get; set; }
     }
 }

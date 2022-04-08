@@ -13,28 +13,27 @@ using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
 using bbt.gateway.common.Models.Settings;
-using bbt.gateway.common.Models.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using bbt.gateway.messaging.Api.Pusula;
-using bbt.gateway.common.Extensions;
 using bbt.gateway.messaging.Middlewares;
+using Serilog;
+using bbt.gateway.messaging.Api.dEngage;
+using Refit;
+using System.Text.Json;
 
 namespace bbt.gateway.messaging
 {
     public class Startup
     {
-        ConsulSettings consulSettings;
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-            consulSettings = Configuration.GetSection(nameof(ConsulSettings)).Get<ConsulSettings>();
         }
 
         public IConfiguration Configuration { get; }
@@ -42,24 +41,17 @@ namespace bbt.gateway.messaging
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            
             services.AddHealthChecks(); 
-            //services.AddConsulConfig(consulSettings);
 
             services.AddControllers()
-                    //.AddJsonOptions(opts =>
-                    //{
-                    //    var enumConverter = new JsonStringEnumConverter();
-                    //    opts.JsonSerializerOptions.Converters.Add(enumConverter);
-                    //    opts.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-                    //    opts.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-                    //});
                     .AddNewtonsoftJson(opts => {
                         opts.SerializerSettings.Converters.Add(new StringEnumConverter());
                         opts.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
                     });
 
-
+            JsonSerializerSettings settings = new();
+            settings.Converters.Add(new StringEnumConverter());
+            JsonConvert.DefaultSettings = () => settings;
 
             services.AddApiVersioning(v =>
             {
@@ -89,11 +81,23 @@ namespace bbt.gateway.messaging
 
             services.AddScoped<IRepositoryManager, RepositoryManager>();
 
+        
+            services.AddRefitClient<IdEngageClient>(new RefitSettings
+            {
+                ContentSerializer = new NewtonsoftJsonContentSerializer(
+                        new JsonSerializerSettings() { 
+                            NullValueHandling = NullValueHandling.Ignore,
+                        }
+                )
+            })
+               .ConfigureHttpClient(c => c.BaseAddress = new Uri(Configuration["Api:dEngage:BaseAddress"]));
+
             services.AddScoped<ITransactionManager,TransactionManager>();
             services.AddScoped<OperatorTurkTelekom>();
             services.AddScoped<OperatorVodafone>();
             services.AddScoped<OperatorTurkcell>();
             services.AddScoped<OperatorIVN>();
+            services.AddScoped<OperatordEngage>();
             services.AddScoped<Func<OperatorType, IOperatorGateway>>(serviceProvider => key =>
             {
                 switch (key)
@@ -160,7 +164,7 @@ namespace bbt.gateway.messaging
                 endpoints.MapControllers();
             });
 
-            //app.UseAllElasticApm(Configuration);
+            app.UseAllElasticApm(Configuration);
 
         }
     }

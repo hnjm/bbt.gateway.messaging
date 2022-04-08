@@ -65,6 +65,7 @@ namespace bbt.gateway.common
         {
             _databaseContext.Dispose();
             _dodgeDatabaseContext.Dispose();
+            _smsBankingDatabaseContext.Dispose();
         }
     }
 }

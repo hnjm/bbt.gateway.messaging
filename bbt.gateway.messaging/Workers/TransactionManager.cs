@@ -3,6 +3,8 @@ using bbt.gateway.messaging.Api.Pusula;
 using bbt.gateway.messaging.Api.Pusula.Model.GetByPhone;
 using bbt.gateway.messaging.Api.Pusula.Model.GetCustomer;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using System;
 using System.Threading.Tasks;
 
@@ -18,15 +20,25 @@ namespace bbt.gateway.messaging.Workers
         private string _businessLine;
         private int _branchCode;
 
-        public ulong CustomerNo{ get { return _customerNo; } }
+        public TransactionType TransactionType { get; set; }
+        public ulong CustomerNo { get { return _customerNo; } }
         public string BusinessLine { get { return _businessLine; } }
         public int BranchCode { get { return _branchCode; } }
-        
+        public OperatorType Operator { get; set; }
+        public Phone Phone { get; set; }
+
+        public Guid TxnId {get {return _txnId;}}
+
         public TransactionManager(ILogger<TransactionManager> logger, PusulaClient pusulaClient)
         {
             _txnId = Guid.NewGuid();
             _logger = logger;
             _pusulaClient = pusulaClient;
+        }
+
+        public void LogState()
+        {
+            LogInformation(JsonConvert.SerializeObject(this));
         }
 
         public async Task GetCustomerInfoByPhone(Phone Phone)
@@ -126,4 +138,16 @@ namespace bbt.gateway.messaging.Workers
             _logger.LogWarning("TxnId:" + _txnId + " " + LogMessage);
         }
     }
+
+    public enum TransactionType
+    {
+        Otp,
+        TransactionalSms,
+        TransactionalMail,
+        TransactionalPush,
+        BulkSms,
+        BulkPush,
+        BulkMail
+    }
+
 }

@@ -15,5 +15,10 @@ namespace bbt.gateway.common.Models
         {
             return $"+{CountryCode}{Prefix}{Number}";
         }
+
+        public string Concatenate()
+        {
+            return $"{CountryCode}{Prefix}{Number}";
+        }
     }
 }

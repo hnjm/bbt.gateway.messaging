@@ -5,19 +5,19 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System;
+using bbt.gateway.messaging.Workers;
+using Newtonsoft.Json;
 
 namespace bbt.gateway.messaging.Api.Turkcell
 {
     public class TurkcellApi:BaseApi
     {
-        private readonly ILogger<TurkcellApi> _logger;
         private readonly HttpClient _httpClient;
-        public TurkcellApi(ILogger<TurkcellApi> logger) {
+        public TurkcellApi(ITransactionManager transactionManager):base(transactionManager) {
             Type = OperatorType.Turkcell;
             var httpClientHandler = new HttpClientHandler();
             httpClientHandler.UseProxy = false;
             _httpClient = new(httpClientHandler);
-            _logger = logger;
         }
 
         public async Task<OperatorApiResponse> SendSms(TurkcellSmsRequest turkcellSmsRequest) {
@@ -43,6 +43,7 @@ namespace bbt.gateway.messaging.Api.Turkcell
                         turkcellSmsResponse.MessageId = "";
                         turkcellSmsResponse.RequestBody = requests.Item2;
                         turkcellSmsResponse.ResponseBody = response;
+                        TransactionManager.LogCritical("Turkcell Otp Failed | " + JsonConvert.SerializeObject(turkcellSmsResponse));
                     }
                     else
                     {
@@ -55,6 +56,7 @@ namespace bbt.gateway.messaging.Api.Turkcell
                         turkcellSmsResponse.MessageId = parsedResponse.MSGID_LIST.MSGID > 0 ? parsedResponse.MSGID_LIST.MSGID.ToString() : "";
                         turkcellSmsResponse.RequestBody = requests.Item2;
                         turkcellSmsResponse.ResponseBody = response;
+
                     }
 
                 }
@@ -66,6 +68,7 @@ namespace bbt.gateway.messaging.Api.Turkcell
                     turkcellSmsResponse.MessageId = "";
                     turkcellSmsResponse.RequestBody = requests.Item2;
                     turkcellSmsResponse.ResponseBody = response;
+                    TransactionManager.LogCritical("Turkcell Otp Failed | " + JsonConvert.SerializeObject(turkcellSmsResponse));
                 }
             }
             catch (Exception ex)
@@ -75,6 +78,7 @@ namespace bbt.gateway.messaging.Api.Turkcell
                 turkcellSmsResponse.MessageId = "";
                 turkcellSmsResponse.RequestBody = requests.Item2;
                 turkcellSmsResponse.ResponseBody = response;
+                TransactionManager.LogCritical("Turkcell Otp Failed | "+JsonConvert.SerializeObject(turkcellSmsResponse));
             }
 
             return turkcellSmsResponse;
@@ -114,7 +118,6 @@ namespace bbt.gateway.messaging.Api.Turkcell
             }
             catch (System.Exception ex)
             {
-                _logger.LogError("Turkcell Api Auth Failed | Exception : " + ex.ToString());
                 turkcellAuthResponse.ResponseCode = "-99999";
                 turkcellAuthResponse.ResponseMessage = ex.ToString();
                 turkcellAuthResponse.AuthToken = "";
@@ -164,7 +167,6 @@ namespace bbt.gateway.messaging.Api.Turkcell
             }
             catch (Exception ex)
             {
-                _logger.LogError("Turkcell Check Sms Status Failed | Exception : " + ex.ToString());
                 turkcellSmsStatusResponse.ResponseCode = "-99999";
                 turkcellSmsStatusResponse.ResponseMessage = ex.ToString();
                 turkcellSmsStatusResponse.ResponseBody = response;

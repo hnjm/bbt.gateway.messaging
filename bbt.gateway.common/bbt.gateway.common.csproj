@@ -4,6 +4,11 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>8aa373cf-3fa7-4b56-b3aa-60e7f6690b77</UserSecretsId>
+    <PackageId>BbtCoreExtensions</PackageId>
+    <Authors>Sercan YÜKSEL</Authors>
+    <Company>Burgan Bank</Company>
+    <Product>CoreExtensions</Product>
+    <Description>Extensions for webapi and console projects</Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,6 +31,10 @@
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="5.0.13" />
 	<PackageReference Include="Winton.Extensions.Configuration.Consul" Version="3.1.2" />
+	<PackageReference Include="Serilog.AspNetCore" Version="5.0.0" />
+	<PackageReference Include="Serilog.Enrichers.Environment" Version="2.2.0" />
+	<PackageReference Include="Serilog.Sinks.Debug" Version="2.0.0" />
+	<PackageReference Include="Serilog.Sinks.Elasticsearch" Version="8.4.1" />
 
   </ItemGroup>
 

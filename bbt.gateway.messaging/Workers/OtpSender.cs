@@ -51,14 +51,16 @@ namespace bbt.gateway.messaging.Workers
             _data.Content = _data.Content.ConvertToTurkish();
             if(_data.Content.Length > 160)
             {
+                _transactionManager.LogError("Otp Maximum Characters Count Exceed");
                 returnValue = SendSmsResponseStatus.MaximumCharactersCountExceed;
                 return returnValue;
             }
-            _transactionManager.LogInformation("Otp Request Content Length is Valid");
+
             _requestLog = new OtpRequestLog
             {
                 CreatedBy = _data.Process,
-                Phone = _data.Phone
+                Phone = _data.Phone,
+                TxnId = _transactionManager.TxnId
             };
 
             // Load Phone configuration and related active blacklist entiries.
@@ -91,6 +93,7 @@ namespace bbt.gateway.messaging.Workers
                 {
                     if (!oldBlacklistRecord.IsVerified)
                     {
+
                         //Increase Try Count
                         oldBlacklistRecord.TryCount++;
                         _repositoryManager.SaveSmsBankingChanges();
@@ -110,15 +113,21 @@ namespace bbt.gateway.messaging.Workers
             !phoneConfiguration.BlacklistEntries.Any(b => b.Status == BlacklistStatus.NotResolved)
             )
             {
+                _transactionManager.Phone = phoneConfiguration.Phone;
+                _transactionManager.LogState();
+
                 var responseLog = await SendMessageToKnown(phoneConfiguration,true);
                 _requestLog.ResponseLogs.Add(responseLog);
 
                 if (responseLog.ResponseCode == SendSmsResponseStatus.OperatorChange
                     || responseLog.ResponseCode == SendSmsResponseStatus.SimChange)
                 {
+                    _transactionManager.LogError("OperatorChange or SimChange Has Occured");
+
                     //Add to Blacklist If Not Exists
                     if (!phoneConfiguration.BlacklistEntries.Any(b => b.Status == BlacklistStatus.NotResolved && b.ValidTo > DateTime.Today))
                     {
+                        _transactionManager.LogError("Phone has a blacklist record");
                         var oldBlackListEntry = createOldBlackListEntry(_headerManager.CustomerNo, phoneConfiguration.Phone.ToString());
                         _repositoryManager.DirectBlacklists.Add(oldBlackListEntry);
                         _repositoryManager.SaveSmsBankingChanges();
@@ -132,6 +141,8 @@ namespace bbt.gateway.messaging.Workers
                 //Operator Change | Sim Change | Not Subscriber handle edilmeli
                 if (responseLog.ResponseCode == SendSmsResponseStatus.NotSubscriber)
                 {
+                    _transactionManager.LogError("Known Number Changed Operator");
+
                     //Known Number Returns Not Subscriber For Related Operator
                     //Try to Send Sms With Another Operators
                     //Should pass true for discarding current operator
@@ -144,6 +155,7 @@ namespace bbt.gateway.messaging.Workers
                 if (phoneConfiguration != null &&
                     phoneConfiguration.BlacklistEntries.Any(b => b.Status == BlacklistStatus.NotResolved && b.ValidTo > DateTime.Today))
                 {
+                    _transactionManager.LogError("Phone has a blacklist record");
                     returnValue = SendSmsResponseStatus.HasBlacklistRecord;
                     _requestLog.ResponseLogs.Add(new OtpResponseLog { 
                         Operator = (OperatorType)phoneConfiguration.Operator,
@@ -185,6 +197,7 @@ namespace bbt.gateway.messaging.Workers
             //Blackliste eklenmesi gerekiyorsa ekle.
             if (returnValue == SendSmsResponseStatus.OperatorChange || returnValue == SendSmsResponseStatus.SimChange)
             {
+                _transactionManager.LogError("OperatorChange or SimChange Has Occured");
                 if (phoneConfiguration.BlacklistEntries.All(b => b.Status == BlacklistStatus.Resolved))
                 {
                     var oldBlackListEntry = createOldBlackListEntry(_headerManager.CustomerNo, phoneConfiguration.Phone.ToString());
@@ -201,8 +214,13 @@ namespace bbt.gateway.messaging.Workers
             var successAttempt = responseLogs.FirstOrDefault(l => (l.ResponseCode == SendSmsResponseStatus.Success 
             || l.ResponseCode == SendSmsResponseStatus.OperatorChange
             || l.ResponseCode == SendSmsResponseStatus.SimChange ));
+
             if (successAttempt != null)
+            {
+                _transactionManager.Operator = successAttempt.Operator;
+                _transactionManager.LogState();
                 phoneConfiguration.Operator = successAttempt.Operator;
+            }
 
             // Add all response logs to request log
             responseLogs.ForEach(l => _requestLog.ResponseLogs.Add(l));

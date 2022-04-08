@@ -1,14 +1,15 @@
 ﻿using bbt.gateway.common.Models;
-using System.Linq;
+using bbt.gateway.messaging.Workers;
 
 namespace bbt.gateway.messaging.Api
 {
     public class BaseApi
     {
         private OperatorType _type;
-        public BaseApi()
-        { 
-        
+        protected readonly ITransactionManager TransactionManager;
+        public BaseApi(ITransactionManager transactionManager)
+        {
+            TransactionManager = transactionManager;
         }
 
         protected OperatorType Type

@@ -1,8 +1,10 @@
 ﻿using bbt.gateway.common.Models;
 using bbt.gateway.messaging.Workers;
+using bbt.gateway.messaging.Workers.OperatorGateway;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Swashbuckle.AspNetCore.Annotations;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace bbt.gateway.messaging.Controllers
@@ -14,10 +16,12 @@ namespace bbt.gateway.messaging.Controllers
     {
         private readonly OtpSender _otpSender;
         private readonly ITransactionManager _transactionManager;
-        public Messaging(OtpSender otpSender,ITransactionManager transactionManager)
+        private readonly OperatordEngage _operatordEngage;
+        public Messaging(OtpSender otpSender,ITransactionManager transactionManager, OperatordEngage operatordEngage)
         {
             _transactionManager = transactionManager;
             _otpSender = otpSender;
+            _operatordEngage = operatordEngage;
         }
 
         
@@ -33,10 +37,6 @@ namespace bbt.gateway.messaging.Controllers
 
         public IActionResult SendTemplatedSms([FromBody] SendTemplatedSmsRequest data)
         {
-            _transactionManager.LogError("BBTGATEWAYMESSAGING Elastic Test Logu");
-            _transactionManager.LogCritical("BBTGATEWAYMESSAGING Elastic Test Logu");
-            _transactionManager.LogInformation("BBTGATEWAYMESSAGING Elastic Test Logu");
-            _transactionManager.LogDebug("BBTGATEWAYMESSAGING Elastic Test Logu");
             return Ok();
         }
 
@@ -57,13 +57,22 @@ namespace bbt.gateway.messaging.Controllers
                 await _transactionManager.GetCustomerInfoByPhone(data.Phone);
                 if(data.ContentType == MessageContentType.Otp)
                 {
+                    _transactionManager.Phone = data.Phone;
+                    _transactionManager.TransactionType = TransactionType.Otp;
+                    _transactionManager.LogState();
                     var res = await _otpSender.SendMessage(data);
                     return Ok(res);
+                }
+                if (data.ContentType == MessageContentType.Private)
+                {
+                    await _operatordEngage.SendSms(data.Phone, SmsTypes.Fast, data.Content, null, null);
                 }
                 return Ok();
             }
             else 
             {
+                _transactionManager.LogError("Model State is Not Valid | " + 
+                    string.Join("|",ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)));
                 return BadRequest(ModelState);
             }
             
@@ -99,8 +108,9 @@ namespace bbt.gateway.messaging.Controllers
         [HttpPost("messaging/email/templated")]
         [SwaggerResponse(200, "Email was sent successfully", typeof(SendEmailResponse))]
         [SwaggerResponse(460, "Given template is not found on dEngage", typeof(void))]
-        public IActionResult SendTemplatedEmail([FromBody] SendTemplatedEmailRequest data)
+        public async Task<IActionResult> SendTemplatedEmail([FromBody] SendTemplatedEmailRequest data)
         {
+            await _operatordEngage.SendMail(data.Email, null, null, data.Template, null);
             return Ok();
         }
 
@@ -111,8 +121,9 @@ namespace bbt.gateway.messaging.Controllers
            )]
         [HttpPost("messaging/email/message")]
         [SwaggerResponse(200, "Email was sent successfully", typeof(SendEmailResponse))]
-        public IActionResult SendMessageEmail([FromBody] SendMessageEmailRequest data)
+        public async Task<IActionResult> SendMessageEmail([FromBody] SendMessageEmailRequest data)
         {
+            await _operatordEngage.SendMail(data.Email,data.Subject,data.Content,null,null);
             return Ok();
         }
 

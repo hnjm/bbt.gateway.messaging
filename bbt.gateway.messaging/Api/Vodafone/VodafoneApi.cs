@@ -4,17 +4,17 @@ using Microsoft.Extensions.Logging;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using bbt.gateway.messaging.Workers;
+using Newtonsoft.Json;
 
 namespace bbt.gateway.messaging.Api.Vodafone
 {
     public class VodafoneApi:BaseApi
     {
-        private readonly ILogger<VodafoneApi> _logger;
         private readonly HttpClient _httpClient;
 
-        public VodafoneApi(ILogger<VodafoneApi> logger) 
+        public VodafoneApi(ITransactionManager transactionManager):base(transactionManager) 
         {
-            _logger = logger;
             var httpClientHandler = new HttpClientHandler();
             httpClientHandler.UseProxy = false;
             _httpClient = new(httpClientHandler);
@@ -49,17 +49,18 @@ namespace bbt.gateway.messaging.Api.Vodafone
                     vodafoneSmsResponse.MessageId = "";
                     vodafoneSmsResponse.ResponseBody = response;
                     vodafoneSmsResponse.RequestBody = requests.Item2;
-                    
+                    TransactionManager.LogCritical("Vodafone Otp Failed | " + JsonConvert.SerializeObject(vodafoneSmsResponse));
+
                 }
             }
             catch (System.Exception ex)
             {
-                _logger.LogError("Vodafone Send Sms Failed | Exception : " + ex.ToString());
                 vodafoneSmsResponse.ResponseCode = "-99999";
                 vodafoneSmsResponse.ResponseBody = ex.ToString();
                 vodafoneSmsResponse.MessageId = "";
                 vodafoneSmsResponse.ResponseBody = response;
                 vodafoneSmsResponse.RequestBody = requests.Item2;
+                TransactionManager.LogCritical("Vodafone Otp Failed | " + JsonConvert.SerializeObject(vodafoneSmsResponse));
             }
 
             return vodafoneSmsResponse;
@@ -103,7 +104,6 @@ namespace bbt.gateway.messaging.Api.Vodafone
             }
             catch (System.Exception ex)
             {
-                _logger.LogError("Vodafone Sms Status Failed | Exception : " + ex.ToString());
                 vodafoneSmsStatusResponse.ResponseCode = "-99999";
                 vodafoneSmsStatusResponse.ResponseMessage = ex.ToString();
                 vodafoneSmsStatusResponse.ResponseBody = response;
@@ -140,7 +140,6 @@ namespace bbt.gateway.messaging.Api.Vodafone
             catch (System.Exception ex)
             {
 
-                _logger.LogError("Vodafone Auth Failed | Exception : " + ex.ToString());
                 vodafoneAuthResponse.ResponseCode = "-99999";
                 vodafoneAuthResponse.ResponseMessage = ex.ToString();
                 vodafoneAuthResponse.AuthToken = "";

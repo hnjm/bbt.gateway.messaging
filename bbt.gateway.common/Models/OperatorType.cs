@@ -12,5 +12,7 @@ namespace bbt.gateway.common.Models
         TurkTelekom = 3,
         MarketingChannel = 4,
         IVN = 5,
+        dEngageBurgan = 6,
+        dEngageOn = 7,
     }
 }

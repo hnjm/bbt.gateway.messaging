@@ -8,7 +8,7 @@ using bbt.gateway.common.Models;
 namespace bbt.gateway.messaging.Api.TurkTelekom.Model
 {
     [XmlRoot(ElementName = "VIPSMS")]
-    public class TurkTelekomSmsResponse : OperatorApiResponse
+    public class TurkTelekomSmsResponse
     {
       
 

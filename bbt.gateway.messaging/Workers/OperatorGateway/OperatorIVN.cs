@@ -9,7 +9,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 {
     public class OperatorIVN : OperatorGatewayBase, IOperatorGateway
     {
-        public OperatorIVN(IConfiguration configuration) : base(configuration)
+        public OperatorIVN(IConfiguration configuration,ITransactionManager transactionManager) : base(configuration,transactionManager)
         {
             Type = OperatorType.IVN;
         }

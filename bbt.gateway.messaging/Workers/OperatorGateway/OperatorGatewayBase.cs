@@ -13,8 +13,10 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
         private OperatorType type;
         protected readonly IConfiguration Configuration;
         private DbContextOptions<DatabaseContext> _dbOptions;
-        protected OperatorGatewayBase(IConfiguration configuration) 
+        protected readonly ITransactionManager TransactionManager;
+        protected OperatorGatewayBase(IConfiguration configuration,ITransactionManager transactionManager) 
         {
+            TransactionManager = transactionManager;
             Configuration = configuration;
             _dbOptions = new DbContextOptionsBuilder<DatabaseContext>()
                 .UseSqlServer(configuration.GetConnectionString("DefaultConnection"))

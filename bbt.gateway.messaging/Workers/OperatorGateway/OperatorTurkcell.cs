@@ -16,7 +16,8 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
     {
         private readonly TurkcellApi _turkcellApi;
         private string _authToken;
-        public OperatorTurkcell(TurkcellApi turkcellApi,IConfiguration configuration) : base(configuration)
+        public OperatorTurkcell(TurkcellApi turkcellApi,IConfiguration configuration,
+            ITransactionManager transactionManager) : base(configuration,transactionManager)
         {
             _turkcellApi = turkcellApi;
             Type = OperatorType.Turkcell;
@@ -28,10 +29,10 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             OperatorApiAuthResponse response = new();
             if (string.IsNullOrEmpty(OperatorConfig.AuthToken) || OperatorConfig.TokenExpiredAt <= System.DateTime.Now.AddMinutes(-1))
             {
-                var tokenCreatedAt = System.DateTime.Now;
-                var tokenExpiredAt = System.DateTime.Now.AddMinutes(20);
+                var tokenCreatedAt = DateTime.Now;
+                var tokenExpiredAt = DateTime.Now.AddMinutes(20);
                 response = await _turkcellApi.Auth(CreateAuthRequest());
-                if(response.ResponseCode == "0")
+                if (response.ResponseCode == "0")
                 {
                     OperatorConfig.AuthToken = response.AuthToken;
                     OperatorConfig.TokenCreatedAt = tokenCreatedAt;
@@ -40,7 +41,10 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
                     SaveOperator();
                 }
-                //LOGGING AUTH BAŞARISIZ
+                else
+                {
+                    TransactionManager.LogCritical($"Turkcell Auth Failed | Response Code : {response.ResponseCode} : Response Message : {response.ResponseMessage}");
+                }
             }
             else
             {
@@ -64,7 +68,10 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 _authToken = OperatorConfig.AuthToken;
                 SaveOperator();
             }
-            //LOGGING AUTH BAŞARISIZ
+            else
+            {
+                TransactionManager.LogCritical($"Turkcell Auth Failed | Response Code : {authResponse.ResponseCode} : Response Message : {authResponse.ResponseMessage}");
+            }
             return authResponse.ResponseCode == "0";
         }
 
@@ -86,7 +93,6 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                     if(await RefreshToken())
                         turkcellResponse = await _turkcellApi.SendSms(CreateSmsRequest(phone, content, header, false));
                 }
-                System.Diagnostics.Debug.WriteLine("Turkcell otp is send");
 
                 var response = turkcellResponse.BuildOperatorApiResponse();
                 responses.Add(response);
@@ -121,7 +127,6 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                     if (await RefreshToken())
                         turkcellResponse = await _turkcellApi.SendSms(CreateSmsRequest(phone, content, header, useControlDays));
                 }
-                System.Diagnostics.Debug.WriteLine("Turkcell otp is send");
 
                 var response = turkcellResponse.BuildOperatorApiResponse();
 
