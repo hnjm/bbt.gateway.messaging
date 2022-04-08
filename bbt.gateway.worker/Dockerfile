@@ -1,8 +1,5 @@
 FROM mcr.microsoft.com/dotnet/aspnet:6.0-focal AS base
 WORKDIR /app
-
-
-
 RUN adduser -u 5679 --disabled-password --gecos "" smsgateway-consoleuser && chown -R smsgateway-consoleuser:smsgateway-consoleuser /app
 USER smsgateway-consoleuser
 
@@ -11,13 +8,11 @@ WORKDIR /src
 COPY ["bbt.gateway.worker.csproj", "./"]
 RUN dotnet restore "bbt.gateway.worker.csproj"
 COPY . .
-WORKDIR /bbt.gateway.worker
+WORKDIR "/src/."
 RUN dotnet build "bbt.gateway.worker.csproj" -c Release -o /bbt.gateway.worker
 
 FROM build AS publish
 RUN dotnet publish "bbt.gateway.worker.csproj" -c Release -o /app/publish /p:UseAppHost=false
-
-
 
 FROM base AS final
 WORKDIR /app
