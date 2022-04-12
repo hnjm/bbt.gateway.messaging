@@ -29,7 +29,8 @@ namespace bbt.gateway.worker
             {
                 var otpResponseLogs = _repositoryManager.OtpResponseLogs.GetOtpResponseLogsWithTrackingLog(
                     o => o.ResponseCode == SendSmsResponseStatus.Success &&
-                    o.TrackingStatus == SmsTrackingStatus.Pending)
+                    o.TrackingStatus == SmsTrackingStatus.Pending
+                    && o.TrackingLogs.Count <= 5)
                     .ToList();
                 otpResponseLogs.ForEach(async (e) =>
                 {

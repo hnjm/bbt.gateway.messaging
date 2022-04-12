@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using bbt.gateway.common;
 
@@ -11,9 +12,10 @@ using bbt.gateway.common;
 namespace bbt.gateway.messaging.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20220412004717_MailLog")]
+    partial class MailLog
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -133,7 +135,7 @@ namespace bbt.gateway.messaging.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("538e9637-4c27-4d9f-a1bf-e5d918dc51b5"),
+                            Id = new Guid("71f678ca-b0a1-4080-8d7e-62b7484cea3e"),
                             ContentType = 0,
                             EmailTemplatePrefix = "generic",
                             SmsPrefix = "Dear Honey,",
@@ -143,7 +145,7 @@ namespace bbt.gateway.messaging.Migrations
                         },
                         new
                         {
-                            Id = new Guid("73f71952-ddbd-4e33-a1c6-e7115bc39e82"),
+                            Id = new Guid("03aa7abb-7275-400b-aa25-aef17a34fb3c"),
                             Branch = 2000,
                             ContentType = 0,
                             EmailTemplatePrefix = "on",
@@ -212,17 +214,8 @@ namespace bbt.gateway.messaging.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("FromMail")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<Guid?>("MailConfigurationId")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("TemplateId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TemplateParams")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("TxnId")
                         .HasColumnType("uniqueidentifier");

@@ -85,9 +85,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 try
                 {
                     var req = CreateMailRequest(to, subject, html, templateId, templateParams);
-                    var s = JsonConvert.SerializeObject(req,new JsonSerializerSettings { 
-                        NullValueHandling = NullValueHandling.Ignore,
-                    });
+                    
                     var sendMailResponse = await _dEngageClient.SendMail(req, _authToken);
 
                     if (sendMailResponse.code == 1251)

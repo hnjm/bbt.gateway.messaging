@@ -13,8 +13,6 @@ namespace bbt.gateway.common.Models
 
         public Process Process { get; set; }
 
-        public MessageContentType ContentType { get; set; }
-
     }
 }
 

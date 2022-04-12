@@ -16,12 +16,12 @@ namespace bbt.gateway.messaging.Controllers
     {
         private readonly OtpSender _otpSender;
         private readonly ITransactionManager _transactionManager;
-        private readonly OperatordEngage _operatordEngage;
-        public Messaging(OtpSender otpSender,ITransactionManager transactionManager, OperatordEngage operatordEngage)
+        private readonly dEngageSender _dEngageSender;
+        public Messaging(OtpSender otpSender,ITransactionManager transactionManager, dEngageSender dEngageSender)
         {
             _transactionManager = transactionManager;
             _otpSender = otpSender;
-            _operatordEngage = operatordEngage;
+            _dEngageSender = dEngageSender;
         }
 
         
@@ -65,7 +65,7 @@ namespace bbt.gateway.messaging.Controllers
                 }
                 if (data.ContentType == MessageContentType.Private)
                 {
-                    await _operatordEngage.SendSms(data.Phone, SmsTypes.Fast, data.Content, null, null);
+                    //await _operatordEngage.SendSms(data.Phone, SmsTypes.Fast, data.Content, null, null);
                 }
                 return Ok();
             }
@@ -110,7 +110,7 @@ namespace bbt.gateway.messaging.Controllers
         [SwaggerResponse(460, "Given template is not found on dEngage", typeof(void))]
         public async Task<IActionResult> SendTemplatedEmail([FromBody] SendTemplatedEmailRequest data)
         {
-            await _operatordEngage.SendMail(data.Email, null, null, data.Template, data.TeamplateParams);
+            //var response = await _dEngageSender.SendTemplatedMail(data);
             return Ok();
         }
 
@@ -123,7 +123,7 @@ namespace bbt.gateway.messaging.Controllers
         [SwaggerResponse(200, "Email was sent successfully", typeof(SendEmailResponse))]
         public async Task<IActionResult> SendMessageEmail([FromBody] SendMessageEmailRequest data)
         {
-            await _operatordEngage.SendMail(data.Email,data.Subject,data.Content,null,null);
+            //await _operatordEngage.SendMail(data.Email,data.Subject,data.Content,null,null);
             return Ok();
         }
 

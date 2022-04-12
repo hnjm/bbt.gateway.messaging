@@ -15,6 +15,9 @@ namespace bbt.gateway.common
         public DbSet<OtpRequestLog> OtpRequestLogs { get; set; }
         public DbSet<OtpResponseLog> OtpResponseLog { get; set; }
         public DbSet<SmsLog> SmsLogs { get; set; }
+        public DbSet<MailConfiguration> MailConfigurations { get; set; }
+        public DbSet<MailRequestLog> MailRequestLog { get; set; }
+        public DbSet<MailResponseLog> MailResponseLog { get; set; }
 
         public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options)
         {
@@ -25,6 +28,8 @@ namespace bbt.gateway.common
         {
             builder.Entity<PhoneConfiguration>().OwnsOne(i => i.Phone);
             builder.Entity<PhoneConfigurationLog>().OwnsOne(i => i.CreatedBy);
+            builder.Entity<MailConfigurationLog>().OwnsOne(i => i.CreatedBy);
+            builder.Entity<MailRequestLog>().OwnsOne(i => i.CreatedBy);
             builder.Entity<OtpRequestLog>().OwnsOne(i => i.CreatedBy);
             builder.Entity<OtpRequestLog>().OwnsOne(i => i.Phone);
             builder.Entity<SmsLog>().OwnsOne(i => i.CreatedBy);
@@ -37,14 +42,6 @@ namespace bbt.gateway.common
                 .HasIndex(c => c.Id)
                 .IsClustered(false);
 
-            //builder.Entity<PhoneConfiguration>() 
-            //    .Property<long>("$id")
-            //    .ValueGeneratedOnAdd();
-
-            //builder.Entity<PhoneConfiguration>()
-            //    .HasIndex("$id")
-            //    .IsUnique()
-            //    .IsClustered(true);
 
             builder.Entity<Operator>().HasData(new Operator { Id = 1, Type = OperatorType.Turkcell, ControlDaysForOtp = 60, Status = OperatorStatus.Active });
             builder.Entity<Operator>().HasData(new Operator { Id = 2, Type = OperatorType.Vodafone, ControlDaysForOtp = 60, Status = OperatorStatus.Active });
