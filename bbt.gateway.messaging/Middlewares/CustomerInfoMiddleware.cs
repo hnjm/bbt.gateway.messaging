@@ -60,7 +60,7 @@ namespace bbt.gateway.messaging.Middlewares
                 _repositoryManager.SaveChanges();
 
                 var path = context.Request.Path.ToString();
-                if (path.Contains("sms"))
+                if (path.Contains("sms") && !path.Contains("check"))
                 {
                     if (_middlewareRequest.ContentType == MessageContentType.Otp)
                     {
@@ -125,7 +125,14 @@ namespace bbt.gateway.messaging.Middlewares
                 await responseBody.CopyToAsync(originalStream);
 
                 _transaction.TransactionType = _transactionManager.TransactionType;
-                _transaction.Response = response.MaskOtpContent().MaskFields();
+                if (_transactionManager.TransactionType == TransactionType.Otp)
+                {
+                    _transaction.Response = response.MaskOtpContent();
+                }
+                else
+                {
+                    _transaction.Response = response.MaskFields();
+                }
                 
 
                 _repositoryManager.SaveChanges();
@@ -141,7 +148,7 @@ namespace bbt.gateway.messaging.Middlewares
         {
             _transactionManager.TransactionType = TransactionType.Otp;
             _transactionManager.OtpRequestInfo.Process = _middlewareRequest.Process;
-            _transactionManager.OtpRequestInfo.Content = _middlewareRequest.Content.MaskOtpContent();
+            _transactionManager.OtpRequestInfo.Content = _middlewareRequest.Content?.MaskOtpContent();
             _transactionManager.OtpRequestInfo.Phone = _middlewareRequest.Phone;
         }
 
@@ -149,7 +156,7 @@ namespace bbt.gateway.messaging.Middlewares
         {
             _transactionManager.TransactionType = TransactionType.TransactionalSms;
             _transactionManager.SmsRequestInfo.Process = _middlewareRequest.Process;
-            _transactionManager.SmsRequestInfo.Content = _middlewareRequest.Content.MaskFields();
+            _transactionManager.SmsRequestInfo.Content = _middlewareRequest.Content?.MaskFields();
             _transactionManager.SmsRequestInfo.Phone = _middlewareRequest.Phone;
         }
 
@@ -158,7 +165,7 @@ namespace bbt.gateway.messaging.Middlewares
             _transactionManager.TransactionType = TransactionType.TransactionalTemplatedSms;
             _transactionManager.SmsRequestInfo.Process = _middlewareRequest.Process;
             _transactionManager.SmsRequestInfo.TemplateId = _middlewareRequest.TemplateId;
-            _transactionManager.SmsRequestInfo.TemplateParams = _middlewareRequest.TemplateParams.MaskFields();
+            _transactionManager.SmsRequestInfo.TemplateParams = _middlewareRequest.TemplateParams?.MaskFields();
             _transactionManager.SmsRequestInfo.Phone = _middlewareRequest.Phone;
         }
 
@@ -166,7 +173,7 @@ namespace bbt.gateway.messaging.Middlewares
         {
             _transactionManager.TransactionType = TransactionType.TransactionalMail;
             _transactionManager.MailRequestInfo.Process = _middlewareRequest.Process;
-            _transactionManager.MailRequestInfo.Content = _middlewareRequest.Content.MaskFields();
+            _transactionManager.MailRequestInfo.Content = _middlewareRequest.Content?.MaskFields();
             _transactionManager.MailRequestInfo.Email = _middlewareRequest.Email;
         }
 
@@ -175,7 +182,7 @@ namespace bbt.gateway.messaging.Middlewares
             _transactionManager.TransactionType = TransactionType.TransactionalTemplatedMail;
             _transactionManager.MailRequestInfo.Process = _middlewareRequest.Process;
             _transactionManager.MailRequestInfo.TemplateId = _middlewareRequest.TemplateId;
-            _transactionManager.MailRequestInfo.TemplateParams = _middlewareRequest.TemplateParams.MaskFields();
+            _transactionManager.MailRequestInfo.TemplateParams = _middlewareRequest.TemplateParams?.MaskFields();
             _transactionManager.MailRequestInfo.Email = _middlewareRequest.Email;
         }
 
