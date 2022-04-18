@@ -189,11 +189,11 @@ namespace bbt.gateway.messaging.Controllers
 
         [SwaggerOperation(Summary = "Returns phones sms sending logs")]
         [HttpGet("sms-log/{countryCode}/{prefix}/{number}")]
-        [SwaggerResponse(200, "Records was returned successfully", typeof(SmsLog[]))]
+        [SwaggerResponse(200, "Records was returned successfully", typeof(SmsResponseLog[]))]
         public IActionResult GetSmsLog(int countryCode, int prefix, int number, [Range(0, 100)] int page = 0, [Range(1, 100)] int pageSize = 20)
         {
 
-            return Ok(_repositoryManager.SmsLogs
+            return Ok(_repositoryManager.SmsRequestLogs
                 .Find(c => c.PhoneConfiguration.Phone.CountryCode == countryCode && c.PhoneConfiguration.Phone.Prefix == prefix && c.PhoneConfiguration.Phone.Number == number)
                 .Skip(page * pageSize)
                 .Take(pageSize)

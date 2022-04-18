@@ -1,9 +1,12 @@
 ﻿using bbt.gateway.common.Models;
+using bbt.gateway.common.Repositories;
 using bbt.gateway.messaging.Workers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.IO;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,60 +16,287 @@ namespace bbt.gateway.messaging.Middlewares
     public class CustomerInfoMiddleware
     {
         private readonly RequestDelegate _next;
+        private MiddlewareRequest _middlewareRequest;
+        private ITransactionManager _transactionManager;
+        private IRepositoryManager _repositoryManager;
+        private Transaction _transaction;
+        private RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
         public CustomerInfoMiddleware(RequestDelegate next)
         {
             _next = next;
+            _recyclableMemoryStreamManager = new();
         }
 
-        public async Task InvokeAsync(HttpContext context,ITransactionManager transactionManager)
+        public async Task InvokeAsync(HttpContext context,ITransactionManager transactionManager,IRepositoryManager repositoryManager)
         {
-            context.Request.EnableBuffering();
-
-            using (var reader = new StreamReader(
-            context.Request.Body,
-            encoding: Encoding.UTF8,
-            detectEncodingFromByteOrderMarks: false,
-            bufferSize: 1024,
-            leaveOpen: true))
+            
+            _transactionManager = transactionManager;
+            _repositoryManager = repositoryManager;
+            
+            try
             {
-                var body = await reader.ReadToEndAsync();
-                var parsedBody = JsonConvert.DeserializeObject<MiddlewareRequest>(body);
-                if (!string.IsNullOrEmpty(parsedBody.CustomerNo))
-                {
-                    try
-                    {
-                        var customerNo = Convert.ToInt64(parsedBody.CustomerNo);
-                        await transactionManager.GetCustomerInfoByCustomerNo((ulong)customerNo);
-                    }
-                    catch (Exception ex)
-                    {
-                        transactionManager.LogError("Given Customer No is Not Valid. | "+ex.ToString());
-                    }
+                context.Request.EnableBuffering();
+
+                await using var requestStream = _recyclableMemoryStreamManager.GetStream();
+
+                await context.Request.Body.CopyToAsync(requestStream);
+                var body = ReadStreamInChunks(requestStream);
+
+                // Reset the request body stream position so the next middleware can read it
+                context.Request.Body.Position = 0;
+
+                _middlewareRequest = JsonConvert.DeserializeObject<MiddlewareRequest>(body);
                     
-                }
-                else
+                _transaction = new Transaction()
                 {
-                    if (parsedBody.Phone != null)
+                    CreatedBy = _middlewareRequest.Process,
+                    Id = _transactionManager.TxnId,
+                    Mail = _middlewareRequest.Email,
+                    Phone = _middlewareRequest.Phone,
+                    Request = body,
+                };
+                _repositoryManager.Transactions.Add(_transaction);
+                _repositoryManager.SaveChanges();
+
+                var path = context.Request.Path.ToString();
+                if (path.Contains("sms"))
+                {
+                    if (_middlewareRequest.ContentType == MessageContentType.Otp)
                     {
-                        await transactionManager.GetCustomerInfoByPhone(parsedBody.Phone);
+                        SetTransactionAsOtp();
                     }
                     else
                     {
-                        if (parsedBody.Email != null && !string.IsNullOrEmpty(parsedBody.Email))
+                        if (path.Contains("templated"))
                         {
-                            await transactionManager.GetCustomerInfoByEmail(parsedBody.Email);
+                            SetTransactionAsTemplatedSms();                  
+                        }
+                        else
+                        {
+                            SetTransactionAsSms();
                         }
                     }
                 }
-                // Reset the request body stream position so the next middleware can read it
-                context.Request.Body.Position = 0;
-            }
 
-            // Call the next delegate/middleware in the pipeline.
-            await _next(context);
+                if (path.Contains("email"))
+                {
+                        
+                    if (path.Contains("templated"))
+                    {
+                        SetTransactionAsTemplatedMail();
+                    }
+                    else
+                    {
+                        SetTransactionAsMail();
+                    }
+                        
+                }
+
+                if (!string.IsNullOrEmpty(_middlewareRequest.CustomerNo))
+                {
+                    await GetCustomerInfo();
+                }
+                    
+                if (_middlewareRequest.Phone != null)
+                {
+                    await GetCustomerInfoByPhone(_transactionManager.CustomerRequestInfo.CustomerNo);
+                }
+                else
+                {
+                    await GetCustomerInfoByEmail(_transactionManager.CustomerRequestInfo.CustomerNo);
+                }
+
+
+
+
+
+                var originalStream = context.Response.Body;
+                await using var responseBody = _recyclableMemoryStreamManager.GetStream();
+                context.Response.Body = responseBody;
+
+                // Call the next delegate/middleware in the pipeline.
+                await _next(context);
+                _transactionManager.LogState();
+                
+                context.Response.Body.Seek(0, SeekOrigin.Begin);
+                var response = await new StreamReader(context.Response.Body).ReadToEndAsync();
+                context.Response.Body.Seek(0, SeekOrigin.Begin);
+                await responseBody.CopyToAsync(originalStream);
+
+                _transaction.TransactionType = _transactionManager.TransactionType;
+                _transaction.Response = response.MaskOtpContent().MaskFields();
+                
+
+                _repositoryManager.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                _transactionManager.LogState();
+                _transactionManager.LogError("An Error Occured | Detail :"+ex.ToString());
+            }
+        }
+
+        private void SetTransactionAsOtp()
+        {
+            _transactionManager.TransactionType = TransactionType.Otp;
+            _transactionManager.OtpRequestInfo.Process = _middlewareRequest.Process;
+            _transactionManager.OtpRequestInfo.Content = _middlewareRequest.Content.MaskOtpContent();
+            _transactionManager.OtpRequestInfo.Phone = _middlewareRequest.Phone;
+        }
+
+        private void SetTransactionAsSms()
+        {
+            _transactionManager.TransactionType = TransactionType.TransactionalSms;
+            _transactionManager.SmsRequestInfo.Process = _middlewareRequest.Process;
+            _transactionManager.SmsRequestInfo.Content = _middlewareRequest.Content.MaskFields();
+            _transactionManager.SmsRequestInfo.Phone = _middlewareRequest.Phone;
+        }
+
+        private void SetTransactionAsTemplatedSms()
+        {
+            _transactionManager.TransactionType = TransactionType.TransactionalTemplatedSms;
+            _transactionManager.SmsRequestInfo.Process = _middlewareRequest.Process;
+            _transactionManager.SmsRequestInfo.TemplateId = _middlewareRequest.TemplateId;
+            _transactionManager.SmsRequestInfo.TemplateParams = _middlewareRequest.TemplateParams.MaskFields();
+            _transactionManager.SmsRequestInfo.Phone = _middlewareRequest.Phone;
+        }
+
+        private void SetTransactionAsMail()
+        {
+            _transactionManager.TransactionType = TransactionType.TransactionalMail;
+            _transactionManager.MailRequestInfo.Process = _middlewareRequest.Process;
+            _transactionManager.MailRequestInfo.Content = _middlewareRequest.Content.MaskFields();
+            _transactionManager.MailRequestInfo.Email = _middlewareRequest.Email;
+        }
+
+        private void SetTransactionAsTemplatedMail()
+        {
+            _transactionManager.TransactionType = TransactionType.TransactionalTemplatedMail;
+            _transactionManager.MailRequestInfo.Process = _middlewareRequest.Process;
+            _transactionManager.MailRequestInfo.TemplateId = _middlewareRequest.TemplateId;
+            _transactionManager.MailRequestInfo.TemplateParams = _middlewareRequest.TemplateParams.MaskFields();
+            _transactionManager.MailRequestInfo.Email = _middlewareRequest.Email;
+        }
+
+        private async Task GetCustomerInfoByPhone(ulong? CustomerNo = null)
+        {
+            var phoneConfiguration = _repositoryManager.PhoneConfigurations.FirstOrDefault(p =>
+                            p.Phone.CountryCode == _middlewareRequest.Phone.CountryCode
+                            && p.Phone.Prefix == _middlewareRequest.Phone.Prefix
+                            && p.Phone.Number == _middlewareRequest.Phone.Number);
+            if (phoneConfiguration == null)
+            {
+                if(CustomerNo == null)
+                    await _transactionManager.GetCustomerInfoByPhone(_middlewareRequest.Phone);
+
+                phoneConfiguration = new PhoneConfiguration()
+                {
+                    CustomerNo = CustomerNo ?? _transactionManager.CustomerRequestInfo.CustomerNo,
+                    Phone = _middlewareRequest.Phone,
+
+                };
+
+                phoneConfiguration.Logs = new List<PhoneConfigurationLog>() {
+                                    new PhoneConfigurationLog()
+                                    {
+                                        Action = "Initialize",
+                                        Type = "Add",
+                                        Phone = phoneConfiguration,
+                                        CreatedBy = _middlewareRequest.Process,
+                                    },
+                                };
+
+                _repositoryManager.PhoneConfigurations.Add(phoneConfiguration);
+                _repositoryManager.SaveChanges();
+
+                if (_middlewareRequest.ContentType == MessageContentType.Otp)
+                    _transactionManager.OtpRequestInfo.PhoneConfiguration = phoneConfiguration;
+                else
+                    _transactionManager.SmsRequestInfo.PhoneConfiguration = phoneConfiguration;
+
+            }
+            else
+            {
+                _transactionManager.CustomerRequestInfo.CustomerNo = CustomerNo ?? (phoneConfiguration.CustomerNo ?? null);
+                if (CustomerNo == null && phoneConfiguration.CustomerNo != null)
+                    await _transactionManager.GetCustomerInfoByCustomerNo((ulong)phoneConfiguration.CustomerNo);
+
+                if (_middlewareRequest.ContentType == MessageContentType.Otp)
+                    _transactionManager.OtpRequestInfo.PhoneConfiguration = phoneConfiguration;
+                else
+                    _transactionManager.SmsRequestInfo.PhoneConfiguration = phoneConfiguration;
+            }
+        }
+
+        private async Task GetCustomerInfoByEmail(ulong? CustomerNo = null)
+        {
+            if (!string.IsNullOrEmpty(_middlewareRequest.Email))
+            {
+                var mailConfiguration = _repositoryManager.MailConfigurations.FirstOrDefault(m => m.Email == _middlewareRequest.Email);
+                if (mailConfiguration == null)
+                {
+                    if(CustomerNo == null)
+                        await _transactionManager.GetCustomerInfoByEmail(_middlewareRequest.Email);
+                    mailConfiguration = new MailConfiguration()
+                    {
+                        CustomerNo = CustomerNo ?? _transactionManager.CustomerRequestInfo.CustomerNo,
+                        Email = _middlewareRequest.Email,
+
+                    };
+
+                    var mailConfigurationLog = new MailConfigurationLog()
+                    {
+                        Action = "Initialize",
+                        Type = "Add",
+                        Mail = mailConfiguration,
+                        CreatedBy = _middlewareRequest.Process,
+                    };
+
+                    mailConfiguration.Logs.Add(mailConfigurationLog);
+
+                    _repositoryManager.MailConfigurations.Add(mailConfiguration);
+                    _repositoryManager.SaveChanges();
+
+                    _transactionManager.MailRequestInfo.MailConfiguration = mailConfiguration;
+                }
+                else
+                {
+                    _transactionManager.CustomerRequestInfo.CustomerNo = CustomerNo ?? (mailConfiguration.CustomerNo ?? null);
+                    if (CustomerNo == null && mailConfiguration.CustomerNo != null)
+                        await _transactionManager.GetCustomerInfoByCustomerNo((ulong)mailConfiguration.CustomerNo);
+
+                    _transactionManager.MailRequestInfo.MailConfiguration = mailConfiguration;
+                }
+            }
+        }
+
+        private async Task GetCustomerInfo()
+        {
+            var customerNo = Convert.ToInt64(_middlewareRequest.CustomerNo);
+            await _transactionManager.GetCustomerInfoByCustomerNo((ulong)customerNo);
+        }
+
+        private  string ReadStreamInChunks(Stream stream)
+        {
+            const int readChunkBufferLength = 4096;
+            stream.Seek(0, SeekOrigin.Begin);
+            using var textWriter = new StringWriter();
+            using var reader = new StreamReader(stream);
+            var readChunk = new char[readChunkBufferLength];
+            int readChunkLength;
+            do
+            {
+                readChunkLength = reader.ReadBlock(readChunk,
+                                                   0,
+                                                   readChunkBufferLength);
+                textWriter.Write(readChunk, 0, readChunkLength);
+            } while (readChunkLength > 0);
+            return textWriter.ToString();
         }
     }
+
+    
 
     public static class CustomerInfoMiddlewareExtensions
     {

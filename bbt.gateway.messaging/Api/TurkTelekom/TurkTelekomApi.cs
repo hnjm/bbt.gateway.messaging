@@ -32,7 +32,8 @@ namespace bbt.gateway.messaging.Api.TurkTelekom
                 response = httpResponse.Content.ReadAsStringAsync().Result;
 
                 turkTelekomSmsRequest.Message = turkTelekomSmsRequest.Message.MaskOtpContent();
-
+                turkTelekomSmsRequest.Password = "XXXX";
+                turkTelekomSmsRequest.UserCode = "XXXX";
                 if (httpResponse.IsSuccessStatusCode)
                 { 
                     var turkTelekomSmsResponse = response.DeserializeXml<TurkTelekomSmsResponse>();

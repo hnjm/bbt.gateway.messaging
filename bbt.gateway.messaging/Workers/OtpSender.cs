@@ -113,8 +113,6 @@ namespace bbt.gateway.messaging.Workers
             !phoneConfiguration.BlacklistEntries.Any(b => b.Status == BlacklistStatus.NotResolved)
             )
             {
-                _transactionManager.Phone = phoneConfiguration.Phone;
-                _transactionManager.LogState();
 
                 var responseLog = await SendMessageToKnown(phoneConfiguration,true);
                 _requestLog.ResponseLogs.Add(responseLog);
@@ -217,9 +215,9 @@ namespace bbt.gateway.messaging.Workers
 
             if (successAttempt != null)
             {
-                _transactionManager.Operator = successAttempt.Operator;
-                _transactionManager.LogState();
+                _transactionManager.OtpRequestInfo.Operator = successAttempt.Operator;
                 phoneConfiguration.Operator = successAttempt.Operator;
+                _transactionManager.OtpRequestInfo.PhoneConfiguration = phoneConfiguration;
             }
 
             // Add all response logs to request log
@@ -265,6 +263,8 @@ namespace bbt.gateway.messaging.Workers
 
         private async Task<OtpResponseLog> SendMessageToKnown(PhoneConfiguration phoneConfiguration,bool useControlDays)
         {
+            _transactionManager.OtpRequestInfo.Operator = phoneConfiguration.Operator.Value;
+
             IOperatorGateway gateway = null;
             var header = await _headerManager.Get(phoneConfiguration, _data.ContentType, _data.HeaderInfo);
             _requestLog.Content = header.BuildContentForLog(_data.Content);

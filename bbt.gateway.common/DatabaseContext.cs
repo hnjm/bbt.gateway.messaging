@@ -14,10 +14,13 @@ namespace bbt.gateway.common
         public DbSet<BlackListEntry> BlackListEntries { get; set; }
         public DbSet<OtpRequestLog> OtpRequestLogs { get; set; }
         public DbSet<OtpResponseLog> OtpResponseLog { get; set; }
-        public DbSet<SmsLog> SmsLogs { get; set; }
+        public DbSet<SmsRequestLog> SmsRequestLog { get; set; }
+        public DbSet<SmsResponseLog> SmsResponseLog { get; set; }
         public DbSet<MailConfiguration> MailConfigurations { get; set; }
         public DbSet<MailRequestLog> MailRequestLog { get; set; }
         public DbSet<MailResponseLog> MailResponseLog { get; set; }
+
+        public DbSet<Transaction> Transactions { get; set; }
 
         public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options)
         {
@@ -32,11 +35,14 @@ namespace bbt.gateway.common
             builder.Entity<MailRequestLog>().OwnsOne(i => i.CreatedBy);
             builder.Entity<OtpRequestLog>().OwnsOne(i => i.CreatedBy);
             builder.Entity<OtpRequestLog>().OwnsOne(i => i.Phone);
-            builder.Entity<SmsLog>().OwnsOne(i => i.CreatedBy);
+            builder.Entity<SmsRequestLog>().OwnsOne(i => i.CreatedBy);
+            builder.Entity<SmsRequestLog>().OwnsOne(i => i.Phone);
             builder.Entity<BlackListEntry>().OwnsOne(i => i.CreatedBy);
             builder.Entity<BlackListEntry>().OwnsOne(i => i.ResolvedBy);
             builder.Entity<BlackListEntryLog>().OwnsOne(i => i.CreatedBy);
-            
+            builder.Entity<Transaction>().OwnsOne(i => i.CreatedBy);
+            builder.Entity<Transaction>().OwnsOne(i => i.Phone);
+
             //Non-cluster Guid index sample
             builder.Entity<PhoneConfiguration>()
                 .HasIndex(c => c.Id)

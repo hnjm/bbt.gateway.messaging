@@ -8,9 +8,8 @@ using bbt.gateway.messaging.Api.dEngage.Model.Login;
 using bbt.gateway.messaging.Api.dEngage.Model.Settings;
 using bbt.gateway.messaging.Api.dEngage.Model.Transactional;
 using bbt.gateway.common.Models;
-using System.Collections.Generic;
 using Refit;
-using Newtonsoft.Json;
+using SendSmsResponse = bbt.gateway.messaging.Api.dEngage.Model.Transactional.SendSmsResponse;
 
 namespace bbt.gateway.messaging.Workers.OperatorGateway
 {
@@ -19,35 +18,45 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
         private GetSmsFromsResponse _smsIds;
         private GetMailFromsResponse _mailIds;
 
+        private int _authTryCount;
         private string _authToken;
         private readonly IdEngageClient _dEngageClient;
         public OperatordEngage(IdEngageClient dEngageClient, IConfiguration configuration,
             ITransactionManager transactionManager) : base(configuration,transactionManager)
         {
+            _authTryCount = 0;
             _dEngageClient = dEngageClient;
-            if (transactionManager.BusinessLine == "X")
+            if (transactionManager.CustomerRequestInfo.BusinessLine == "X")
                 Type = OperatorType.dEngageOn;
             else
                 Type = OperatorType.dEngageBurgan;
+            transactionManager.SmsRequestInfo.Operator = Type;
         }
 
         private async Task<OperatorApiAuthResponse> Auth()
         {
             OperatorApiAuthResponse authResponse = new();
-            if (string.IsNullOrEmpty(OperatorConfig.AuthToken) || OperatorConfig.TokenExpiredAt <= System.DateTime.Now.AddMinutes(-1))
+            if (string.IsNullOrEmpty(OperatorConfig.AuthToken) || OperatorConfig.TokenExpiredAt <= DateTime.Now.AddSeconds(-30))
             {
                 var tokenCreatedAt = DateTime.Now;
-                var tokenExpiredAt = DateTime.Now.AddMinutes(59);
-                var loginResponse = await _dEngageClient.Login(CreateAuthRequest());
-                if (!string.IsNullOrEmpty(loginResponse.access_token))
+
+                try
                 {
+                    var loginResponse = await _dEngageClient.Login(CreateAuthRequest());
+
                     authResponse.ResponseCode = "0";
                     OperatorConfig.AuthToken = loginResponse.access_token;
                     OperatorConfig.TokenCreatedAt = tokenCreatedAt;
-                    OperatorConfig.TokenExpiredAt = tokenExpiredAt;
+                    OperatorConfig.TokenExpiredAt = DateTime.Now.AddSeconds(loginResponse.expires_in);
                     _authToken = OperatorConfig.AuthToken;
                     SaveOperator();
                 }
+                catch (ApiException ex)
+                {
+                    authResponse.ResponseCode = "99999";
+                    authResponse.ResponseMessage = $"dEngage | Http Status Code : {ex.StatusCode} | Auth Failed";
+                }                   
+                
             }
             else
             {
@@ -58,126 +67,208 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             return authResponse;
         }
 
-        private async Task<bool> RefreshToken()
+        private async Task<OperatorApiAuthResponse> RefreshToken()
         {
+            OperatorApiAuthResponse authResponse = new();
+
             var tokenCreatedAt = DateTime.Now;
-            var tokenExpiredAt = DateTime.Now.AddMinutes(59);
-            var loginResponse = await _dEngageClient.Login(CreateAuthRequest());
-            if (!string.IsNullOrEmpty(loginResponse.access_token))
+            try
             {
+                var loginResponse = await _dEngageClient.Login(CreateAuthRequest());
+
+                authResponse.ResponseCode = "0";
                 OperatorConfig.AuthToken = loginResponse.access_token;
                 OperatorConfig.TokenCreatedAt = tokenCreatedAt;
-                OperatorConfig.TokenExpiredAt = tokenExpiredAt;
+                OperatorConfig.TokenExpiredAt = DateTime.Now.AddSeconds(loginResponse.expires_in);
                 _authToken = OperatorConfig.AuthToken;
                 SaveOperator();
-                return true;
             }
-            
-            return false;
+            catch (ApiException ex)
+            {
+                authResponse.ResponseCode = "99999";
+                authResponse.ResponseMessage = $"dEngage | Http Status Code : {ex.StatusCode} | Auth Failed";
+            }
+
+            return authResponse;
         }
 
-        public async Task<SmsLog> SendMail(string to, string? subject, string? html, string? templateId, string? templateParams)
+        public async Task<MailResponseLog> SendMail(string to, string? from, string? subject, string? html, string? templateId, string? templateParams)
         {
+            var mailResponseLog = new MailResponseLog() { 
+                Topic = "dEngage Mail Sending",
+            };
+           
             var authResponse = await Auth();
             if (authResponse.ResponseCode == "0")
             {
-                _mailIds = await _dEngageClient.GetMailFroms(_authToken);
+                if (html != null)
+                {
+                    try
+                    {
+                        var res = await _dEngageClient.GetMailFroms(_authToken);
+                        _mailIds = res;
+                    }
+                    catch (ApiException ex)
+                    {
+                        mailResponseLog.ResponseCode = "99999";
+                        mailResponseLog.ResponseMessage = $"dEngage | Http Status Code : {(int)ex.StatusCode} | Cannot Retrieve Sms Froms";
+                        return mailResponseLog;
+                    }
+                }
+               
                 try
                 {
-                    var req = CreateMailRequest(to, subject, html, templateId, templateParams);
-                    
-                    var sendMailResponse = await _dEngageClient.SendMail(req, _authToken);
-
-                    if (sendMailResponse.code == 1251)
+                    var req = CreateMailRequest(to, from, subject, html, templateId, templateParams);
+                    try
                     {
-                        if (await RefreshToken())
-                            sendMailResponse = await _dEngageClient.SendMail(req, _authToken);
+                        var sendMailResponse = await _dEngageClient.SendMail(req, _authToken);
+                        mailResponseLog.ResponseCode = sendMailResponse.code.ToString();
+                        mailResponseLog.ResponseMessage = sendMailResponse.message;
+                        mailResponseLog.StatusQueryId = sendMailResponse.data.to.trackingId;
+
                     }
-                    var response = new SmsLog()
+                    catch (ApiException ex)
                     {
-                        Content = html,
-                        OperatorResponseCode = sendMailResponse.code,
-                        OperatorResponseMessage = sendMailResponse.message,
-                        Operator = Type,
-                        CreatedAt = DateTime.Now
-                    };
+                        if (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                        {
+                            authResponse = await RefreshToken();
+                            if (authResponse.ResponseCode == "0")
+                            {
+                                _authTryCount++;
+                                if (_authTryCount < 3)
+                                {
+                                    return await SendMail(to,from,subject,html,templateId,templateParams);
+                                }
+                                else
+                                {
+                                    mailResponseLog.ResponseCode = "99999";
+                                    mailResponseLog.ResponseMessage = "dEngage Auth Failed For 3 Times";
+                                    return mailResponseLog;
+                                }
+                            }
+                            else
+                            {
+                                mailResponseLog.ResponseCode = authResponse.ResponseCode;
+                                mailResponseLog.ResponseMessage = authResponse.ResponseMessage;
+                                return mailResponseLog;
+                            }
+                        }
+                        var error = await ex.GetContentAsAsync<SendMailResponse>();
+                        mailResponseLog.ResponseCode = error.code.ToString();
+                        mailResponseLog.ResponseMessage = error.message;
+                    }                    
 
 
-                    return response;
+                    return mailResponseLog;
                 }
-                catch (ApiException ex)
+                catch (Exception ex)
                 {
+                    mailResponseLog.ResponseCode = "-99999";
+                    mailResponseLog.ResponseMessage = ex.ToString();
+
                     //logging
-                    return null;
+                    return mailResponseLog;
                 }
 
             }
             else
             {
-                var response = new SmsLog()
-                {
-                    Content = html,
-                    OperatorResponseCode = -99999,
-                    OperatorResponseMessage = "dEngage Authentication Failed",
-                    Operator = Type,
-                    CreatedAt = DateTime.Now
-                };
+                mailResponseLog.ResponseCode = authResponse.ResponseCode;
+                mailResponseLog.ResponseMessage = authResponse.ResponseMessage;
 
-                return response;
+                return mailResponseLog;
             }
 
         }
-        public async Task<SmsLog> SendSms(Phone phone,SmsTypes smsType, string? content,string? templateId,string? templateParams)
+        public async Task<SmsResponseLog> SendSms(Phone phone,SmsTypes smsType, string? content,string? templateId,string? templateParams)
         {
+            var smsLog = new SmsResponseLog()
+            {
+                Operator = Type,
+                Content = String.IsNullOrEmpty(content) ? "" : content.ClearMaskingFields(),
+                CreatedAt = DateTime.Now,
+            };
+
             var authResponse = await Auth();
             if (authResponse.ResponseCode == "0")
             {
-                _smsIds = await _dEngageClient.GetSmsFroms(_authToken);
+                if (content != null)
+                {
+                    try
+                    {
+                        var res = await _dEngageClient.GetSmsFroms(_authToken);
+                        _smsIds = res;
+                    }
+                    catch (ApiException ex)
+                    {
+                        smsLog.OperatorResponseCode = 99999;
+                        smsLog.OperatorResponseMessage = $"dEngage | Http Status Code : {(int)ex.StatusCode} | Cannot Retrieve Sms Froms";
+                        return smsLog;
+                    }
+                }
                 try
                 {
                     var req = CreateSmsRequest(phone, smsType, content, templateId, templateParams);
-                    var sendSmsResponse = await _dEngageClient.SendSms(req, _authToken);
-                   
-                    if (sendSmsResponse.code == 1251)
+                    try
                     {
-                        if (await RefreshToken())
-                            sendSmsResponse = await _dEngageClient.SendSms(req, _authToken);
+                        var sendSmsResponse = await _dEngageClient.SendSms(req, _authToken);
+                        smsLog.OperatorResponseCode = sendSmsResponse.code;
+                        smsLog.OperatorResponseMessage = sendSmsResponse.message;
+                        smsLog.StatusQueryId = sendSmsResponse.data.to.trackingId;
+
                     }
-                    var response = new SmsLog()
+                    catch (ApiException ex)
                     {
-                        Content = content,
-                        OperatorResponseCode = sendSmsResponse.code,
-                        OperatorResponseMessage = sendSmsResponse.message,
-                        Operator = Type,
-                        CreatedAt = DateTime.Now
-                    };
-
-
-                    return response;
+                        if (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                        {
+                            authResponse = await RefreshToken();
+                            if (authResponse.ResponseCode == "0")
+                            {
+                                _authTryCount++;
+                                if (_authTryCount < 3)
+                                {
+                                    return await SendSms(phone, smsType, content, templateId, templateParams);
+                                }
+                                else
+                                {
+                                    smsLog.OperatorResponseCode = 99999;
+                                    smsLog.OperatorResponseMessage = "dEngage Auth Failed For 3 Times";
+                                    return smsLog;
+                                }
+                            }
+                            else
+                            {
+                                smsLog.OperatorResponseCode = Convert.ToInt32(authResponse.ResponseCode);
+                                smsLog.OperatorResponseMessage = authResponse.ResponseMessage;
+                                return smsLog;
+                            }
+                        }
+                        var error = await ex.GetContentAsAsync<bbt.gateway.messaging.Api.dEngage.Model.Transactional.SendSmsResponse>();
+                        smsLog.OperatorResponseCode = error.code;
+                        smsLog.OperatorResponseMessage = error.message;
+                    }
+                    
+                    return smsLog;
                 }
-                catch (ApiException ex)
+                catch (Exception ex)
                 {
                     //logging
-                    return null;
+                    smsLog.OperatorResponseCode = -99999;
+                    smsLog.OperatorResponseMessage = ex.ToString();
+                    return smsLog;
                 }                 
                 
             }
             else
             {
-                var response = new SmsLog()
-                {
-                    Content = content,
-                    OperatorResponseCode = -99999,
-                    OperatorResponseMessage = "dEngage Authentication Failed",
-                    Operator = Type,
-                    CreatedAt = DateTime.Now
-                };
+                smsLog.OperatorResponseCode = Convert.ToInt32(authResponse.ResponseCode);
+                smsLog.OperatorResponseMessage = authResponse.ResponseMessage;              
 
-                return response;
+                return smsLog;
             }
         }
 
-        private SendMailRequest CreateMailRequest(string to,string subject = null, string html = null, string templateId = null, string templateParams = null)
+        private SendMailRequest CreateMailRequest(string to,string from = null,string subject = null, string html = null, string templateId = null, string templateParams = null)
         {
             SendMailRequest sendMailRequest = new();
             sendMailRequest.send.to = to;
@@ -186,16 +277,16 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 sendMailRequest.content.templateId = templateId;
                 if (!string.IsNullOrEmpty(templateParams))
                 {
-                    sendMailRequest.current = templateParams;
+                    sendMailRequest.current = templateParams.ClearMaskingFields();
                 }
             }
             else
             {
                 if (!string.IsNullOrEmpty(html))
                 {
-                    sendMailRequest.content.fromNameId = _mailIds.data.emailFroms.FirstOrDefault().id;
-                    sendMailRequest.content.html = html;
-                    sendMailRequest.content.subject = subject;
+                    sendMailRequest.content.fromNameId = _mailIds.data.emailFroms.Where( m => m.fromName == from).FirstOrDefault().id;
+                    sendMailRequest.content.html = html.ClearMaskingFields();
+                    sendMailRequest.content.subject = subject.ClearMaskingFields();
                 }
                 else
                 {
@@ -215,7 +306,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 sendSmsRequest.content.templateId = templateId;
                 if (!string.IsNullOrEmpty(templateParams))
                 {
-                    sendSmsRequest.current = templateParams;
+                    sendSmsRequest.current = templateParams.ClearMaskingFields();
                 }
             }
             else
@@ -223,7 +314,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 if (!string.IsNullOrEmpty(content))
                 {
                     sendSmsRequest.content.smsFromId = _smsIds.data.smsFroms.Where(i => i.partnerName == Constant.smsTypes[smsType]).FirstOrDefault().id;
-                    sendSmsRequest.content.message = content;
+                    sendSmsRequest.content.message = content.ClearMaskingFields();
                 }
                 else
                 { 

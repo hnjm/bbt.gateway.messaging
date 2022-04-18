@@ -10,7 +10,7 @@ namespace bbt.gateway.common.Models
         public Guid Id { get; set; } = Guid.NewGuid();
         public string Email { get; set; } 
         public ulong? CustomerNo { get; set; } 
-        public ICollection<MailConfiguration> Logs { get; set; }
+        public ICollection<MailConfigurationLog> Logs { get; set; }
         public ICollection<MailRequestLog> MailLogs {get;set;}
     }
 }

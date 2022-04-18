@@ -2,8 +2,8 @@
 
 namespace bbt.gateway.common.Repositories
 {
-    public interface ISmsLogRepository : IRepository<SmsLog>
+    public interface ITransactionRepository : IRepository<Transaction>
     {
-        
+
     }
 }

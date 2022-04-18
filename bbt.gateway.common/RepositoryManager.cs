@@ -13,10 +13,16 @@ namespace bbt.gateway.common
         private OperatorRepository _operatorRepository;
         private BlacklistEntryRepository _blacklistEntryRepository;
         private PhoneConfigurationRepository _phoneConfigurationRepository;
+        private MailConfigurationRepository _mailConfigurationRepository;
         private OtpRequestLogRepository _otpRequestLogRepository;
-        private SmsLogRepository _smsLogRepository;
+        private MailRequestLogRepository _mailRequestLogRepository;
+        private SmsResponseLogRepository _smsResponseLogRepository;
+        private SmsRequestLogRepository _smsRequestLogRepository;
         private OtpResponseLogRepository _otpResponseLogRepository;
+        private MailResponseLogRepository _mailResponseLogRepository;
         private OtpTrackingLogRepository _otpTrackingLogRepository;
+        private TransactionRepository _transactionRepository;
+        
 
         public RepositoryManager(DatabaseContext databaseContext,DodgeDatabaseContext dodgeDatabaseContext,
             SmsBankingDatabaseContext smsBankingDatabaseContext)
@@ -36,8 +42,10 @@ namespace bbt.gateway.common
 
         public IOtpRequestLogRepository OtpRequestLogs => _otpRequestLogRepository ??= new OtpRequestLogRepository(_databaseContext);
 
-        public ISmsLogRepository SmsLogs => _smsLogRepository ??= new SmsLogRepository(_databaseContext);
-        
+        public ISmsResponseLogRepository SmsResponseLogs => _smsResponseLogRepository ??= new SmsResponseLogRepository(_databaseContext);
+
+        public ISmsRequestLogRepository SmsRequestLogs => _smsRequestLogRepository ?? new SmsRequestLogRepository(_databaseContext);
+
         public IOtpResponseLogRepository OtpResponseLogs => _otpResponseLogRepository ??= new OtpResponseLogRepository(_databaseContext);
 
         public IOtpTrackingLogRepository OtpTrackingLog => _otpTrackingLogRepository ??= new OtpTrackingLogRepository(_databaseContext);
@@ -45,6 +53,14 @@ namespace bbt.gateway.common
         public IUserRepository Users => _userRepository ??= new UserRepository(_dodgeDatabaseContext);
 
         public IDirectBlacklistRepository DirectBlacklists => _directBlacklistRepository ??= new DirectBlacklistRepository(_smsBankingDatabaseContext);
+
+        public IMailConfigurationRepository MailConfigurations => _mailConfigurationRepository ??= new MailConfigurationRepository(_databaseContext);
+
+        public IMailRequestLogRepository MailRequestLogs => _mailRequestLogRepository ??= new MailRequestLogRepository(_databaseContext);
+
+        public IMailResponseLogRepository MailResponseLogs => _mailResponseLogRepository ??= new MailResponseLogRepository(_databaseContext);
+
+        public ITransactionRepository Transactions => _transactionRepository ??= new TransactionRepository(_databaseContext);
 
         public int SaveChanges()
         {

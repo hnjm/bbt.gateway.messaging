@@ -35,9 +35,9 @@ namespace bbt.gateway.messaging.Controllers
         [SwaggerResponse(465, "Sim card is changed.", typeof(void))]
         [SwaggerResponse(466, "Operator is changed.", typeof(void))]
 
-        public IActionResult SendTemplatedSms([FromBody] SendTemplatedSmsRequest data)
+        public async Task<IActionResult> SendTemplatedSms([FromBody] SendTemplatedSmsRequest data)
         {
-            return Ok();
+            return Ok(await _dEngageSender.SendTemplatedSms(data));
         }
 
 
@@ -57,17 +57,13 @@ namespace bbt.gateway.messaging.Controllers
                 await _transactionManager.GetCustomerInfoByPhone(data.Phone);
                 if(data.ContentType == MessageContentType.Otp)
                 {
-                    _transactionManager.Phone = data.Phone;
-                    _transactionManager.TransactionType = TransactionType.Otp;
-                    _transactionManager.LogState();
                     var res = await _otpSender.SendMessage(data);
                     return Ok(res);
                 }
-                if (data.ContentType == MessageContentType.Private)
+                else
                 {
-                    //await _operatordEngage.SendSms(data.Phone, SmsTypes.Fast, data.Content, null, null);
+                    return Ok(await _dEngageSender.SendSms(data));
                 }
-                return Ok();
             }
             else 
             {
@@ -105,12 +101,12 @@ namespace bbt.gateway.messaging.Controllers
            Summary = "Send templated Email message",
            Description = "Templates are defined in dEngage"
            )]
-        [HttpPost("messaging/email/templated")]
+        [HttpPost("email/templated")]
         [SwaggerResponse(200, "Email was sent successfully", typeof(SendEmailResponse))]
         [SwaggerResponse(460, "Given template is not found on dEngage", typeof(void))]
         public async Task<IActionResult> SendTemplatedEmail([FromBody] SendTemplatedEmailRequest data)
         {
-            //var response = await _dEngageSender.SendTemplatedMail(data);
+            var response = await _dEngageSender.SendTemplatedMail(data);
             return Ok();
         }
 
@@ -119,7 +115,7 @@ namespace bbt.gateway.messaging.Controllers
            Summary = "Send Email message",
            Description = "Send given content directly."
            )]
-        [HttpPost("messaging/email/message")]
+        [HttpPost("email/message")]
         [SwaggerResponse(200, "Email was sent successfully", typeof(SendEmailResponse))]
         public async Task<IActionResult> SendMessageEmail([FromBody] SendMessageEmailRequest data)
         {
@@ -131,7 +127,7 @@ namespace bbt.gateway.messaging.Controllers
            Summary = "Send Push Notification",
            Description = "Send push notification to device."
            )]
-        [HttpPost("messaging/push-notification")]
+        [HttpPost("push-notification")]
         [SwaggerResponse(200, "Push notification was sent successfully", typeof(SendPushNotificationResponse))]
         public IActionResult SendPushNotification([FromBody] SendMessagePushNotificationRequest data)
         {
@@ -142,7 +138,7 @@ namespace bbt.gateway.messaging.Controllers
            Summary = "Send Templated Push Notification",
            Description = "Send templated push notification to device."
            )]
-        [HttpPost("messaging/push-notification/templated")]
+        [HttpPost("push-notification/templated")]
         [SwaggerResponse(200, "Push notification was sent successfully", typeof(SendPushNotificationResponse))]
         public IActionResult SendTemplatedPushNotification([FromBody] SendTemplatedPushNotificationRequest data)
         {

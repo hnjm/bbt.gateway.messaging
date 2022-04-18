@@ -51,6 +51,7 @@ namespace bbt.gateway.messaging
 
             JsonSerializerSettings settings = new();
             settings.Converters.Add(new StringEnumConverter());
+            settings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
             JsonConvert.DefaultSettings = () => settings;
 
             services.AddApiVersioning(v =>
@@ -116,6 +117,7 @@ namespace bbt.gateway.messaging
             });
 
             services.AddScoped<OtpSender>();
+            services.AddScoped<dEngageSender>();
             services.AddScoped<HeaderManager>();
             services.AddScoped<OperatorManager>();
             services.AddScoped<OperatorIVN>();
@@ -130,7 +132,6 @@ namespace bbt.gateway.messaging
         {
             app.UseCustomerInfoMiddleware();
             
-            app.UseDeveloperExceptionPage();
             app.UseSwagger();
 
             app.UseSwaggerUI(options =>

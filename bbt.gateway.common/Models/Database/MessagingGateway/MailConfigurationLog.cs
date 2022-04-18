@@ -8,7 +8,7 @@ namespace bbt.gateway.common.Models
     public class MailConfigurationLog
     {
         public Guid Id { get; set; } = Guid.NewGuid();
-        public MailConfiguration Phone { get; set; }
+        public MailConfiguration Mail { get; set; }
         public string Type { get; set; }
         public string Action { get; set; }
         public Guid RelatedId { get; set; }

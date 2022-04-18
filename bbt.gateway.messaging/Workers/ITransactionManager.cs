@@ -7,12 +7,12 @@ namespace bbt.gateway.messaging.Workers
     public interface ITransactionManager
     {
         public Guid TxnId { get; }
-        public ulong CustomerNo { get; }
-        public string BusinessLine { get; }
-        public int BranchCode { get; }
-        public OperatorType Operator { get; set; }
+
+        public OtpRequestInfo OtpRequestInfo { get; set; }
+        public SmsRequestInfo SmsRequestInfo { get; set; }
+        public MailRequestInfo MailRequestInfo { get; set; }
+        public CustomerRequestInfo CustomerRequestInfo { get; set; }
         public TransactionType TransactionType { get; set; }
-        public Phone Phone { get; set; }
 
         public Task GetCustomerInfoByPhone(Phone Phone);
         public Task GetCustomerInfoByEmail(string Email);

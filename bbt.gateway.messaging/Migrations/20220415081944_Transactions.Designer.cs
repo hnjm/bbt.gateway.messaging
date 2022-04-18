@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using bbt.gateway.common;
 
@@ -11,9 +12,10 @@ using bbt.gateway.common;
 namespace bbt.gateway.messaging.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20220415081944_Transactions")]
+    partial class Transactions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -133,7 +135,7 @@ namespace bbt.gateway.messaging.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("0a3cfc72-86ce-454d-9c48-9379ee77b41c"),
+                            Id = new Guid("933bbd9e-1fc4-4e38-8d20-e1f33902511e"),
                             ContentType = 0,
                             EmailTemplatePrefix = "generic",
                             SmsPrefix = "Dear Honey,",
@@ -143,7 +145,7 @@ namespace bbt.gateway.messaging.Migrations
                         },
                         new
                         {
-                            Id = new Guid("08692547-c0bf-47c1-b0aa-24ec092e8a1e"),
+                            Id = new Guid("59341f8f-611c-4260-9db9-226b39547a53"),
                             Branch = 2000,
                             ContentType = 0,
                             EmailTemplatePrefix = "on",
@@ -599,12 +601,6 @@ namespace bbt.gateway.messaging.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Mail")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Request")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Response")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("TransactionType")

@@ -37,6 +37,24 @@ namespace bbt.gateway.messaging
             });
         }
 
+        public static string MaskFields(this string content)
+        {
+            return content.Mask("(<mask>)(.*?)(</mask>)", m =>
+            {
+                return $"{m.Value.Substring(6, 1)}{new string('*', m.Value.Length-14)}";
+
+            });
+        }
+
+        public static string ClearMaskingFields(this string content)
+        {
+            return content.Mask("(<mask>)(.*?)(</mask>)", m =>
+            {
+                return $"{m.Value.Substring(6, m.Value.Length-13)}";
+
+            });
+        }
+
         public static SendSmsResponseStatus UnifyResponse(this ICollection<OtpResponseLog> logs)
         {
             if (logs.Any(l => l.ResponseCode == SendSmsResponseStatus.Success))
@@ -131,7 +149,14 @@ namespace bbt.gateway.messaging
             return otpTrackingLog;
         }
 
-        public static T DeserializeXml<T>(this string toDeserialize)
+        public static dEngageResponseCodes GetdEngageStatus(this dEngageResponse dEngageResponse)
+        {
+            if(Constant.dEngageStatusCodes.ContainsKey(dEngageResponse.GetResponseCode()))
+                return Constant.dEngageStatusCodes[dEngageResponse.GetResponseCode()];
+            return dEngageResponseCodes.BadRequest;
+        }
+
+            public static T DeserializeXml<T>(this string toDeserialize)
         {
             XmlSerializer xmlSerializer = new XmlSerializer(typeof(T));
           

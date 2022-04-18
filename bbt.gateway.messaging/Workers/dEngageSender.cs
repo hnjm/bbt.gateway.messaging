@@ -1,10 +1,6 @@
 ﻿using bbt.gateway.common.Models;
 using bbt.gateway.common.Repositories;
 using bbt.gateway.messaging.Workers.OperatorGateway;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace bbt.gateway.messaging.Workers
@@ -15,8 +11,6 @@ namespace bbt.gateway.messaging.Workers
         private readonly IRepositoryManager _repositoryManager;
         private readonly ITransactionManager _transactionManager;
         private readonly OperatordEngage _operatordEngage;
-
-        PhoneConfiguration phoneConfiguration;
 
         public dEngageSender(HeaderManager headerManager,
             IRepositoryManager repositoryManager,
@@ -29,38 +23,137 @@ namespace bbt.gateway.messaging.Workers
             _operatordEngage = operatordEngage;
         }
 
-        public async Task<SendSmsResponseStatus> SendSms(SendMessageSmsRequest sendMessageSmsRequest)
+        public async Task<SendSmsResponse> SendSms(SendMessageSmsRequest sendMessageSmsRequest)
         {
+            SendSmsResponse sendSmsResponse = new SendSmsResponse()
+            {
+                TxnId = _transactionManager.TxnId,
+            };
 
-            SendSmsResponseStatus sendSmsResponseStatus = SendSmsResponseStatus.ClientError;
-            
 
-            return sendSmsResponseStatus;
+            var smsRequest = new SmsRequestLog()
+            {
+                Phone = sendMessageSmsRequest.Phone,
+                content = sendMessageSmsRequest.Content.MaskFields(),
+                TemplateId = "",
+                TemplateParams = "",
+                SmsType = sendMessageSmsRequest.SmsType,
+                TxnId = _transactionManager.TxnId,
+                CreatedBy = sendMessageSmsRequest.Process
+            };
+
+            var response = await _operatordEngage.SendSms(sendMessageSmsRequest.Phone, sendMessageSmsRequest.SmsType, sendMessageSmsRequest.Content, null, null);
+
+            smsRequest.ResponseLogs.Add(response);
+            smsRequest.PhoneConfiguration = _transactionManager.SmsRequestInfo.PhoneConfiguration;
+
+            _repositoryManager.SmsRequestLogs.Add(smsRequest);
+
+            _repositoryManager.SaveChanges();
+
+            sendSmsResponse.Status = response.GetdEngageStatus();
+
+            return sendSmsResponse;
         }
 
-        public async Task<SendSmsResponseStatus> SendTemplatedSms(SendTemplatedSmsRequest sendTemplatedSmsRequest)
+        public async Task<SendSmsResponse> SendTemplatedSms(SendTemplatedSmsRequest sendTemplatedSmsRequest)
         {
+            SendSmsResponse sendSmsResponse = new SendSmsResponse()
+            {
+                TxnId = _transactionManager.TxnId,
+            };
 
-            SendSmsResponseStatus sendSmsResponseStatus = SendSmsResponseStatus.ClientError;
+
+            var smsRequest = new SmsRequestLog()
+            {
+                Phone = sendTemplatedSmsRequest.Phone,
+                content = "",
+                TemplateId = sendTemplatedSmsRequest.Template,
+                TemplateParams = sendTemplatedSmsRequest.TemplateParams.MaskFields(),
+                SmsType = sendTemplatedSmsRequest.SmsType,
+                TxnId = _transactionManager.TxnId,
+                CreatedBy = sendTemplatedSmsRequest.Process
+            };
 
 
-            return sendSmsResponseStatus;
+            var response = await _operatordEngage.SendSms(sendTemplatedSmsRequest.Phone, sendTemplatedSmsRequest.SmsType,null, sendTemplatedSmsRequest.Template, sendTemplatedSmsRequest.TemplateParams);
+
+            smsRequest.ResponseLogs.Add(response);
+            smsRequest.PhoneConfiguration = _transactionManager.SmsRequestInfo.PhoneConfiguration;
+
+            _repositoryManager.SmsRequestLogs.Add(smsRequest);
+
+            _repositoryManager.SaveChanges();
+
+            sendSmsResponse.Status = response.GetdEngageStatus();
+
+            return sendSmsResponse;
         }
 
         public async Task<SendEmailResponse> SendMail(SendMessageEmailRequest sendMessageEmailRequest)
         {
 
-            SendEmailResponse sendEmailResponse = new();
+            SendEmailResponse sendEmailResponse = new SendEmailResponse()
+            {
+                TxnId = _transactionManager.TxnId,
+            };
 
+
+            var mailRequest = new MailRequestLog()
+            {
+                content = sendMessageEmailRequest.Content.MaskFields(),
+                subject = sendMessageEmailRequest.Content.MaskFields(),
+                TemplateId = "",
+                TemplateParams = "",
+                FromMail = sendMessageEmailRequest.From,
+                TxnId = _transactionManager.TxnId,
+                CreatedBy = sendMessageEmailRequest.Process
+            };
+
+
+            var response = await _operatordEngage.SendMail(sendMessageEmailRequest.Email, sendMessageEmailRequest.From, sendMessageEmailRequest.Subject, sendMessageEmailRequest.Content, null, null);
+
+            mailRequest.ResponseLogs.Add(response);
+            mailRequest.MailConfiguration = _transactionManager.MailRequestInfo.MailConfiguration;
+
+            _repositoryManager.MailRequestLogs.Add(mailRequest);
+
+            _repositoryManager.SaveChanges();
+
+            sendEmailResponse.Status = response.GetdEngageStatus();
 
             return sendEmailResponse;
         }
 
         public async Task<SendEmailResponse> SendTemplatedMail(SendTemplatedEmailRequest sendTemplatedEmailRequest)
         {
-                
-            var response = await _operatordEngage.SendMail(sendTemplatedEmailRequest.Email, null, null, sendTemplatedEmailRequest.Template, sendTemplatedEmailRequest.TeamplateParams);
-            return new SendEmailResponse();
+            SendEmailResponse sendEmailResponse = new SendEmailResponse() {
+                TxnId = _transactionManager.TxnId,
+            };
+
+
+            var mailRequest = new MailRequestLog() {
+                content = "",
+                subject = "",
+                TemplateId = sendTemplatedEmailRequest.Template,
+                TemplateParams = sendTemplatedEmailRequest.TemplateParams.MaskFields(),
+                TxnId = _transactionManager.TxnId,
+                CreatedBy = sendTemplatedEmailRequest.Process
+            };
+
+         
+            var response = await _operatordEngage.SendMail(sendTemplatedEmailRequest.Email, null, null, null, sendTemplatedEmailRequest.Template, sendTemplatedEmailRequest.TemplateParams);
+
+            mailRequest.ResponseLogs.Add(response);
+            mailRequest.MailConfiguration = _transactionManager.MailRequestInfo.MailConfiguration;
+
+            _repositoryManager.MailRequestLogs.Add(mailRequest);
+
+            _repositoryManager.SaveChanges();
+
+            sendEmailResponse.Status = response.GetdEngageStatus();
+
+            return sendEmailResponse;
         }
 
         public async Task<SendPushNotificationResponse> SendPushNotification(SendMessagePushNotificationRequest sendMessagePushNotificationRequest)
@@ -80,6 +173,24 @@ namespace bbt.gateway.messaging.Workers
 
             return sendPushNotificationResponse;
         }
+
+        //private MailConfiguration CreateMailConfiguration()
+        //{
+        //    var mailConfiguration = new MailConfiguration()
+        //    {
+        //        CustomerNo = _transactionManager.CustomerNo,
+        //        Email = _sendTemplatedEmailRequest.Email,
+        //    };
+
+        //    mailConfiguration.Logs = new List<MailConfigurationLog>() {new MailConfigurationLog() {
+        //        Action = "Initialize",
+        //        Type = "Add",
+        //        CreatedBy = _sendTemplatedEmailRequest.Process,
+        //        Mail = mailConfiguration
+        //    }};
+
+        //    return mailConfiguration;
+        //}
 
 
 

@@ -43,8 +43,8 @@ namespace bbt.gateway.messaging.Workers
         {
             Header header = null;
 
-            string businessLine = string.IsNullOrEmpty(_transactionManager.BusinessLine) ? null : _transactionManager.BusinessLine;
-            int? branch = _transactionManager.BranchCode != 0 ? _transactionManager.BranchCode : null;
+            string businessLine = string.IsNullOrEmpty(_transactionManager.CustomerRequestInfo.BusinessLine) ? null : _transactionManager.CustomerRequestInfo.BusinessLine;
+            int? branch = _transactionManager.CustomerRequestInfo.BranchCode != 0 ? _transactionManager.CustomerRequestInfo.BranchCode : null;
 
             if (headerInfo.Sender != SenderType.AutoDetect)
             {

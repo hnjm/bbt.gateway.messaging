@@ -7,7 +7,8 @@ namespace bbt.gateway.common.Models
 {
     public class SendSmsResponse
     {
-        public Guid Id { get; set; }
+        public Guid TxnId { get; set; }
+        public dEngageResponseCodes Status { get; set; }
 
     }
 }

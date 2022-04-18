@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace bbt.gateway.common.Models
 {
-    public class MailResponseLog
+    public class MailResponseLog : dEngageResponse
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public string Topic { get; set; }
@@ -14,7 +14,10 @@ namespace bbt.gateway.common.Models
         public string ResponseMessage { get; set; }
         public string StatusQueryId { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
-        public string RequestBody { get; set; }
-        public string ResponseBody { get; set; }
+
+        public override string GetResponseCode()
+        {
+            return ResponseCode;
+        }
     }
 }

@@ -4,7 +4,6 @@ using bbt.gateway.messaging.Api.Pusula.Model.GetByPhone;
 using bbt.gateway.messaging.Api.Pusula.Model.GetCustomer;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using System;
 using System.Threading.Tasks;
 
@@ -16,18 +15,14 @@ namespace bbt.gateway.messaging.Workers
         private ILogger<TransactionManager> _logger;
         private readonly PusulaClient _pusulaClient;
 
-        private ulong _customerNo;
-        private string _businessLine;
-        private int _branchCode;
-
         public TransactionType TransactionType { get; set; }
-        public ulong CustomerNo { get { return _customerNo; } }
-        public string BusinessLine { get { return _businessLine; } }
-        public int BranchCode { get { return _branchCode; } }
-        public OperatorType Operator { get; set; }
-        public Phone Phone { get; set; }
 
-        public Guid TxnId {get {return _txnId;}}
+        public Guid TxnId { get { return _txnId; } }
+
+        public OtpRequestInfo OtpRequestInfo { get; set; } = new();
+        public SmsRequestInfo SmsRequestInfo { get; set; } = new();
+        public MailRequestInfo MailRequestInfo { get; set; } = new();
+        public CustomerRequestInfo CustomerRequestInfo { get; set; } = new();
 
         public TransactionManager(ILogger<TransactionManager> logger, PusulaClient pusulaClient)
         {
@@ -38,7 +33,37 @@ namespace bbt.gateway.messaging.Workers
 
         public void LogState()
         {
-            LogInformation(JsonConvert.SerializeObject(this));
+            var serializeOptions = new JsonSerializerSettings
+            {
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+            };
+            switch (TransactionType)
+            {
+                case TransactionType.Otp:
+                    LogInformation(JsonConvert.SerializeObject(new { CustomerRequestInfo, OtpRequestInfo }));
+                    break;
+                case TransactionType.TransactionalSms:
+                    LogInformation(JsonConvert.SerializeObject(new { CustomerRequestInfo, SmsRequestInfo }));
+                    break;
+                case TransactionType.TransactionalTemplatedSms:
+                    LogInformation(JsonConvert.SerializeObject(new { CustomerRequestInfo, SmsRequestInfo }));
+                    break;
+                case TransactionType.TransactionalMail:
+                    LogInformation(JsonConvert.SerializeObject(new { CustomerRequestInfo, MailRequestInfo }));
+                    break;
+                case TransactionType.TransactionalTemplatedMail:
+                    LogInformation(JsonConvert.SerializeObject(new { CustomerRequestInfo, MailRequestInfo }));
+                    break;
+                case TransactionType.TransactionalPush:
+                    LogInformation(JsonConvert.SerializeObject(this));
+                    break;
+                case TransactionType.TransactionalTemplatedPush:
+                    LogInformation(JsonConvert.SerializeObject(this));
+                    break;
+                default:
+                    break;
+            }
+
         }
 
         public async Task GetCustomerInfoByPhone(Phone Phone)
@@ -52,20 +77,21 @@ namespace bbt.gateway.messaging.Workers
 
             if (customer.IsSuccess)
             {
-                _customerNo = customer.CustomerNo;
+
+                CustomerRequestInfo.CustomerNo = customer.CustomerNo;
 
                 var customerDetail = await _pusulaClient.GetCustomer(new GetCustomerRequest()
                 {
-                    CustomerNo = _customerNo
+                    CustomerNo = customer.CustomerNo
                 });
 
                 if (customerDetail.IsSuccess)
                 {
-                    _businessLine = customerDetail.BusinessLine;
-                    _branchCode = customerDetail.BranchCode;
+                    CustomerRequestInfo.BusinessLine = customerDetail.BusinessLine;
+                    CustomerRequestInfo.BranchCode = customerDetail.BranchCode;
                 }
             }
-            
+
         }
 
         public async Task GetCustomerInfoByEmail(string Email)
@@ -77,77 +103,110 @@ namespace bbt.gateway.messaging.Workers
 
             if (customer.IsSuccess)
             {
-                _customerNo = customer.CustomerNo;
+                CustomerRequestInfo.CustomerNo = customer.CustomerNo;
 
                 var customerDetail = await _pusulaClient.GetCustomer(new GetCustomerRequest()
                 {
-                    CustomerNo = _customerNo
+                    CustomerNo = customer.CustomerNo
                 });
 
                 if (customerDetail.IsSuccess)
                 {
-                    _businessLine = customerDetail.BusinessLine;
-                    _branchCode = customerDetail.BranchCode;
+                    CustomerRequestInfo.BusinessLine = customerDetail.BusinessLine;
+                    CustomerRequestInfo.BranchCode = customerDetail.BranchCode;
                 }
             }
         }
 
         public async Task GetCustomerInfoByCustomerNo(ulong CustomerNo)
         {
-            _customerNo = CustomerNo;
+            CustomerRequestInfo.CustomerNo = CustomerNo;
 
             var customerDetail = await _pusulaClient.GetCustomer(new GetCustomerRequest()
             {
-                CustomerNo = _customerNo
+                CustomerNo = CustomerNo
             });
 
             if (customerDetail.IsSuccess)
             {
-                _businessLine = customerDetail.BusinessLine;
-                _branchCode = customerDetail.BranchCode;
+                CustomerRequestInfo.BusinessLine = customerDetail.BusinessLine;
+                CustomerRequestInfo.BranchCode = customerDetail.BranchCode;
             }
         }
 
         public void LogCritical(string LogMessage)
         {
-            _logger.LogCritical("TxnId:"+_txnId + " " + LogMessage);             
+            _logger.LogCritical("TxnId:" + _txnId + " | Type : " + TransactionType + " :" + LogMessage);
         }
 
         public void LogError(string LogMessage)
         {
-            _logger.LogError("TxnId:" + _txnId + " " + LogMessage);
+            _logger.LogError("TxnId:" + _txnId + " | Type : " + TransactionType + " :" + LogMessage);
         }
 
         public void LogDebug(string LogMessage)
         {
-            _logger.LogDebug("TxnId:" + _txnId + " " + LogMessage);
+            _logger.LogDebug("TxnId:" + _txnId + " | Type : " + TransactionType + " :" + LogMessage);
         }
 
         public void LogTrace(string LogMessage)
         {
-            _logger.LogTrace("TxnId:" + _txnId + " " + LogMessage);
+            _logger.LogTrace("TxnId:" + _txnId + " | Type : " + TransactionType + " :" + LogMessage);
         }
 
         public void LogInformation(string LogMessage)
         {
-            _logger.LogInformation("TxnId:" + _txnId + " " + LogMessage);
+            _logger.LogInformation("TxnId:" + _txnId + " | Type : " + TransactionType + " :" + LogMessage);
         }
 
         public void LogWarning(string LogMessage)
         {
-            _logger.LogWarning("TxnId:" + _txnId + " " + LogMessage);
+            _logger.LogWarning("TxnId:" + _txnId + " | Type : " + TransactionType + " :" + LogMessage);
         }
     }
 
-    public enum TransactionType
+    
+
+    public class CustomerRequestInfo
     {
-        Otp,
-        TransactionalSms,
-        TransactionalMail,
-        TransactionalPush,
-        BulkSms,
-        BulkPush,
-        BulkMail
+        public ulong? CustomerNo { get; set; }
+        public string BusinessLine { get; set; }
+        public int BranchCode { get; set; }
+    }
+
+    public class OtpRequestInfo
+    {
+        public Phone Phone { get; set; }
+        [JsonIgnore]
+        public PhoneConfiguration PhoneConfiguration { get; set; }
+        public OperatorType Operator { get; set; }
+        public bool BlacklistCheck { get; set; }
+        public string Content { get; set; }
+        public Process Process { get; set; }
+    }
+
+    public class SmsRequestInfo
+    {
+        public Phone Phone { get; set; }
+        [JsonIgnore]
+        public PhoneConfiguration PhoneConfiguration { get; set; }
+        public OperatorType Operator { get; set; }
+        public string Content { get; set; }
+        public string TemplateId { get; set; }
+        public string TemplateParams { get; set; }
+        public Process Process { get; set; }
+    }
+
+    public class MailRequestInfo
+    {
+        public string Email { get; set; }
+        [JsonIgnore]
+        public MailConfiguration MailConfiguration { get; set; }
+        public OperatorType Operator { get; set; }
+        public string Content { get; set; }
+        public string TemplateId { get; set; }
+        public string TemplateParams { get; set; }
+        public Process Process { get; set; }
     }
 
 }

@@ -3,6 +3,7 @@ using bbt.gateway.common.Models;
 using bbt.gateway.common.Repositories;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Refit;
 using System;
 using System.Linq;
 using System.Threading;
@@ -34,8 +35,7 @@ namespace bbt.gateway.worker
                     .ToList();
                 otpResponseLogs.ForEach(async (e) =>
                 {
-                    _logger.LogInformation($"Tracking log count : {e.TrackingLogs.Count}");
-                    if (e.TrackingLogs.Count <= 5)
+                    try
                     {
                         var response = await _messagingGatewayApi.CheckMessageStatus(new CheckSmsRequest
                         {
@@ -43,18 +43,23 @@ namespace bbt.gateway.worker
                             OtpRequestLogId = e.Id,
                             StatusQueryId = e.StatusQueryId
                         });
-                        _logger.LogInformation($"Response Delivery Status : {response.Status}");
+
                         _repositoryManager.OtpTrackingLog.Add(response);
                         if (response.Status != SmsTrackingStatus.Pending)
                         {
                             e.TrackingStatus = response.Status;
                             _repositoryManager.OtpResponseLogs.Update(e);
                         }
-
+                        _repositoryManager.SaveChanges();
                     }
+                    catch (ApiException ex)
+                    {
+                        _logger.LogCritical($"Messaging Gateway Api Error | Status Code : {ex.StatusCode}");
+                    }
+                    
+                    
                 });
-                _repositoryManager.SaveChanges();
-                _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
+                
                 await Task.Delay(3600, stoppingToken);
             }
         }

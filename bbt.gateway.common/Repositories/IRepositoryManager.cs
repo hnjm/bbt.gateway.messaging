@@ -8,10 +8,15 @@ namespace bbt.gateway.common.Repositories
         IOperatorRepository Operators { get; }
         IBlacklistEntryRepository BlackListEntries { get; }
         IPhoneConfigurationRepository PhoneConfigurations { get; }
+        IMailConfigurationRepository MailConfigurations { get; }
         IOtpRequestLogRepository OtpRequestLogs { get; }
-        ISmsLogRepository SmsLogs { get;  }
+        ISmsResponseLogRepository SmsResponseLogs { get;  }
+        ISmsRequestLogRepository SmsRequestLogs { get; }
+        IMailRequestLogRepository MailRequestLogs { get; }
+        IMailResponseLogRepository MailResponseLogs { get; }
         IOtpResponseLogRepository OtpResponseLogs { get; }
         IOtpTrackingLogRepository OtpTrackingLog { get; }
+        ITransactionRepository Transactions { get; }
         IUserRepository Users { get; }
         IDirectBlacklistRepository DirectBlacklists { get; }
         int SaveChanges();

@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace bbt.gateway.common.Models
 {
-    public class SendEmailResponse
+    public abstract class dEngageResponse
     {
-        public Guid TxnId { get; set; }
-
-        public dEngageResponseCodes Status { get; set; }
-
+        public abstract string GetResponseCode();
     }
 }
-

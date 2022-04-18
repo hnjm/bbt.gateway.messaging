@@ -9,13 +9,12 @@ namespace bbt.gateway.common.Models
 {
     public abstract class SendSmsRequest
     {
-        [JsonProperty(Order = -110)]
         public Guid Id { get; set; }
 
-        [JsonProperty(Order = -100)]
         public Phone Phone { get; set; }
 
-        [JsonProperty(Order = -50)]
+        public SmsTypes SmsType { get; set; }
+
         public Process Process { get; set; }
         
 

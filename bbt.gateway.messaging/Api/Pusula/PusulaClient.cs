@@ -43,8 +43,15 @@ namespace bbt.gateway.messaging.Api.Pusula
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var response = httpResponse.Content.ReadAsStringAsync().Result.DeserializeXml<DataTable>();
-                    getByPhoneNumberResponse.IsSuccess = true;
-                    getByPhoneNumberResponse.CustomerNo = response.diffgram.DocumentElement[0].CustomerNumber;
+                    if (response.diffgram.DocumentElement != null)
+                    {
+                        getByPhoneNumberResponse.IsSuccess = true;
+                        getByPhoneNumberResponse.CustomerNo = response.diffgram.DocumentElement[0].CustomerNumber;
+                    }
+                    else
+                    {
+                        getByPhoneNumberResponse.IsSuccess = false;
+                    }
                 }
                 else
                 {
@@ -120,9 +127,16 @@ namespace bbt.gateway.messaging.Api.Pusula
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var response = httpResponse.Content.ReadAsStringAsync().Result.DeserializeXml<DataSet>();
-                    getCustomerResponse.IsSuccess = true;
-                    getCustomerResponse.BranchCode = response.diffgram.CusInfo.CustomerIndividual.MainBranchCode;
-                    getCustomerResponse.BusinessLine = response.diffgram.CusInfo.CustomerIndividual.BusinessLine;
+                    if (response.diffgram.CusInfo != null)
+                    {
+                        getCustomerResponse.IsSuccess = true;
+                        getCustomerResponse.BranchCode = response.diffgram.CusInfo.CustomerIndividual.MainBranchCode;
+                        getCustomerResponse.BusinessLine = response.diffgram.CusInfo.CustomerIndividual.BusinessLine;
+                    }
+                    else
+                    {
+                        getCustomerResponse.IsSuccess = false;
+                    }
                 }
                 else
                 {

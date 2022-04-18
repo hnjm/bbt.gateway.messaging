@@ -5,6 +5,16 @@ namespace bbt.gateway.messaging
 {
     public class Constant
     {
+        public static readonly Dictionary<string, dEngageResponseCodes> dEngageStatusCodes = new()
+        {
+            { "0", dEngageResponseCodes.Success },
+            { "400", dEngageResponseCodes.BadRequest },
+            { "401", dEngageResponseCodes.Unauthorized },
+            { "403", dEngageResponseCodes.NotAllowed },
+            { "404", dEngageResponseCodes.NotFound },
+            { "429", dEngageResponseCodes.TooManyRequest },
+        };
+
         public static readonly Dictionary<SmsTypes, string> smsTypes = new()
         {
             { SmsTypes.Bulk, "codec" },

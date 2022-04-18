@@ -232,7 +232,7 @@ namespace bbt.gateway.messaging.Api.Vodafone
             string maskedXml = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:mes=\"http://messaging.packet.services.system.sdf.oksijen.com\">"
             + "<soap:Header>"
             + "<Authentication:usernamePassword Authentication:user=\"" + vodafoneSmsRequest.User + "\""
-            + " Authentication:sessionid=\"" + vodafoneSmsRequest.AuthToken + "\" Authentication:serviceid=\"OTP\" xmlns:Authentication=\"Authentication\"/>"
+            + " Authentication:sessionid=\"XXXX\" Authentication:serviceid=\"OTP\" xmlns:Authentication=\"Authentication\"/>"
             + "</soap:Header>"
             + "<soap:Body>"
             + "<mes:sendSMSPacket>"

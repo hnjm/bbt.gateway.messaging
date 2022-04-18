@@ -13,7 +13,7 @@ namespace bbt.gateway.common.Models
         public OperatorType? Operator { get; set; }
         public ICollection<PhoneConfigurationLog> Logs { get; set; }
         public ICollection<OtpRequestLog> OtpLogs {get;set;}
-        public ICollection<SmsLog> SmsLogs { get; set; }
+        public ICollection<SmsRequestLog> SmsLogs { get; set; }
         public ICollection<BlackListEntry> BlacklistEntries { get; set; }
     }
 }
