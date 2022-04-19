@@ -55,6 +55,7 @@ namespace bbt.gateway.messaging.Middlewares
                     Mail = _middlewareRequest.Email,
                     Phone = _middlewareRequest.Phone,
                     Request = body,
+                    IpAdress = context.Connection.RemoteIpAddress.ToString()
                 };
                 _repositoryManager.Transactions.Add(_transaction);
                 _repositoryManager.SaveChanges();

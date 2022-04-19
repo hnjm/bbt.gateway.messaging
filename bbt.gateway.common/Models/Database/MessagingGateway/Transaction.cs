@@ -14,6 +14,7 @@ namespace bbt.gateway.common.Models
         public string Request { get; set; }
         public string Response { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public string IpAdress { get; set; }
         public Process CreatedBy { get; set; }
         
         
