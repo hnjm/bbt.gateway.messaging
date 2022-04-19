@@ -107,11 +107,20 @@ namespace bbt.gateway.messaging.Workers
             var lastPass = _repositoryManager.Headers.Find(h => h.BusinessLine == null && h.Branch == null && h.ContentType == contentType).FirstOrDefault();
             if (lastPass != null) return lastPass;
 
-            
+
 
             //TODO: If db is not consistent, return firt value. Consider firing an enception 
             //LOGGING HEADER BULUNAMADI
-            var header = _repositoryManager.Headers.FirstOrDefault();
+            var header = new Header()
+            {
+                EmailTemplatePrefix = "",
+                EmailTemplateSuffix = "",
+                SmsPrefix = "",
+                SmsSuffix = "",
+                SmsSender = SenderType.Burgan,
+                SmsTemplatePrefix = "",
+                SmsTemplateSuffix = ""
+            };
 
             
 

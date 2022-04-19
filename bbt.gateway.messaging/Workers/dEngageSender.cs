@@ -30,11 +30,12 @@ namespace bbt.gateway.messaging.Workers
                 TxnId = _transactionManager.TxnId,
             };
 
+            var header = await _headerManager.Get(_transactionManager.SmsRequestInfo.PhoneConfiguration, sendMessageSmsRequest.ContentType, sendMessageSmsRequest.HeaderInfo);
 
             var smsRequest = new SmsRequestLog()
             {
                 Phone = sendMessageSmsRequest.Phone,
-                content = sendMessageSmsRequest.Content.MaskFields(),
+                content = header.SmsPrefix+" "+sendMessageSmsRequest.Content.MaskFields()+" "+header.SmsSuffix,
                 TemplateId = "",
                 TemplateParams = "",
                 SmsType = sendMessageSmsRequest.SmsType,
@@ -62,7 +63,6 @@ namespace bbt.gateway.messaging.Workers
             {
                 TxnId = _transactionManager.TxnId,
             };
-
 
             var smsRequest = new SmsRequestLog()
             {
