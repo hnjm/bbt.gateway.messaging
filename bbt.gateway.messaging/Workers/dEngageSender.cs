@@ -32,6 +32,8 @@ namespace bbt.gateway.messaging.Workers
 
             var header = await _headerManager.Get(_transactionManager.SmsRequestInfo.PhoneConfiguration, sendMessageSmsRequest.ContentType, sendMessageSmsRequest.HeaderInfo);
 
+            var contentWithHeader = header.SmsPrefix + " " + sendMessageSmsRequest.Content + " " + header.SmsSuffix
+
             var smsRequest = new SmsRequestLog()
             {
                 Phone = sendMessageSmsRequest.Phone,
@@ -43,7 +45,7 @@ namespace bbt.gateway.messaging.Workers
                 CreatedBy = sendMessageSmsRequest.Process
             };
 
-            var response = await _operatordEngage.SendSms(sendMessageSmsRequest.Phone, sendMessageSmsRequest.SmsType, sendMessageSmsRequest.Content, null, null);
+            var response = await _operatordEngage.SendSms(sendMessageSmsRequest.Phone, sendMessageSmsRequest.SmsType, contentWithHeader, null, null);
 
             smsRequest.ResponseLogs.Add(response);
             smsRequest.PhoneConfiguration = _transactionManager.SmsRequestInfo.PhoneConfiguration;
