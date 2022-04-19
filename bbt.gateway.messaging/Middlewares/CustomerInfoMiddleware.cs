@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -36,6 +37,7 @@ namespace bbt.gateway.messaging.Middlewares
             
             try
             {
+                var ipAdress = context.Request.Headers["X-Forwarded-For"].FirstOrDefault();
                 context.Request.EnableBuffering();
 
                 await using var requestStream = _recyclableMemoryStreamManager.GetStream();
@@ -55,7 +57,7 @@ namespace bbt.gateway.messaging.Middlewares
                     Mail = _middlewareRequest.Email,
                     Phone = _middlewareRequest.Phone,
                     Request = body,
-                    IpAdress = context.Connection.RemoteIpAddress.ToString()
+                    IpAdress = string.IsNullOrEmpty(ipAdress) ? context.Connection.RemoteIpAddress.ToString() : ipAdress,
                 };
                 _repositoryManager.Transactions.Add(_transaction);
                 _repositoryManager.SaveChanges();
