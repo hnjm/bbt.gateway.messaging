@@ -43,23 +43,26 @@ namespace bbt.gateway.messaging.Workers
         {
             Header header = null;
 
-            string businessLine = string.IsNullOrEmpty(_transactionManager.CustomerRequestInfo.BusinessLine) ? null : _transactionManager.CustomerRequestInfo.BusinessLine;
-            int? branch = _transactionManager.CustomerRequestInfo.BranchCode != 0 ? _transactionManager.CustomerRequestInfo.BranchCode : null;
-
             if (headerInfo.Sender != SenderType.AutoDetect)
             {
+                _transactionManager.CustomerRequestInfo.BusinessLine = headerInfo.Sender == SenderType.On ? "X" : "B";
                 var defaultHeader = new Header();
                 defaultHeader.SmsSender = headerInfo.Sender;
                 defaultHeader.SmsPrefix = headerInfo.SmsPrefix;
                 defaultHeader.SmsSuffix = headerInfo.SmsSuffix;
 
                 defaultHeader.SmsTemplatePrefix = headerInfo.SmsTemplatePrefix;
-                defaultHeader.SmsTemplateSuffix = headerInfo.SmsTemplateSuffix; 
+                defaultHeader.SmsTemplateSuffix = headerInfo.SmsTemplateSuffix;
 
                 defaultHeader.EmailTemplatePrefix = headerInfo.EmailTemplatePrefix;
                 defaultHeader.EmailTemplateSuffix = headerInfo.EmailTemplateSuffix;
                 return defaultHeader;
             }
+
+            string businessLine = string.IsNullOrEmpty(_transactionManager.CustomerRequestInfo.BusinessLine) ? null : _transactionManager.CustomerRequestInfo.BusinessLine;
+            int? branch = _transactionManager.CustomerRequestInfo.BranchCode != 0 ? _transactionManager.CustomerRequestInfo.BranchCode : null;
+
+            
 
             header = get(contentType, businessLine, branch);
             

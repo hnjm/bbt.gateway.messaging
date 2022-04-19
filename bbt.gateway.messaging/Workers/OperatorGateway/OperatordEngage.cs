@@ -26,15 +26,17 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
         {
             _authTryCount = 0;
             _dEngageClient = dEngageClient;
-            if (transactionManager.CustomerRequestInfo.BusinessLine == "X")
-                Type = OperatorType.dEngageOn;
-            else
-                Type = OperatorType.dEngageBurgan;
-            transactionManager.SmsRequestInfo.Operator = Type;
+            
         }
 
         private async Task<OperatorApiAuthResponse> Auth()
         {
+            if (TransactionManager.CustomerRequestInfo.BusinessLine == "X")
+                Type = OperatorType.dEngageOn;
+            else
+                Type = OperatorType.dEngageBurgan;
+            TransactionManager.SmsRequestInfo.Operator = Type;
+
             OperatorApiAuthResponse authResponse = new();
             if (string.IsNullOrEmpty(OperatorConfig.AuthToken) || OperatorConfig.TokenExpiredAt <= DateTime.Now.AddSeconds(-30))
             {
