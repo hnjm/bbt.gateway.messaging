@@ -32,7 +32,7 @@ namespace bbt.gateway.messaging.Workers
 
             var header = await _headerManager.Get(_transactionManager.SmsRequestInfo.PhoneConfiguration, sendMessageSmsRequest.ContentType, sendMessageSmsRequest.HeaderInfo);
 
-            var contentWithHeader = header.SmsPrefix + " " + sendMessageSmsRequest.Content + " " + header.SmsSuffix
+            var contentWithHeader = header.SmsPrefix + " " + sendMessageSmsRequest.Content + " " + header.SmsSuffix;
 
             var smsRequest = new SmsRequestLog()
             {
