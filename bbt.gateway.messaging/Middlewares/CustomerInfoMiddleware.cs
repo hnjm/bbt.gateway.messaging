@@ -48,18 +48,22 @@ namespace bbt.gateway.messaging.Middlewares
                 // Reset the request body stream position so the next middleware can read it
                 context.Request.Body.Position = 0;
 
-                _middlewareRequest = JsonConvert.DeserializeObject<MiddlewareRequest>(body);
-                    
                 _transaction = new Transaction()
                 {
-                    CreatedBy = _middlewareRequest.Process,
                     Id = _transactionManager.TxnId,
-                    Mail = _middlewareRequest.Email,
-                    Phone = _middlewareRequest.Phone,
                     Request = body,
                     IpAdress = string.IsNullOrEmpty(ipAdress) ? context.Connection.RemoteIpAddress.ToString() : ipAdress,
                 };
                 _repositoryManager.Transactions.Add(_transaction);
+                _repositoryManager.SaveChanges();
+
+                _middlewareRequest = JsonConvert.DeserializeObject<MiddlewareRequest>(body);
+
+
+                _transaction.CreatedBy = _middlewareRequest.Process;
+                _transaction.Mail = _middlewareRequest.Email;
+                _transaction.Phone = _middlewareRequest.Phone;
+                
                 _repositoryManager.SaveChanges();
 
                 var path = context.Request.Path.ToString();
