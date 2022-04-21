@@ -286,7 +286,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             {
                 if (!string.IsNullOrEmpty(html))
                 {
-                    sendMailRequest.content.fromNameId = _mailIds.data.emailFroms.Where( m => m.fromName == from).FirstOrDefault().id;
+                    sendMailRequest.content.fromNameId = _mailIds.data.emailFroms.Where( m => m.fromAddress == from).FirstOrDefault().id;
                     sendMailRequest.content.html = html.ClearMaskingFields();
                     sendMailRequest.content.subject = subject.ClearMaskingFields();
                 }
