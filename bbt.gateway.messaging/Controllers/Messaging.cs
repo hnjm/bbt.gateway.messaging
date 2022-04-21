@@ -107,7 +107,7 @@ namespace bbt.gateway.messaging.Controllers
         public async Task<IActionResult> SendTemplatedEmail([FromBody] SendTemplatedEmailRequest data)
         {
             var response = await _dEngageSender.SendTemplatedMail(data);
-            return Ok();
+            return Ok(response);
         }
 
 
@@ -119,8 +119,8 @@ namespace bbt.gateway.messaging.Controllers
         [SwaggerResponse(200, "Email was sent successfully", typeof(SendEmailResponse))]
         public async Task<IActionResult> SendMessageEmail([FromBody] SendMessageEmailRequest data)
         {
-            await _dEngageSender.SendMail(data);
-            return Ok();
+            var response = await _dEngageSender.SendMail(data);
+            return Ok(response);
         }
 
         [SwaggerOperation(
