@@ -23,6 +23,7 @@ namespace bbt.gateway.messaging.Middlewares
         private Transaction _transaction;
         private RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
+        
         public CustomerInfoMiddleware(RequestDelegate next)
         {
             _next = next;
@@ -147,10 +148,27 @@ namespace bbt.gateway.messaging.Middlewares
 
                 _repositoryManager.SaveChanges();
             }
+            catch (FormatException ex)
+            {
+                _transactionManager.LogState();
+                _transactionManager.LogError("An Error Occured | Detail :" + ex.ToString());
+
+                using (var writer = new StreamWriter(context.Response.Body))
+                {
+                    context.Response.StatusCode = 500;
+                    await writer.WriteAsync("Customer No Should Be Valid Long Value");
+                }
+            }
             catch (Exception ex)
             {
                 _transactionManager.LogState();
                 _transactionManager.LogError("An Error Occured | Detail :"+ex.ToString());
+
+                using (var writer = new StreamWriter(context.Response.Body))
+                {
+                    context.Response.StatusCode = 500;
+                    await writer.WriteAsync("Internal Server Error");
+                }
             }
         }
 
@@ -263,6 +281,7 @@ namespace bbt.gateway.messaging.Middlewares
 
                     };
 
+                    mailConfiguration.Logs = new List<MailConfigurationLog>();
                     var mailConfigurationLog = new MailConfigurationLog()
                     {
                         Action = "Initialize",
