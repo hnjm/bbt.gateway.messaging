@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using bbt.gateway.common;
 
@@ -11,9 +12,10 @@ using bbt.gateway.common;
 namespace bbt.gateway.messaging.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20220420120222_TransactionRequestIndexes")]
+    partial class TransactionRequestIndexes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -133,7 +135,7 @@ namespace bbt.gateway.messaging.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("a364b99b-092b-45d5-9c9f-a513ed1dd09f"),
+                            Id = new Guid("40d24780-fbcb-4a62-b427-97ab1046e1a5"),
                             ContentType = 0,
                             EmailTemplatePrefix = "",
                             SmsPrefix = "",
@@ -143,7 +145,7 @@ namespace bbt.gateway.messaging.Migrations
                         },
                         new
                         {
-                            Id = new Guid("53f7519e-a3c2-46fa-985b-f4dec7f7d954"),
+                            Id = new Guid("9d083b75-8487-4e2f-b079-33fe8f91cad4"),
                             Branch = 2000,
                             ContentType = 0,
                             EmailTemplatePrefix = "",
@@ -218,6 +220,9 @@ namespace bbt.gateway.messaging.Migrations
 
                     b.Property<string>("TemplateParams")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("TxnId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("content")
                         .HasColumnType("nvarchar(max)");
@@ -405,6 +410,9 @@ namespace bbt.gateway.messaging.Migrations
                     b.Property<Guid?>("PhoneConfigurationId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid>("TxnId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
 
                     b.HasIndex("PhoneConfigurationId");
@@ -552,6 +560,9 @@ namespace bbt.gateway.messaging.Migrations
 
                     b.Property<string>("TemplateParams")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("TxnId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("content")
                         .HasColumnType("nvarchar(max)");

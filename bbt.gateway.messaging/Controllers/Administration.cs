@@ -200,5 +200,13 @@ namespace bbt.gateway.messaging.Controllers
                 .ToArray());
         }
 
+        [SwaggerOperation(Summary = "Returns transactions info")]
+        [HttpGet("transactions/{countryCode}/{prefix}/{number}")]
+        [SwaggerResponse(200, "Records was returned successfully", typeof(Transaction[]))]
+        public IActionResult GetTransactionsWithPhone(int countryCode, int prefix, int number, [Range(0, 100)] int page = 0, [Range(1, 100)] int pageSize = 20)
+        {
+            return Ok(_repositoryManager.Transactions.GetWithPhone(countryCode,prefix,number,page,pageSize));
+        }
+
     }
 }

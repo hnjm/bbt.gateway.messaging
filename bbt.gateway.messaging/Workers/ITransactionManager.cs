@@ -8,6 +8,9 @@ namespace bbt.gateway.messaging.Workers
     {
         public Guid TxnId { get; }
 
+        public OtpRequestLog OtpRequestLog { get; set; }
+        public SmsRequestLog SmsRequestLog { get; set; }
+        public MailRequestLog MailRequestLog { get; set; }
         public OtpRequestInfo OtpRequestInfo { get; set; }
         public SmsRequestInfo SmsRequestInfo { get; set; }
         public MailRequestInfo MailRequestInfo { get; set; }

@@ -59,8 +59,7 @@ namespace bbt.gateway.messaging.Workers
             _requestLog = new OtpRequestLog
             {
                 CreatedBy = _data.Process,
-                Phone = _data.Phone,
-                TxnId = _transactionManager.TxnId
+                Phone = _data.Phone
             };
 
             // Load Phone configuration and related active blacklist entiries.
@@ -178,7 +177,7 @@ namespace bbt.gateway.messaging.Workers
 
             _repositoryManager.OtpRequestLogs.Add(_requestLog);
             _repositoryManager.SaveChanges();
-            
+            _transactionManager.OtpRequestLog = _requestLog;
 
             return returnValue;
         }

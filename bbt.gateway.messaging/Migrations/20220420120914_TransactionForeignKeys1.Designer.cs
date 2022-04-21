@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using bbt.gateway.common;
 
@@ -11,9 +12,10 @@ using bbt.gateway.common;
 namespace bbt.gateway.messaging.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20220420120914_TransactionForeignKeys1")]
+    partial class TransactionForeignKeys1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -133,7 +135,7 @@ namespace bbt.gateway.messaging.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("a364b99b-092b-45d5-9c9f-a513ed1dd09f"),
+                            Id = new Guid("4022745e-5c0a-4d92-b7af-bc0e4618709d"),
                             ContentType = 0,
                             EmailTemplatePrefix = "",
                             SmsPrefix = "",
@@ -143,7 +145,7 @@ namespace bbt.gateway.messaging.Migrations
                         },
                         new
                         {
-                            Id = new Guid("53f7519e-a3c2-46fa-985b-f4dec7f7d954"),
+                            Id = new Guid("a7c32626-860b-4714-8619-c959ba675dbe"),
                             Branch = 2000,
                             ContentType = 0,
                             EmailTemplatePrefix = "",
@@ -218,6 +220,9 @@ namespace bbt.gateway.messaging.Migrations
 
                     b.Property<string>("TemplateParams")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("TxnId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("content")
                         .HasColumnType("nvarchar(max)");
@@ -405,6 +410,9 @@ namespace bbt.gateway.messaging.Migrations
                     b.Property<Guid?>("PhoneConfigurationId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid>("TxnId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
 
                     b.HasIndex("PhoneConfigurationId");
@@ -553,6 +561,9 @@ namespace bbt.gateway.messaging.Migrations
                     b.Property<string>("TemplateParams")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid>("TxnId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("content")
                         .HasColumnType("nvarchar(max)");
 
@@ -615,31 +626,16 @@ namespace bbt.gateway.messaging.Migrations
                     b.Property<string>("Mail")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid?>("MailRequestLogId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("OtpRequestLogId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("Request")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Response")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid?>("SmsRequestLogId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<int>("TransactionType")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("MailRequestLogId");
-
-                    b.HasIndex("OtpRequestLogId");
-
-                    b.HasIndex("SmsRequestLogId");
 
                     b.ToTable("Transactions");
                 });
@@ -1042,18 +1038,6 @@ namespace bbt.gateway.messaging.Migrations
 
             modelBuilder.Entity("bbt.gateway.common.Models.Transaction", b =>
                 {
-                    b.HasOne("bbt.gateway.common.Models.MailRequestLog", "MailRequestLog")
-                        .WithMany()
-                        .HasForeignKey("MailRequestLogId");
-
-                    b.HasOne("bbt.gateway.common.Models.OtpRequestLog", "OtpRequestLog")
-                        .WithMany()
-                        .HasForeignKey("OtpRequestLogId");
-
-                    b.HasOne("bbt.gateway.common.Models.SmsRequestLog", "SmsRequestLog")
-                        .WithMany()
-                        .HasForeignKey("SmsRequestLogId");
-
                     b.OwnsOne("bbt.gateway.common.Models.Process", "CreatedBy", b1 =>
                         {
                             b1.Property<Guid>("TransactionId")
@@ -1104,13 +1088,7 @@ namespace bbt.gateway.messaging.Migrations
 
                     b.Navigation("CreatedBy");
 
-                    b.Navigation("MailRequestLog");
-
-                    b.Navigation("OtpRequestLog");
-
                     b.Navigation("Phone");
-
-                    b.Navigation("SmsRequestLog");
                 });
 
             modelBuilder.Entity("bbt.gateway.common.Models.BlackListEntry", b =>

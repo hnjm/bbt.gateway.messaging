@@ -132,6 +132,9 @@ namespace bbt.gateway.messaging.Middlewares
                 await responseBody.CopyToAsync(originalStream);
 
                 _transaction.TransactionType = _transactionManager.TransactionType;
+                _transaction.OtpRequestLog = _transactionManager.OtpRequestLog;
+                _transaction.SmsRequestLog = _transactionManager.SmsRequestLog;
+                _transaction.MailRequestLog = _transactionManager.MailRequestLog;
                 if (_transactionManager.TransactionType == TransactionType.Otp)
                 {
                     _transaction.Response = response.MaskOtpContent();
@@ -241,6 +244,7 @@ namespace bbt.gateway.messaging.Middlewares
                 else
                     _transactionManager.SmsRequestInfo.PhoneConfiguration = phoneConfiguration;
             }
+
         }
 
         private async Task GetCustomerInfoByEmail(ulong? CustomerNo = null)

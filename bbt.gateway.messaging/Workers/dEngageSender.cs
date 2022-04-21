@@ -41,7 +41,6 @@ namespace bbt.gateway.messaging.Workers
                 TemplateId = "",
                 TemplateParams = "",
                 SmsType = sendMessageSmsRequest.SmsType,
-                TxnId = _transactionManager.TxnId,
                 CreatedBy = sendMessageSmsRequest.Process
             };
 
@@ -53,7 +52,7 @@ namespace bbt.gateway.messaging.Workers
             _repositoryManager.SmsRequestLogs.Add(smsRequest);
 
             _repositoryManager.SaveChanges();
-
+            _transactionManager.SmsRequestLog = smsRequest;
             sendSmsResponse.Status = response.GetdEngageStatus();
 
             return sendSmsResponse;
@@ -73,7 +72,6 @@ namespace bbt.gateway.messaging.Workers
                 TemplateId = sendTemplatedSmsRequest.Template,
                 TemplateParams = sendTemplatedSmsRequest.TemplateParams.MaskFields(),
                 SmsType = sendTemplatedSmsRequest.SmsType,
-                TxnId = _transactionManager.TxnId,
                 CreatedBy = sendTemplatedSmsRequest.Process
             };
 
@@ -86,7 +84,7 @@ namespace bbt.gateway.messaging.Workers
             _repositoryManager.SmsRequestLogs.Add(smsRequest);
 
             _repositoryManager.SaveChanges();
-
+            _transactionManager.SmsRequestLog = smsRequest;
             sendSmsResponse.Status = response.GetdEngageStatus();
 
             return sendSmsResponse;
@@ -108,7 +106,6 @@ namespace bbt.gateway.messaging.Workers
                 TemplateId = "",
                 TemplateParams = "",
                 FromMail = sendMessageEmailRequest.From,
-                TxnId = _transactionManager.TxnId,
                 CreatedBy = sendMessageEmailRequest.Process
             };
 
@@ -121,7 +118,7 @@ namespace bbt.gateway.messaging.Workers
             _repositoryManager.MailRequestLogs.Add(mailRequest);
 
             _repositoryManager.SaveChanges();
-
+            _transactionManager.MailRequestLog = mailRequest;
             sendEmailResponse.Status = response.GetdEngageStatus();
 
             return sendEmailResponse;
@@ -139,7 +136,6 @@ namespace bbt.gateway.messaging.Workers
                 subject = "",
                 TemplateId = sendTemplatedEmailRequest.Template,
                 TemplateParams = sendTemplatedEmailRequest.TemplateParams.MaskFields(),
-                TxnId = _transactionManager.TxnId,
                 CreatedBy = sendTemplatedEmailRequest.Process
             };
 
@@ -152,7 +148,7 @@ namespace bbt.gateway.messaging.Workers
             _repositoryManager.MailRequestLogs.Add(mailRequest);
 
             _repositoryManager.SaveChanges();
-
+            _transactionManager.MailRequestLog = mailRequest;
             sendEmailResponse.Status = response.GetdEngageStatus();
 
             return sendEmailResponse;

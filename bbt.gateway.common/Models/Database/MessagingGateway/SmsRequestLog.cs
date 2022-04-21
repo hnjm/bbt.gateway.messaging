@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
 namespace bbt.gateway.common.Models
 {
     public class SmsRequestLog
     {
         public Guid Id { get; set; } = Guid.NewGuid();
-        public Guid TxnId { get; set; }
         public PhoneConfiguration PhoneConfiguration { get; set; }
         public Phone Phone { get; set; }
         public string content { get; set; }
@@ -18,6 +14,6 @@ namespace bbt.gateway.common.Models
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public Process CreatedBy { get; set; }
         public ICollection<SmsResponseLog> ResponseLogs { get; set; } = new List<SmsResponseLog>();
-        
+
     }
 }

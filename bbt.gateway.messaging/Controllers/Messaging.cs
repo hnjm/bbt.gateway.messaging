@@ -119,7 +119,7 @@ namespace bbt.gateway.messaging.Controllers
         [SwaggerResponse(200, "Email was sent successfully", typeof(SendEmailResponse))]
         public async Task<IActionResult> SendMessageEmail([FromBody] SendMessageEmailRequest data)
         {
-            //await _operatordEngage.SendMail(data.Email,data.Subject,data.Content,null,null);
+            await _operatordEngage.SendMail(data.Email,data.Subject,data.Content,null,null);
             return Ok();
         }
 
