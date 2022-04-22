@@ -17,10 +17,10 @@ namespace bbt.gateway.common.Repositories
         IOtpResponseLogRepository OtpResponseLogs { get; }
         IOtpTrackingLogRepository OtpTrackingLog { get; }
         ITransactionRepository Transactions { get; }
-        IUserRepository Users { get; }
+        //IUserRepository Users { get; }
         IDirectBlacklistRepository DirectBlacklists { get; }
         int SaveChanges();
-        int SaveDodgeChanges();
+        //int SaveDodgeChanges();
         int SaveSmsBankingChanges();
     }
 }

@@ -7,7 +7,7 @@ namespace bbt.gateway.common
         private readonly DatabaseContext _databaseContext;
         //private readonly DodgeDatabaseContext _dodgeDatabaseContext;
         private readonly SmsBankingDatabaseContext _smsBankingDatabaseContext;
-        private UserRepository _userRepository;
+        //private UserRepository _userRepository;
         private DirectBlacklistRepository _directBlacklistRepository;
         private HeaderRepository _headerRepository;
         private OperatorRepository _operatorRepository;
@@ -24,7 +24,7 @@ namespace bbt.gateway.common
         private TransactionRepository _transactionRepository;
         
 
-        public RepositoryManager(DatabaseContext databaseContext,DodgeDatabaseContext dodgeDatabaseContext,
+        public RepositoryManager(DatabaseContext databaseContext,
             SmsBankingDatabaseContext smsBankingDatabaseContext)
         {
             _databaseContext = databaseContext;
@@ -67,10 +67,10 @@ namespace bbt.gateway.common
             return _databaseContext.SaveChanges();
         }
 
-        public int SaveDodgeChanges()
-        {
-            //return _dodgeDatabaseContext.SaveChanges();
-        }
+        //public int SaveDodgeChanges()
+        //{
+        //    return _dodgeDatabaseContext.SaveChanges();
+        //}
 
         public int SaveSmsBankingChanges()
         {
