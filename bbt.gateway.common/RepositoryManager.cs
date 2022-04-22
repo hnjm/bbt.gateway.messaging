@@ -5,7 +5,7 @@ namespace bbt.gateway.common
     public class RepositoryManager : IRepositoryManager
     {
         private readonly DatabaseContext _databaseContext;
-        private readonly DodgeDatabaseContext _dodgeDatabaseContext;
+        //private readonly DodgeDatabaseContext _dodgeDatabaseContext;
         private readonly SmsBankingDatabaseContext _smsBankingDatabaseContext;
         private UserRepository _userRepository;
         private DirectBlacklistRepository _directBlacklistRepository;
@@ -28,7 +28,7 @@ namespace bbt.gateway.common
             SmsBankingDatabaseContext smsBankingDatabaseContext)
         {
             _databaseContext = databaseContext;
-            _dodgeDatabaseContext = dodgeDatabaseContext;
+            //_dodgeDatabaseContext = dodgeDatabaseContext;
             _smsBankingDatabaseContext = smsBankingDatabaseContext;
         }
 
@@ -50,7 +50,7 @@ namespace bbt.gateway.common
 
         public IOtpTrackingLogRepository OtpTrackingLog => _otpTrackingLogRepository ??= new OtpTrackingLogRepository(_databaseContext);
 
-        public IUserRepository Users => _userRepository ??= new UserRepository(_dodgeDatabaseContext);
+        //public IUserRepository Users => _userRepository ??= new UserRepository(_dodgeDatabaseContext);
 
         public IDirectBlacklistRepository DirectBlacklists => _directBlacklistRepository ??= new DirectBlacklistRepository(_smsBankingDatabaseContext);
 
@@ -69,7 +69,7 @@ namespace bbt.gateway.common
 
         public int SaveDodgeChanges()
         {
-            return _dodgeDatabaseContext.SaveChanges();
+            //return _dodgeDatabaseContext.SaveChanges();
         }
 
         public int SaveSmsBankingChanges()
@@ -80,7 +80,7 @@ namespace bbt.gateway.common
         public void Dispose()
         {
             _databaseContext.Dispose();
-            _dodgeDatabaseContext.Dispose();
+            //_dodgeDatabaseContext.Dispose();
             _smsBankingDatabaseContext.Dispose();
         }
     }

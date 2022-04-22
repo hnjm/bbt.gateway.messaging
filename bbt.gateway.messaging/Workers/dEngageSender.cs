@@ -92,7 +92,6 @@ namespace bbt.gateway.messaging.Workers
 
         public async Task<SendEmailResponse> SendMail(SendMessageEmailRequest sendMessageEmailRequest)
         {
-
             SendEmailResponse sendEmailResponse = new SendEmailResponse()
             {
                 TxnId = _transactionManager.TxnId,

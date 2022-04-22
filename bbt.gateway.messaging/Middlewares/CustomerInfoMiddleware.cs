@@ -22,7 +22,6 @@ namespace bbt.gateway.messaging.Middlewares
         private IRepositoryManager _repositoryManager;
         private Transaction _transaction;
         private RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
-
         
         public CustomerInfoMiddleware(RequestDelegate next)
         {
@@ -116,9 +115,7 @@ namespace bbt.gateway.messaging.Middlewares
                 }
 
 
-
-
-
+                
                 var originalStream = context.Response.Body;
                 await using var responseBody = _recyclableMemoryStreamManager.GetStream();
                 context.Response.Body = responseBody;
@@ -150,25 +147,31 @@ namespace bbt.gateway.messaging.Middlewares
             }
             catch (FormatException ex)
             {
-                _transactionManager.LogState();
-                _transactionManager.LogError("An Error Occured | Detail :" + ex.ToString());
+                _transaction.TransactionType = _transactionManager.TransactionType;
+                _transaction.OtpRequestLog = _transactionManager.OtpRequestLog;
+                _transaction.SmsRequestLog = _transactionManager.SmsRequestLog;
+                _transaction.MailRequestLog = _transactionManager.MailRequestLog;
+                _transaction.Response = "Customer No Should Be Valid Long Value | Detail :" + ex.ToString();
+                _repositoryManager.SaveChanges();
 
-                using (var writer = new StreamWriter(context.Response.Body))
-                {
-                    context.Response.StatusCode = 500;
-                    await writer.WriteAsync("Customer No Should Be Valid Long Value");
-                }
+                _transactionManager.LogState();
+                _transactionManager.LogError("Customer No Should Be Valid Long Value | Detail :" + ex.ToString());
+
+                context.Response.StatusCode = 500;
             }
             catch (Exception ex)
             {
+                _transaction.TransactionType = _transactionManager.TransactionType;
+                _transaction.OtpRequestLog = _transactionManager.OtpRequestLog;
+                _transaction.SmsRequestLog = _transactionManager.SmsRequestLog;
+                _transaction.MailRequestLog = _transactionManager.MailRequestLog;
+                _transaction.Response = "An Error Occured | Detail :" + ex.ToString();
+                _repositoryManager.SaveChanges();
+
                 _transactionManager.LogState();
                 _transactionManager.LogError("An Error Occured | Detail :"+ex.ToString());
 
-                using (var writer = new StreamWriter(context.Response.Body))
-                {
-                    context.Response.StatusCode = 500;
-                    await writer.WriteAsync("Internal Server Error");
-                }
+                context.Response.StatusCode = 500;
             }
         }
 

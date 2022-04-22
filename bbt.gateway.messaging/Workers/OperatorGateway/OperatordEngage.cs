@@ -116,6 +116,11 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                         mailResponseLog.ResponseMessage = $"dEngage | Http Status Code : {(int)ex.StatusCode} | Cannot Retrieve Sms Froms";
                         return mailResponseLog;
                     }
+                    if (_mailIds.data.emailFroms.Where(m => m.fromAddress == from).FirstOrDefault() == null) 
+                    {
+                        mailResponseLog.ResponseCode = "99999";
+                        mailResponseLog.ResponseMessage = "Mail From is Not Found";
+                    }
                 }
                
                 try
@@ -286,7 +291,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             {
                 if (!string.IsNullOrEmpty(html))
                 {
-                    sendMailRequest.content.fromNameId = _mailIds.data.emailFroms.Where( m => m.fromAddress == from).FirstOrDefault().id;
+                    sendMailRequest.content.fromNameId = _mailIds.data.emailFroms.Where(m => m.fromAddress == from).FirstOrDefault().id;
                     sendMailRequest.content.html = html.ClearMaskingFields();
                     sendMailRequest.content.subject = subject.ClearMaskingFields();
                 }

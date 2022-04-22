@@ -77,7 +77,7 @@ namespace bbt.gateway.messaging
             services.ConfigureOptions<ConfigureSwaggerOptions>();
 
             services.AddDbContext<DatabaseContext>(o => o.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("bbt.gateway.messaging")));
-            services.AddDbContext<DodgeDatabaseContext>(o => o.UseSqlServer(Configuration.GetConnectionString("DodgeConnection")));
+            //services.AddDbContext<DodgeDatabaseContext>(o => o.UseSqlServer(Configuration.GetConnectionString("DodgeConnection")));
             services.AddDbContext<SmsBankingDatabaseContext>(o => o.UseSqlServer(Configuration.GetConnectionString("SmsBankingConnection")));
 
             services.AddScoped<IRepositoryManager, RepositoryManager>();

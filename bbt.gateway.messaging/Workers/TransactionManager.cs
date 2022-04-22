@@ -4,6 +4,7 @@ using bbt.gateway.messaging.Api.Pusula.Model.GetByPhone;
 using bbt.gateway.messaging.Api.Pusula.Model.GetCustomer;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Serilog;
 using System;
 using System.Threading.Tasks;
 
@@ -12,9 +13,8 @@ namespace bbt.gateway.messaging.Workers
     public class TransactionManager : ITransactionManager
     {
         private readonly Guid _txnId;
-        private ILogger<TransactionManager> _logger;
+        private Serilog.ILogger _logger;
         private readonly PusulaClient _pusulaClient;
-
         public TransactionType TransactionType { get; set; }
 
         public Guid TxnId { get { return _txnId; } }
@@ -31,16 +31,14 @@ namespace bbt.gateway.messaging.Workers
         public TransactionManager(ILogger<TransactionManager> logger, PusulaClient pusulaClient)
         {
             _txnId = Guid.NewGuid();
-            _logger = logger;
+            _logger = Log.ForContext<TransactionManager>();
             _pusulaClient = pusulaClient;
+            
         }
 
         public void LogState()
         {
-            var serializeOptions = new JsonSerializerSettings
-            {
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-            };
+            
             switch (TransactionType)
             {
                 case TransactionType.Otp:
@@ -140,32 +138,32 @@ namespace bbt.gateway.messaging.Workers
 
         public void LogCritical(string LogMessage)
         {
-            _logger.LogCritical("TxnId:" + _txnId + " | Type : " + TransactionType + " :" + LogMessage);
+            _logger.Fatal("TxnId:" + _txnId + " | Type : " + TransactionType + " :" + LogMessage);
         }
 
         public void LogError(string LogMessage)
         {
-            _logger.LogError("TxnId:" + _txnId + " | Type : " + TransactionType + " :" + LogMessage);
+            _logger.Error("TxnId:" + _txnId + " | Type : " + TransactionType + " :" + LogMessage);
         }
 
         public void LogDebug(string LogMessage)
         {
-            _logger.LogDebug("TxnId:" + _txnId + " | Type : " + TransactionType + " :" + LogMessage);
+            _logger.Debug("TxnId:" + _txnId + " | Type : " + TransactionType + " :" + LogMessage);
         }
 
         public void LogTrace(string LogMessage)
         {
-            _logger.LogTrace("TxnId:" + _txnId + " | Type : " + TransactionType + " :" + LogMessage);
+            _logger.Verbose("TxnId:" + _txnId + " | Type : " + TransactionType + " :" + LogMessage);
         }
 
         public void LogInformation(string LogMessage)
         {
-            _logger.LogInformation("TxnId:" + _txnId + " | Type : " + TransactionType + " :" + LogMessage);
+            _logger.Information("TxnId:" + _txnId + " | Type : " + TransactionType + " :" + LogMessage);
         }
 
         public void LogWarning(string LogMessage)
         {
-            _logger.LogWarning("TxnId:" + _txnId + " | Type : " + TransactionType + " :" + LogMessage);
+            _logger.Warning("TxnId:" + _txnId + " | Type : " + TransactionType + " :" + LogMessage);
         }
     }
 
