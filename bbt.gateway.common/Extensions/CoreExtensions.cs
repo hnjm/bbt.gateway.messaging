@@ -69,7 +69,7 @@ namespace bbt.gateway.common
                 var configuration = builder.Build();
                 Serilog.Debugging.SelfLog.Enable(msg => Console.WriteLine(msg));
                 ApiKeyAuthenticationCredentials k = new ApiKeyAuthenticationCredentials(configuration["ElasticSearch:ApiKey"]);
-                indexFormat = (environmentName != "Production" ? "nonprod-" : "prod-") + indexFormat;
+                indexFormat = (environmentName != "Prod" ? "nonprod-" : "prod-") + indexFormat;
                 Log.Logger = new LoggerConfiguration()
                 .Enrich.FromLogContext()
                 .Enrich.WithEnvironmentName()

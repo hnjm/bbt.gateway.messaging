@@ -10,6 +10,15 @@ namespace bbt.gateway.common.Repositories
 
         }
 
+        public Transaction GetWithId(Guid TxnId)
+        {
+            return Context.Transactions
+                .Where(t => t.Id == TxnId)
+                .Include(t => t.OtpRequestLog).ThenInclude(o => o.ResponseLogs).ThenInclude(o => o.TrackingLogs)
+                .Include(t => t.SmsRequestLog).ThenInclude(s => s.ResponseLogs)
+                .SingleOrDefault();
+        }
+
         public IEnumerable<Transaction> GetWithPhone(int countryCode, int prefix, int number, int page, int pageSize)
         {
             return Context.Transactions

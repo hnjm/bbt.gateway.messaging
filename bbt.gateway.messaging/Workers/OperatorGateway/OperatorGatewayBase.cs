@@ -23,7 +23,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 .Options;
         }
 
-        protected OperatorType Type
+        public OperatorType Type
         {
             get { return type; }
             set

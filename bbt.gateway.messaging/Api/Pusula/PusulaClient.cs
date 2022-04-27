@@ -3,10 +3,12 @@ using bbt.gateway.messaging.Api.Pusula.Model.GetCustomer;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace bbt.gateway.messaging.Api.Pusula
 {
@@ -120,18 +122,32 @@ namespace bbt.gateway.messaging.Api.Pusula
                 {
                     {"custNo", getCustomerRequest.CustomerNo.ToString()},
                 };
-                var t = QueryHelpers.AddQueryString(_configuration.GetValue<string>("Api:Pusula:EndPoints:GetCustomer"), queryParams);
                 var httpResponse = await _httpClient.GetAsync(
                     QueryHelpers.AddQueryString(_configuration.GetValue<string>("Api:Pusula:EndPoints:GetCustomer"), queryParams));
 
                 if (httpResponse.IsSuccessStatusCode)
                 {
-                    var response = httpResponse.Content.ReadAsStringAsync().Result.DeserializeXml<DataSet>();
-                    if (response.diffgram.CusInfo != null)
+                    var httpContent = httpResponse.Content.ReadAsStringAsync().Result;
+
+                    var customerIndividual = httpContent.
+                        GetWithRegexSingle("(<CustomerIndividual[^>]*>)(.*?)(</CustomerIndividual>)",2);
+                    if (!string.IsNullOrEmpty(customerIndividual))
                     {
-                        getCustomerResponse.IsSuccess = true;
-                        getCustomerResponse.BranchCode = response.diffgram.CusInfo.CustomerIndividual.MainBranchCode;
-                        getCustomerResponse.BusinessLine = response.diffgram.CusInfo.CustomerIndividual.BusinessLine;
+                        XmlDocument xmlDocument = new XmlDocument();
+                        xmlDocument.LoadXml("<root>" + customerIndividual + "</root>");
+                        var serializedJson = JsonConvert.SerializeXmlNode(xmlDocument);
+                        var pusulaCustomerInfo = JsonConvert.DeserializeObject<PusulaCustomerRoot>(serializedJson);
+
+                        if (!string.IsNullOrEmpty(pusulaCustomerInfo.root.BusinessLine))
+                        {
+                            getCustomerResponse.IsSuccess = true;
+                            getCustomerResponse.BranchCode = pusulaCustomerInfo.root.MainBranchCode;
+                            getCustomerResponse.BusinessLine = pusulaCustomerInfo.root.BusinessLine;
+                        }
+                        else
+                        {
+                            getCustomerResponse.IsSuccess = false;
+                        }
                     }
                     else
                     {

@@ -5,6 +5,7 @@ namespace bbt.gateway.common.Models
     public class MailRequestLog
     {
         public Guid Id { get; set; } = Guid.NewGuid();
+        public OperatorType Operator { get; set; }
         public MailConfiguration MailConfiguration { get; set; }
         public string FromMail { get; set; }
         public string subject { get; set; }

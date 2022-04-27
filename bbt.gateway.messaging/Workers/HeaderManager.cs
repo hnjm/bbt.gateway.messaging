@@ -1,13 +1,9 @@
 ﻿using bbt.gateway.common.Models;
 using bbt.gateway.common.Repositories;
 using bbt.gateway.messaging.Api.Pusula;
-using bbt.gateway.messaging.Api.Pusula.Model.GetByPhone;
-using bbt.gateway.messaging.Api.Pusula.Model.GetCustomer;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
-using System.Threading.Tasks;
 
 namespace bbt.gateway.messaging.Workers
 {
@@ -16,18 +12,16 @@ namespace bbt.gateway.messaging.Workers
         public List<Header> Headers = new List<Header>();
         private readonly ITransactionManager _transactionManager;
         private readonly IRepositoryManager _repositoryManager;
-        private readonly PusulaClient _pusulaClient;
         private ulong _customerNo;
 
         public long CustomerNo { get { return (long)_customerNo; } }
 
-        public HeaderManager(IRepositoryManager repositoryManager, PusulaClient pusulaClient,
+        public HeaderManager(IRepositoryManager repositoryManager, 
             ITransactionManager transactionManager
             )
         {
             _transactionManager = transactionManager;
             _repositoryManager = repositoryManager;
-            _pusulaClient = pusulaClient;
             loadHeaders();
         }
 
@@ -35,11 +29,11 @@ namespace bbt.gateway.messaging.Workers
         {
             Header[] returnValue;
             returnValue = _repositoryManager.Headers.GetWithPagination(page, pageSize).ToArray();
-            
+
             return returnValue;
         }
 
-        public async Task<Header> Get(PhoneConfiguration config, MessageContentType contentType,HeaderInfo headerInfo)
+        public Header Get(PhoneConfiguration config, MessageContentType contentType, HeaderInfo headerInfo)
         {
             Header header = null;
 
@@ -62,16 +56,16 @@ namespace bbt.gateway.messaging.Workers
             string businessLine = string.IsNullOrEmpty(_transactionManager.CustomerRequestInfo.BusinessLine) ? null : _transactionManager.CustomerRequestInfo.BusinessLine;
             int? branch = _transactionManager.CustomerRequestInfo.BranchCode != 0 ? _transactionManager.CustomerRequestInfo.BranchCode : null;
 
-            
+
 
             header = get(contentType, businessLine, branch);
-            
+
             return header;
         }
 
         public void Save(Header header)
         {
-            
+
             if (header.Id == Guid.Empty)
             {
                 header.Id = Guid.NewGuid();
@@ -96,7 +90,7 @@ namespace bbt.gateway.messaging.Workers
 
         private Header get(MessageContentType contentType, string businessLine, int? branch)
         {
-                
+
             var firstPass = _repositoryManager.Headers.Find(h => h.BusinessLine == businessLine && h.Branch == branch && h.ContentType == contentType).FirstOrDefault();
             if (firstPass != null) return firstPass;
 
@@ -125,7 +119,7 @@ namespace bbt.gateway.messaging.Workers
                 SmsTemplateSuffix = ""
             };
 
-            
+
 
             return header;
         }
@@ -133,7 +127,7 @@ namespace bbt.gateway.messaging.Workers
         private void loadHeaders()
         {
             Headers = _repositoryManager.Headers.GetAll().ToList();
-            
+
         }
 
 

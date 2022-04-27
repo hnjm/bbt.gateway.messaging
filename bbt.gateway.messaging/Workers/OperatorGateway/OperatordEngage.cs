@@ -31,10 +31,6 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
         private async Task<OperatorApiAuthResponse> Auth()
         {
-            if (TransactionManager.CustomerRequestInfo.BusinessLine == "X")
-                Type = OperatorType.dEngageOn;
-            else
-                Type = OperatorType.dEngageBurgan;
             TransactionManager.SmsRequestInfo.Operator = Type;
 
             OperatorApiAuthResponse authResponse = new();
@@ -92,6 +88,32 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             }
 
             return authResponse;
+        }
+
+        public async Task<SmsStatusResponse> CheckSms(string queryId)
+        {
+            var authResponse = await Auth();
+            if (authResponse.ResponseCode == "0")
+            {
+                try
+                {
+                    SmsStatusRequest smsStatusRequest = new()
+                    {
+                        trackingId = queryId,
+                    };
+                    var response = await _dEngageClient.GetSmsStatus(_authToken, smsStatusRequest);
+                    return response;
+                }
+                catch (ApiException ex)
+                {
+
+                }
+            }
+            else
+            { 
+            
+            }
+            return null;
         }
 
         public async Task<MailResponseLog> SendMail(string to, string? from, string? subject, string? html, string? templateId, string? templateParams)

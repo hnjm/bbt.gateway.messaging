@@ -57,8 +57,7 @@ namespace bbt.gateway.messaging.Controllers
                 await _transactionManager.GetCustomerInfoByPhone(data.Phone);
                 if(data.ContentType == MessageContentType.Otp)
                 {
-                    var res = await _otpSender.SendMessage(data);
-                    return Ok(res);
+                    return Ok(await _otpSender.SendMessage(data));
                 }
                 else
                 {
@@ -77,10 +76,22 @@ namespace bbt.gateway.messaging.Controllers
 
         [SwaggerOperation(
            Summary = "Check Sms Message Status",
+           Description = "Check Transactional Sms Delivery Status."
+           )]
+        [HttpGet("sms/check")]
+        public async Task<IActionResult> CheckSmsStatus(System.Guid TxnId)
+        {
+            CheckSmsStatusRequest request = new();
+            request.TxnId = TxnId;
+            return Ok(await _dEngageSender.CheckSms(request));
+        }
+
+        [SwaggerOperation(
+           Summary = "Check Sms Message Status",
            Description = "Check Otp Sms Delivery Status."
            )]
         [HttpPost("sms/check-message")]
-        //[ApiExplorerSettings(IgnoreApi = true)]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public async Task<IActionResult> CheckMessageStatus([FromBody] CheckSmsRequest data)
         {
 

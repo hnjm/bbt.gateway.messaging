@@ -55,6 +55,25 @@ namespace bbt.gateway.messaging
             });
         }
 
+        public static string GetWithRegexSingle(this string content,string regex,int groupIndex)
+        {
+            var fixedString = Regex.Replace(content, @"\t|\n|\r", "");
+            return Regex.Match(fixedString, regex).Groups[groupIndex].Value;            
+        }
+
+        public static string GetWithRegexMultiple(this string content, string regex)
+        {
+            var fixedString = Regex.Replace(content, @"\t|\n|\r", "");
+            string returnValue = "";
+            var matchList =  Regex.Matches(fixedString, regex);
+            foreach (Match match in matchList)
+            {
+                returnValue += match.Groups[2].Value;
+            }
+            return returnValue;
+
+        }
+
         public static SendSmsResponseStatus UnifyResponse(this ICollection<OtpResponseLog> logs)
         {
             if (logs.Any(l => l.ResponseCode == SendSmsResponseStatus.Success))
@@ -74,7 +93,15 @@ namespace bbt.gateway.messaging
 
         public static string BuildContentForSms(this Header header, string content)
         {
-            return $"{header.SmsPrefix} {content} {header.SmsSuffix}";
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "Prod")
+            {
+                return $"[Test] {header.SmsPrefix} {content} {header.SmsSuffix} [Dikkate Almayiniz]";
+            }
+            else
+            {
+                return $"{header.SmsPrefix} {content} {header.SmsSuffix}";
+            }
+            
         }
 
         public static string BuildContentForLog(this Header header, string content)

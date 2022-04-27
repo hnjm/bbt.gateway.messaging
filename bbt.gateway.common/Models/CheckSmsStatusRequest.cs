@@ -7,13 +7,9 @@ using System.Threading.Tasks;
 
 namespace bbt.gateway.common.Models
 {
-    public abstract class SendSmsRequest
+    public class CheckSmsStatusRequest
     {
-        public Guid Id { get; set; }
-
-        public Phone Phone { get; set; }
-
-        public Process Process { get; set; }
+        public Guid TxnId { get; set; }
         
 
     }

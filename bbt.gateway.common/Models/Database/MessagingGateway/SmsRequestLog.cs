@@ -5,6 +5,7 @@ namespace bbt.gateway.common.Models
     public class SmsRequestLog
     {
         public Guid Id { get; set; } = Guid.NewGuid();
+        public OperatorType Operator { get; set; }
         public PhoneConfiguration PhoneConfiguration { get; set; }
         public Phone Phone { get; set; }
         public string content { get; set; }

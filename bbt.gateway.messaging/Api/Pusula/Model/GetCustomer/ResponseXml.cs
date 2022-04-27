@@ -69,7 +69,9 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
 
         private CusInfoTelephones telephonesField;
 
-        private CusInfoEmails emailsField;
+        private CusInfoEmails[] emailsField;
+
+        private CusInfoIntegrations integrationsField;
 
         private CusInfoAddressesNew[] addressesNewField;
 
@@ -104,7 +106,8 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
         }
 
         /// <remarks/>
-        public CusInfoEmails Emails
+        [System.Xml.Serialization.XmlElementAttribute("Emails")]
+        public CusInfoEmails[] Emails
         {
             get
             {
@@ -113,6 +116,19 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
             set
             {
                 this.emailsField = value;
+            }
+        }
+
+        /// <remarks/>
+        public CusInfoIntegrations Integrations
+        {
+            get
+            {
+                return this.integrationsField;
+            }
+            set
+            {
+                this.integrationsField = value;
             }
         }
 
@@ -166,11 +182,11 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
 
         private ulong idField;
 
-        private ulong externalClientNoField;
+        private uint externalClientNoField;
 
         private string customerNameField;
 
-        private object middleNameField;
+        private string middleNameField;
 
         private string surnameField;
 
@@ -202,9 +218,9 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
 
         private string birthPlaceField;
 
-        private object birthPlaceCityCodeField;
+        private byte birthPlaceCityCodeField;
 
-        private object birthPlaceCityNameField;
+        private string birthPlaceCityNameField;
 
         private object birthPlaceTownCodeField;
 
@@ -214,7 +230,7 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
 
         private string maritalStatusField;
 
-        private object motherMaidenSurnameField;
+        private string motherMaidenSurnameField;
 
         private byte nationalityField;
 
@@ -224,7 +240,9 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
 
         private object referencePersonnelNameField;
 
-        private object referenceCustomerField;
+        private sbyte referenceCustomerField;
+
+        private object referenceCustomerNameField;
 
         private byte residenceCountryField;
 
@@ -244,11 +262,11 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
 
         private string customerProfileField;
 
-        private object hasDrivingLicenceField;
+        private string hasDrivingLicenceField;
 
-        private sbyte creditCardExtreAddressField;
+        private byte creditCardExtreAddressField;
 
-        private sbyte creditCardDeliveryAddressField;
+        private byte creditCardDeliveryAddressField;
 
         private byte connectAddressField;
 
@@ -282,11 +300,11 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
 
         private object iBPlaceGivenField;
 
-        private object givingReasonField;
+        private string givingReasonField;
 
         private byte iBRegisterNoField;
 
-        private object dateGivenField;
+        private string dateGivenField;
 
         private string netSalaryField;
 
@@ -312,7 +330,7 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
 
         private string companyDateField;
 
-        private object workingCompanyField;
+        private string workingCompanyField;
 
         private byte workStatusField;
 
@@ -320,7 +338,7 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
 
         private ushort portfolioManagerField;
 
-        private byte educationStatusField;
+        private sbyte educationStatusField;
 
         private object primarySchoolNameField;
 
@@ -348,15 +366,15 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
 
         private byte workTitleField;
 
-        private sbyte workAreaField;
+        private byte workAreaField;
 
         private byte workingStatusField;
 
         private byte farmerField;
 
-        private object coreBankingServiceAgreementField;
+        private string coreBankingServiceAgreementField;
 
-        private object coreBankingServiceAgreementNoField;
+        private ushort coreBankingServiceAgreementNoField;
 
         private sbyte sectorField;
 
@@ -406,7 +424,7 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
 
         private string isPrivateBankingField;
 
-        private object actualSegmentField;
+        private string actualSegmentField;
 
         private string idField1;
 
@@ -428,7 +446,7 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
         }
 
         /// <remarks/>
-        public ulong ExternalClientNo
+        public uint ExternalClientNo
         {
             get
             {
@@ -454,7 +472,7 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
         }
 
         /// <remarks/>
-        public object MiddleName
+        public string MiddleName
         {
             get
             {
@@ -662,7 +680,7 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
         }
 
         /// <remarks/>
-        public object BirthPlaceCityCode
+        public byte BirthPlaceCityCode
         {
             get
             {
@@ -675,7 +693,7 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
         }
 
         /// <remarks/>
-        public object BirthPlaceCityName
+        public string BirthPlaceCityName
         {
             get
             {
@@ -740,7 +758,7 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
         }
 
         /// <remarks/>
-        public object MotherMaidenSurname
+        public string MotherMaidenSurname
         {
             get
             {
@@ -805,7 +823,7 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
         }
 
         /// <remarks/>
-        public object ReferenceCustomer
+        public sbyte ReferenceCustomer
         {
             get
             {
@@ -814,6 +832,19 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
             set
             {
                 this.referenceCustomerField = value;
+            }
+        }
+
+        /// <remarks/>
+        public object ReferenceCustomerName
+        {
+            get
+            {
+                return this.referenceCustomerNameField;
+            }
+            set
+            {
+                this.referenceCustomerNameField = value;
             }
         }
 
@@ -935,7 +966,7 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
         }
 
         /// <remarks/>
-        public object HasDrivingLicence
+        public string HasDrivingLicence
         {
             get
             {
@@ -948,7 +979,7 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
         }
 
         /// <remarks/>
-        public sbyte CreditCardExtreAddress
+        public byte CreditCardExtreAddress
         {
             get
             {
@@ -961,7 +992,7 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
         }
 
         /// <remarks/>
-        public sbyte CreditCardDeliveryAddress
+        public byte CreditCardDeliveryAddress
         {
             get
             {
@@ -1182,7 +1213,7 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
         }
 
         /// <remarks/>
-        public object GivingReason
+        public string GivingReason
         {
             get
             {
@@ -1208,7 +1239,7 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
         }
 
         /// <remarks/>
-        public object DateGiven
+        public string DateGiven
         {
             get
             {
@@ -1377,7 +1408,7 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
         }
 
         /// <remarks/>
-        public object WorkingCompany
+        public string WorkingCompany
         {
             get
             {
@@ -1429,7 +1460,7 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
         }
 
         /// <remarks/>
-        public byte EducationStatus
+        public sbyte EducationStatus
         {
             get
             {
@@ -1611,7 +1642,7 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
         }
 
         /// <remarks/>
-        public sbyte WorkArea
+        public byte WorkArea
         {
             get
             {
@@ -1650,7 +1681,7 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
         }
 
         /// <remarks/>
-        public object CoreBankingServiceAgreement
+        public string CoreBankingServiceAgreement
         {
             get
             {
@@ -1663,7 +1694,7 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
         }
 
         /// <remarks/>
-        public object CoreBankingServiceAgreementNo
+        public ushort CoreBankingServiceAgreementNo
         {
             get
             {
@@ -1988,7 +2019,7 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
         }
 
         /// <remarks/>
-        public object ActualSegment
+        public string ActualSegment
         {
             get
             {
@@ -2342,7 +2373,7 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
 
         private string isVerifiedField;
 
-        private object verifyDateField;
+        private string verifyDateField;
 
         private string idField;
 
@@ -2418,7 +2449,7 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
         }
 
         /// <remarks/>
-        public object VerifyDate
+        public string VerifyDate
         {
             get
             {
@@ -2441,6 +2472,137 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
             set
             {
                 this.idField = value;
+            }
+        }
+
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute(Form = System.Xml.Schema.XmlSchemaForm.Qualified, Namespace = "urn:schemas-microsoft-com:xml-msdata")]
+        public byte rowOrder
+        {
+            get
+            {
+                return this.rowOrderField;
+            }
+            set
+            {
+                this.rowOrderField = value;
+            }
+        }
+
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute(Form = System.Xml.Schema.XmlSchemaForm.Qualified, Namespace = "urn:schemas-microsoft-com:xml-diffgram-v1")]
+        public string hasChanges
+        {
+            get
+            {
+                return this.hasChangesField;
+            }
+            set
+            {
+                this.hasChangesField = value;
+            }
+        }
+    }
+
+    /// <remarks/>
+    [System.SerializableAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
+    public partial class CusInfoIntegrations
+    {
+
+        private ulong idField;
+
+        private byte integrationTypeField;
+
+        private ushort branchCodeField;
+
+        private string userNameField;
+
+        private System.DateTime recordTimeField;
+
+        private string idField1;
+
+        private byte rowOrderField;
+
+        private string hasChangesField;
+
+        /// <remarks/>
+        public ulong Id
+        {
+            get
+            {
+                return this.idField;
+            }
+            set
+            {
+                this.idField = value;
+            }
+        }
+
+        /// <remarks/>
+        public byte IntegrationType
+        {
+            get
+            {
+                return this.integrationTypeField;
+            }
+            set
+            {
+                this.integrationTypeField = value;
+            }
+        }
+
+        /// <remarks/>
+        public ushort BranchCode
+        {
+            get
+            {
+                return this.branchCodeField;
+            }
+            set
+            {
+                this.branchCodeField = value;
+            }
+        }
+
+        /// <remarks/>
+        public string UserName
+        {
+            get
+            {
+                return this.userNameField;
+            }
+            set
+            {
+                this.userNameField = value;
+            }
+        }
+
+        /// <remarks/>
+        public System.DateTime RecordTime
+        {
+            get
+            {
+                return this.recordTimeField;
+            }
+            set
+            {
+                this.recordTimeField = value;
+            }
+        }
+
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute(Form = System.Xml.Schema.XmlSchemaForm.Qualified, Namespace = "urn:schemas-microsoft-com:xml-diffgram-v1")]
+        public string id
+        {
+            get
+            {
+                return this.idField1;
+            }
+            set
+            {
+                this.idField1 = value;
             }
         }
 
@@ -2856,7 +3018,7 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
 
         private bool addressADNKSCheckField;
 
-        private byte footballTeamField;
+        private sbyte footballTeamField;
 
         private string idField;
 
@@ -2995,7 +3157,7 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
         }
 
         /// <remarks/>
-        public byte FootballTeam
+        public sbyte FootballTeam
         {
             get
             {
@@ -3097,9 +3259,9 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
 
         private string contacttoCustomerDateField;
 
-        private object coreBankingServiceAgreementField;
+        private string coreBankingServiceAgreementField;
 
-        private object coreBankingServiceAgreementNoField;
+        private ushort coreBankingServiceAgreementNoField;
 
         private string idField;
 
@@ -3368,7 +3530,7 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
         }
 
         /// <remarks/>
-        public object CoreBankingServiceAgreement
+        public string CoreBankingServiceAgreement
         {
             get
             {
@@ -3381,7 +3543,7 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
         }
 
         /// <remarks/>
-        public object CoreBankingServiceAgreementNo
+        public ushort CoreBankingServiceAgreementNo
         {
             get
             {
@@ -3436,5 +3598,14 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
         }
     }
 
+    public class PusulaCustomerRoot
+    { 
+        public PusulaCustomerInfo root { get; set; }
+    }
+    public class PusulaCustomerInfo
+    {
+        public string BusinessLine { get; set; }
+        public int MainBranchCode { get; set; }
+    }
 
 }

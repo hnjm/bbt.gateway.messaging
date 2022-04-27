@@ -2,6 +2,8 @@
 using bbt.gateway.common;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace bbt.gateway.messaging
 {

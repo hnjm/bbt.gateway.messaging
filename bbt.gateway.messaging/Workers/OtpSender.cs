@@ -39,8 +39,11 @@ namespace bbt.gateway.messaging.Workers
             _transactionManager = transactionManager;
         }
 
-        public async Task<SendSmsResponseStatus> SendMessage(SendMessageSmsRequest sendMessageSmsRequest)
+        public async Task<SendSmsOtpResponse> SendMessage(SendMessageSmsRequest sendMessageSmsRequest)
         {
+            SendSmsOtpResponse sendSmsOtpResponse = new() { 
+                TxnId = _transactionManager.TxnId
+            };
             //Set returnValue ClientError for Unexpected Errors
             returnValue = SendSmsResponseStatus.ClientError;
 
@@ -53,7 +56,8 @@ namespace bbt.gateway.messaging.Workers
             {
                 _transactionManager.LogError("Otp Maximum Characters Count Exceed");
                 returnValue = SendSmsResponseStatus.MaximumCharactersCountExceed;
-                return returnValue;
+                sendSmsOtpResponse.Status = returnValue;
+                return sendSmsOtpResponse;
             }
 
             _requestLog = new OtpRequestLog
@@ -134,7 +138,7 @@ namespace bbt.gateway.messaging.Workers
                     }
                 }
                 returnValue = responseLog.ResponseCode;
-
+                sendSmsOtpResponse.Status = returnValue;
                 //Operator Change | Sim Change | Not Subscriber handle edilmeli
                 if (responseLog.ResponseCode == SendSmsResponseStatus.NotSubscriber)
                 {
@@ -179,7 +183,7 @@ namespace bbt.gateway.messaging.Workers
             _repositoryManager.SaveChanges();
             _transactionManager.OtpRequestLog = _requestLog;
 
-            return returnValue;
+            return sendSmsOtpResponse;
         }
 
         private async Task SendMessageToUnknownProcess(bool discardCurrentOperator)
@@ -226,7 +230,7 @@ namespace bbt.gateway.messaging.Workers
 
         private async Task<List<OtpResponseLog>> SendMessageToUnknown(PhoneConfiguration phoneConfiguration,bool useControlDays,bool discardCurrentOperator = false)
         {
-            var header = await _headerManager.Get(phoneConfiguration, _data.ContentType,_data.HeaderInfo);
+            var header =  _headerManager.Get(phoneConfiguration, _data.ContentType,_data.HeaderInfo);
             _requestLog.Content = header.BuildContentForLog(_data.Content);
 
             ConcurrentBag<OtpResponseLog> responses = new ConcurrentBag<OtpResponseLog>();
@@ -265,7 +269,7 @@ namespace bbt.gateway.messaging.Workers
             _transactionManager.OtpRequestInfo.Operator = phoneConfiguration.Operator.Value;
 
             IOperatorGateway gateway = null;
-            var header = await _headerManager.Get(phoneConfiguration, _data.ContentType, _data.HeaderInfo);
+            var header =  _headerManager.Get(phoneConfiguration, _data.ContentType, _data.HeaderInfo);
             _requestLog.Content = header.BuildContentForLog(_data.Content);
 
             switch (phoneConfiguration.Operator)

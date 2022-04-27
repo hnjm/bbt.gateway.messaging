@@ -59,7 +59,6 @@ namespace bbt.gateway.messaging.Middlewares
 
                 _middlewareRequest = JsonConvert.DeserializeObject<MiddlewareRequest>(body);
 
-
                 _transaction.CreatedBy = _middlewareRequest.Process;
                 _transaction.Mail = _middlewareRequest.Email;
                 _transaction.Phone = _middlewareRequest.Phone;
@@ -100,7 +99,7 @@ namespace bbt.gateway.messaging.Middlewares
                         
                 }
 
-                if (!string.IsNullOrEmpty(_middlewareRequest.CustomerNo))
+                if (_middlewareRequest.CustomerNo != null && _middlewareRequest.CustomerNo > 0)
                 {
                     await GetCustomerInfo();
                 }
@@ -343,7 +342,9 @@ namespace bbt.gateway.messaging.Middlewares
         public static IApplicationBuilder UseCustomerInfoMiddleware(
             this IApplicationBuilder builder)
         {
-            return builder.UseWhen(context => context.Request.Path.Value.IndexOf("/Messaging") != -1, builder =>
+            return builder.UseWhen(context => (context.Request.Path.Value.IndexOf("/Messaging") != -1
+            && context.Request.Path.Value.IndexOf("/sms/check") == -1
+            ), builder =>
             {
                 builder.UseMiddleware<CustomerInfoMiddleware>();
             });
