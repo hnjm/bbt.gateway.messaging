@@ -9,7 +9,7 @@ namespace bbt.gateway.common.Models
     {
         public string TemplateParams { get; set; }
         public string Template { get; set; }
-        public long CustomerNo { get; set; }
+        public long? CustomerNo { get; set; }
         public string ContactId { get; set; }
     }
 }

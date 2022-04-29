@@ -9,7 +9,7 @@ namespace bbt.gateway.common.Models
 {
     public class SendMessageSmsRequest : SendSmsRequest
     {
-        public long CustomerNo { get; set; }
+        public long? CustomerNo { get; set; }
         [Required(AllowEmptyStrings = false,ErrorMessage = "Bu alan boş bırakılamaz.")]
         public string Content { get; set; }
         /// <summary>

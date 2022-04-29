@@ -138,7 +138,7 @@ namespace bbt.gateway.messaging.Workers
                     }
                 }
                 returnValue = responseLog.ResponseCode;
-                sendSmsOtpResponse.Status = returnValue;
+                
                 //Operator Change | Sim Change | Not Subscriber handle edilmeli
                 if (responseLog.ResponseCode == SendSmsResponseStatus.NotSubscriber)
                 {
@@ -183,6 +183,7 @@ namespace bbt.gateway.messaging.Workers
             _repositoryManager.SaveChanges();
             _transactionManager.OtpRequestLog = _requestLog;
 
+            sendSmsOtpResponse.Status = returnValue;
             return sendSmsOtpResponse;
         }
 
