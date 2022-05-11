@@ -1,8 +1,8 @@
 ﻿using bbt.gateway.messaging.Api.Pusula.Model.GetByPhone;
 using bbt.gateway.messaging.Api.Pusula.Model.GetCustomer;
+using bbt.gateway.messaging.Api.Pusula.Model.GetByCitizenshipNumber;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -16,14 +16,54 @@ namespace bbt.gateway.messaging.Api.Pusula
     {
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
-        private readonly ILogger<PusulaClient> _logger;
 
-        public PusulaClient(IConfiguration configuration,ILogger<PusulaClient> logger)
+        public PusulaClient(IConfiguration configuration)
         {
             _configuration = configuration;
-            _logger = logger;
             _httpClient = new HttpClient();
             _httpClient.BaseAddress = new Uri(_configuration.GetValue<string>("Api:Pusula:BaseAddress"));
+        }
+
+        public async Task<GetByCitizenshipNumberResponse> GetCustomerByCitizenshipNumber(GetByCitizenshipNumberRequest getByCitizenshipNumberRequest)
+        {
+            GetByCitizenshipNumberResponse getByCitizenshipNumberResponse = new();
+            try
+            {
+                var queryParams = new Dictionary<string, string>()
+                {
+                    {"citizenshipNo", getByCitizenshipNumberRequest.CitizenshipNumber}
+                };
+
+                var httpResponse = await _httpClient.GetAsync(
+                    QueryHelpers.AddQueryString(_configuration.GetValue<string>("Api:Pusula:EndPoints:GetByCitizenship"), queryParams));
+
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var response = httpResponse.Content.ReadAsStringAsync().Result;
+                    var customerNo = response.
+                        GetWithRegexSingle("(<ExternalClientNo[^>]*>)(.*?)(</ExternalClientNo>)", 2);
+                    if (!string.IsNullOrEmpty(customerNo))
+                    {
+                        getByCitizenshipNumberResponse.IsSuccess = true;
+                        getByCitizenshipNumberResponse.CustomerNo = (ulong)Convert.ToInt64(customerNo);
+                    }
+                    else
+                    {
+                        getByCitizenshipNumberResponse.IsSuccess = false;
+                    }
+                }
+                else
+                {
+                    getByCitizenshipNumberResponse.IsSuccess = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                getByCitizenshipNumberResponse.IsSuccess = false;
+            }
+
+            return getByCitizenshipNumberResponse;
         }
 
         public async Task<GetByPhoneNumberResponse> GetCustomerByPhoneNumber(GetByPhoneNumberRequest getByPhoneNumberRequest)
@@ -37,10 +77,10 @@ namespace bbt.gateway.messaging.Api.Pusula
                     {"CityCode",getByPhoneNumberRequest.CityCode.ToString()},
                     {"TelephoneNumber",getByPhoneNumberRequest.TelephoneNumber.ToString()}
                 };
-            
+
                 var httpResponse = await _httpClient.GetAsync(
-                    QueryHelpers.AddQueryString(_configuration.GetValue<string>("Api:Pusula:EndPoints:GetByPhoneNumber"),queryParams));
-                
+                    QueryHelpers.AddQueryString(_configuration.GetValue<string>("Api:Pusula:EndPoints:GetByPhoneNumber"), queryParams));
+
 
                 if (httpResponse.IsSuccessStatusCode)
                 {
@@ -57,14 +97,12 @@ namespace bbt.gateway.messaging.Api.Pusula
                 }
                 else
                 {
-                    _logger.LogError("Pusula Client Hata Oluştu." + httpResponse.Content.ReadAsStringAsync().Result);
                     getByPhoneNumberResponse.IsSuccess = false;
                 }
             }
             catch (Exception ex)
             {
                 getByPhoneNumberResponse.IsSuccess = false;
-                _logger.LogError("Pusula Client Hata Oluştu." +ex.ToString());
             }
 
             return getByPhoneNumberResponse;
@@ -92,7 +130,7 @@ namespace bbt.gateway.messaging.Api.Pusula
                         getByEmailResponse.IsSuccess = true;
                         getByEmailResponse.CustomerNo = (ulong)customerNo;
                     }
-                    else 
+                    else
                     {
                         getByEmailResponse.IsSuccess = false;
                         //logging
@@ -100,14 +138,12 @@ namespace bbt.gateway.messaging.Api.Pusula
                 }
                 else
                 {
-                    _logger.LogError("Pusula Client Hata Oluştu." + httpResponse.Content.ReadAsStringAsync().Result);
                     getByEmailResponse.IsSuccess = false;
                 }
             }
             catch (Exception ex)
             {
                 getByEmailResponse.IsSuccess = false;
-                _logger.LogError("Pusula Client Hata Oluştu." + ex.ToString());
             }
 
             return getByEmailResponse;
@@ -130,7 +166,11 @@ namespace bbt.gateway.messaging.Api.Pusula
                     var httpContent = httpResponse.Content.ReadAsStringAsync().Result;
 
                     var customerIndividual = httpContent.
-                        GetWithRegexSingle("(<CustomerIndividual[^>]*>)(.*?)(</CustomerIndividual>)",2);
+                        GetWithRegexSingle("(<CustomerIndividual[^>]*>)(.*?)(</CustomerIndividual>)", 2);
+                    var customerPhones = httpContent.
+                        GetWithRegexMultiple("(<Telephones[^>]*>)(.*?)(</Telephones>)", 2);
+                    var customerMails = httpContent.
+                        GetWithRegexMultiple("(<Emails[^>]*>)(.*?)(</Emails>)", 2);
                     if (!string.IsNullOrEmpty(customerIndividual))
                     {
                         XmlDocument xmlDocument = new XmlDocument();
@@ -153,17 +193,47 @@ namespace bbt.gateway.messaging.Api.Pusula
                     {
                         getCustomerResponse.IsSuccess = false;
                     }
+
+                    if (customerPhones.Count > 0)
+                    {
+                        foreach (var phone in customerPhones)
+                        {
+                            XmlDocument xmlDocument = new XmlDocument();
+                            xmlDocument.LoadXml("<root>" + phone + "</root>");
+                            var serializedJson = JsonConvert.SerializeXmlNode(xmlDocument);
+                            var pusulaPhoneInfo = JsonConvert.DeserializeObject<PusulaPhoneRoot>(serializedJson);
+                            if (pusulaPhoneInfo.root.TelephoneType == 3)
+                            {
+                                getCustomerResponse.MainPhone.CountryCode = pusulaPhoneInfo.root.CountryCode;
+                                getCustomerResponse.MainPhone.Prefix = pusulaPhoneInfo.root.AreaCode;
+                                getCustomerResponse.MainPhone.Number = pusulaPhoneInfo.root.TelephoneNumber;
+                            }
+                        }
+                    }
+
+                    if (customerMails.Count > 0)
+                    {
+                        foreach (var mail in customerMails)
+                        {
+                            XmlDocument xmlDocument = new XmlDocument();
+                            xmlDocument.LoadXml("<root>" + mail + "</root>");
+                            var serializedJson = JsonConvert.SerializeXmlNode(xmlDocument);
+                            var pusulaMailInfo = JsonConvert.DeserializeObject<PusulaMailRoot>(serializedJson);
+                            if (pusulaMailInfo.root.EmailType == 1)
+                            {
+                                getCustomerResponse.MainEmail = pusulaMailInfo.root.Email;
+                            }
+                        }
+                    }
                 }
                 else
                 {
-                    _logger.LogError("Pusula Client Hata Oluştu." + httpResponse.Content.ReadAsStringAsync().Result);
                     getCustomerResponse.IsSuccess = false;
                 }
             }
             catch (Exception ex)
             {
                 getCustomerResponse.IsSuccess = false;
-                _logger.LogError("Pusula Client Hata Oluştu." + ex.ToString());
             }
 
             return getCustomerResponse;

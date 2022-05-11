@@ -1,152 +1,61 @@
 ﻿using bbt.gateway.messaging.Api.Vodafone.Model;
 using bbt.gateway.common.Models;
-using Microsoft.Extensions.Logging;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using bbt.gateway.messaging.Workers;
 using Newtonsoft.Json;
+using System;
 
 namespace bbt.gateway.messaging.Api.Vodafone
 {
-    public class VodafoneApi:BaseApi,IVodafoneApi
+    public class VodafoneApiMock:BaseApi,IVodafoneApi
     {
-        private readonly HttpClient _httpClient;
 
-        public VodafoneApi(ITransactionManager transactionManager):base(transactionManager) 
+        public VodafoneApiMock(ITransactionManager transactionManager):base(transactionManager) 
         {
-            var httpClientHandler = new HttpClientHandler();
-            httpClientHandler.UseProxy = false;
-            _httpClient = new(httpClientHandler);
             Type = OperatorType.Vodafone;
         }
 
         public async Task<OperatorApiResponse> SendSms(VodafoneSmsRequest vodafoneSmsRequest)
         {
+            await Task.CompletedTask;
             OperatorApiResponse vodafoneSmsResponse = new(){ OperatorType = this.Type };
-            string response = "";
             var requests = getSendSmsXml(vodafoneSmsRequest);
-            try
-            {
-                var httpRequest = new StringContent(requests.Item1, Encoding.UTF8, "application/soap+xml");
-                var httpResponse = await _httpClient.PostAsync(OperatorConfig.SendService, httpRequest);
-                response = httpResponse.Content.ReadAsStringAsync().Result;
+            
+            vodafoneSmsResponse.ResponseCode = "0";
+            vodafoneSmsResponse.ResponseMessage = "";
+            vodafoneSmsResponse.MessageId = Guid.NewGuid().ToString();
+            vodafoneSmsResponse.ResponseBody = "<Mock>Successfull</Mock>";
+            vodafoneSmsResponse.RequestBody = requests.Item2;
                 
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var parsedXml = response.DeserializeXml<Model.SendSms.SuccessXml.Envelope>();
-                    vodafoneSmsResponse.ResponseCode = parsedXml.Body.sendSMSPacketResponse.@return.deliveryResponseList.deliveryResponse.deliveryInfoList.deliveryInfo.errorCode.ToString();
-                    vodafoneSmsResponse.ResponseMessage = "";
-                    vodafoneSmsResponse.MessageId = parsedXml.Body.sendSMSPacketResponse.@return.deliveryResponseList.deliveryResponse.messageId;
-                    vodafoneSmsResponse.ResponseBody = response;
-                    vodafoneSmsResponse.RequestBody = requests.Item2;
-                }
-                else
-                {
-                    var parsedXml = response.DeserializeXml<Model.SendSms.ErrorXml.Envelope>();
-                    vodafoneSmsResponse.ResponseCode = parsedXml.Body.Fault.Code.Value.Split(":")[1];
-                    vodafoneSmsResponse.ResponseMessage = parsedXml.Body.Fault.Reason.Text.Value;
-                    vodafoneSmsResponse.MessageId = "";
-                    vodafoneSmsResponse.ResponseBody = response;
-                    vodafoneSmsResponse.RequestBody = requests.Item2;
-                    TransactionManager.LogCritical("Vodafone Otp Failed | " + JsonConvert.SerializeObject(vodafoneSmsResponse));
-
-                }
-            }
-            catch (System.Exception ex)
-            {
-                vodafoneSmsResponse.ResponseCode = "-99999";
-                vodafoneSmsResponse.ResponseBody = ex.ToString();
-                vodafoneSmsResponse.MessageId = "";
-                vodafoneSmsResponse.ResponseBody = response;
-                vodafoneSmsResponse.RequestBody = requests.Item2;
-                TransactionManager.LogCritical("Vodafone Otp Failed | " + JsonConvert.SerializeObject(vodafoneSmsResponse));
-            }
 
             return vodafoneSmsResponse;
         }
 
         public async Task<OperatorApiTrackingResponse> CheckSmsStatus(VodafoneSmsStatusRequest vodafoneSmsStatusRequest)
         {
+            await Task.CompletedTask;
             OperatorApiTrackingResponse vodafoneSmsStatusResponse = new(){ OperatorType = this.Type };
-            string response = "";
-            try
-            {
-                var xmlBody = new StringContent(getSmsStatusXml(vodafoneSmsStatusRequest), Encoding.UTF8, "application/soap+xml");
-                var httpResponse = await _httpClient.PostAsync(OperatorConfig.QueryService, xmlBody);
-                response = httpResponse.Content.ReadAsStringAsync().Result;
-
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var parsedXml = response.DeserializeXml<Model.SmsStatus.SuccessXml.Envelope>();
-
-                    if (parsedXml.Body.queryPacketStatusResponse.@return.result == 1)
-                    {
-                        vodafoneSmsStatusResponse.ResponseCode = parsedXml.Body.queryPacketStatusResponse.@return.deliveryStatusList.deliveryStatus.status.ToString();
-                        vodafoneSmsStatusResponse.ResponseMessage = "";
-                        vodafoneSmsStatusResponse.ResponseBody = response;
-                    }
-                    else
-                    {
-                        vodafoneSmsStatusResponse.ResponseCode = parsedXml.Body.queryPacketStatusResponse.@return.errorCode.ToString();
-                        vodafoneSmsStatusResponse.ResponseMessage = parsedXml.Body.queryPacketStatusResponse.@return.description.ToString();
-                        vodafoneSmsStatusResponse.ResponseBody = response;
-                    }
-                }
-                else
-                {
-                    var parsedXml = response.DeserializeXml<Model.SmsStatus.ErrorXml.Envelope>();
-                    vodafoneSmsStatusResponse.ResponseCode = parsedXml.Body.Fault.Code.Value.Split(":")[1];
-                    vodafoneSmsStatusResponse.ResponseMessage = parsedXml.Body.Fault.Reason.Text.Value;
-                    vodafoneSmsStatusResponse.ResponseBody = response;
-
-                }
-            }
-            catch (System.Exception ex)
-            {
-                vodafoneSmsStatusResponse.ResponseCode = "-99999";
-                vodafoneSmsStatusResponse.ResponseMessage = ex.ToString();
-                vodafoneSmsStatusResponse.ResponseBody = response;
-
-            }
+            
+            vodafoneSmsStatusResponse.ResponseCode = "0";
+            vodafoneSmsStatusResponse.ResponseMessage = "";
+            vodafoneSmsStatusResponse.ResponseBody = "<Mock>Successfull</Mock>";
+                    
 
             return vodafoneSmsStatusResponse;
         }
 
         public async Task<OperatorApiAuthResponse> Auth(VodafoneAuthRequest vodafoneAuthRequest)
         {
+            await Task.CompletedTask;
             OperatorApiAuthResponse vodafoneAuthResponse = new();
-            try
-            {
-                var xmlBody = new StringContent(getAuthXml(vodafoneAuthRequest), Encoding.UTF8, "application/soap+xml");
-                var httpResponse = await _httpClient.PostAsync(OperatorConfig.AuthanticationService, xmlBody);
-                var response = httpResponse.Content.ReadAsStringAsync().Result;
-                
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var parsedResponse = response.DeserializeXml<Model.Auth.SuccessXml.Envelope>();
-                    vodafoneAuthResponse.ResponseCode = "0";
-                    vodafoneAuthResponse.ResponseMessage = "";
-                    vodafoneAuthResponse.AuthToken = parsedResponse.Body.authenticateResponse.@return.sessionId;
-                }
-                else
-                {
-                    var parsedResponse = response.DeserializeXml<Model.Auth.ErrorXml.Envelope>();
-                    vodafoneAuthResponse.ResponseCode = "-99999";
-                    vodafoneAuthResponse.ResponseMessage = parsedResponse.Body.Fault.Reason.Text.Value;
-                    vodafoneAuthResponse.AuthToken = "";
-                }
-            }
-            catch (System.Exception ex)
-            {
-
-                vodafoneAuthResponse.ResponseCode = "-99999";
-                vodafoneAuthResponse.ResponseMessage = ex.ToString();
-                vodafoneAuthResponse.AuthToken = "";
-            }
+            
+            vodafoneAuthResponse.ResponseCode = "0";
+            vodafoneAuthResponse.ResponseMessage = "";
+            vodafoneAuthResponse.AuthToken = Guid.NewGuid().ToString();
 
             return vodafoneAuthResponse;
-           
         }
 
         private string getAuthXml(VodafoneAuthRequest vodafoneAuthRequest)

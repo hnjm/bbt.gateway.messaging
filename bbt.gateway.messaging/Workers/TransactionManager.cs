@@ -1,5 +1,6 @@
 ﻿using bbt.gateway.common.Models;
 using bbt.gateway.messaging.Api.Pusula;
+using bbt.gateway.messaging.Api.Pusula.Model.GetByCitizenshipNumber;
 using bbt.gateway.messaging.Api.Pusula.Model.GetByPhone;
 using bbt.gateway.messaging.Api.Pusula.Model.GetCustomer;
 using Microsoft.Extensions.Logging;
@@ -18,7 +19,7 @@ namespace bbt.gateway.messaging.Workers
         public TransactionType TransactionType { get; set; }
 
         public Guid TxnId { get { return _txnId; } }
-
+        public string Ip { get; set; }
         public OtpRequestLog OtpRequestLog { get; set; }
         public SmsRequestLog SmsRequestLog { get; set; }
         public MailRequestLog MailRequestLog { get; set; }
@@ -89,8 +90,7 @@ namespace bbt.gateway.messaging.Workers
 
                 if (customerDetail.IsSuccess)
                 {
-                    CustomerRequestInfo.BusinessLine = customerDetail.BusinessLine;
-                    CustomerRequestInfo.BranchCode = customerDetail.BranchCode;
+                    SetCustomerRequestInfo(customerDetail);
                 }
             }
 
@@ -114,8 +114,30 @@ namespace bbt.gateway.messaging.Workers
 
                 if (customerDetail.IsSuccess)
                 {
-                    CustomerRequestInfo.BusinessLine = customerDetail.BusinessLine;
-                    CustomerRequestInfo.BranchCode = customerDetail.BranchCode;
+                    SetCustomerRequestInfo(customerDetail);
+                }
+            }
+        }
+
+        public async Task GetCustomerInfoByCitizenshipNumber(string CitizenshipNumber)
+        {
+            var customer = await _pusulaClient.GetCustomerByCitizenshipNumber(new GetByCitizenshipNumberRequest()
+            {
+                CitizenshipNumber = CitizenshipNumber
+            });
+
+            if (customer.IsSuccess)
+            {
+                CustomerRequestInfo.CustomerNo = customer.CustomerNo;
+
+                var customerDetail = await _pusulaClient.GetCustomer(new GetCustomerRequest()
+                {
+                    CustomerNo = customer.CustomerNo
+                });
+
+                if (customerDetail.IsSuccess)
+                {
+                    SetCustomerRequestInfo(customerDetail);
                 }
             }
         }
@@ -131,9 +153,16 @@ namespace bbt.gateway.messaging.Workers
 
             if (customerDetail.IsSuccess)
             {
-                CustomerRequestInfo.BusinessLine = customerDetail.BusinessLine;
-                CustomerRequestInfo.BranchCode = customerDetail.BranchCode;
+                SetCustomerRequestInfo(customerDetail);
             }
+        }
+
+        private void SetCustomerRequestInfo(GetCustomerResponse customerDetail)
+        {
+            CustomerRequestInfo.BusinessLine = customerDetail.BusinessLine;
+            CustomerRequestInfo.BranchCode = customerDetail.BranchCode;
+            CustomerRequestInfo.MainPhone = customerDetail.MainPhone;
+            CustomerRequestInfo.MainEmail = customerDetail.MainEmail;
         }
 
         public void LogCritical(string LogMessage)
@@ -174,6 +203,9 @@ namespace bbt.gateway.messaging.Workers
         public ulong? CustomerNo { get; set; }
         public string BusinessLine { get; set; }
         public int BranchCode { get; set; }
+        public Phone? MainPhone { get; set; }
+        public string MainEmail { get; set; }
+        public string Tckn { get; set; }
     }
 
     public class OtpRequestInfo

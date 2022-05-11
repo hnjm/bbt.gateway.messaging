@@ -14,9 +14,9 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 {
     public class OperatorTurkcell : OperatorGatewayBase, IOperatorGateway
     {
-        private readonly TurkcellApi _turkcellApi;
+        private readonly ITurkcellApi _turkcellApi;
         private string _authToken;
-        public OperatorTurkcell(TurkcellApi turkcellApi,IConfiguration configuration,
+        public OperatorTurkcell(ITurkcellApi turkcellApi,IConfiguration configuration,
             ITransactionManager transactionManager) : base(configuration,transactionManager)
         {
             _turkcellApi = turkcellApi;

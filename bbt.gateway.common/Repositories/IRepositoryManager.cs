@@ -19,6 +19,7 @@ namespace bbt.gateway.common.Repositories
         ITransactionRepository Transactions { get; }
         //IUserRepository Users { get; }
         IDirectBlacklistRepository DirectBlacklists { get; }
+        IWhitelistRepository Whitelist { get; }
         int SaveChanges();
         //int SaveDodgeChanges();
         int SaveSmsBankingChanges();

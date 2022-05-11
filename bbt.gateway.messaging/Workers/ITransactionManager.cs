@@ -7,6 +7,7 @@ namespace bbt.gateway.messaging.Workers
     public interface ITransactionManager
     {
         public Guid TxnId { get; }
+        public string Ip { get; set; }
 
         public OtpRequestLog OtpRequestLog { get; set; }
         public SmsRequestLog SmsRequestLog { get; set; }
@@ -19,6 +20,7 @@ namespace bbt.gateway.messaging.Workers
 
         public Task GetCustomerInfoByPhone(Phone Phone);
         public Task GetCustomerInfoByEmail(string Email);
+        public Task GetCustomerInfoByCitizenshipNumber(string CitizenshipNumber);
         public Task GetCustomerInfoByCustomerNo(ulong CustomerNo);
         public void LogState();
 

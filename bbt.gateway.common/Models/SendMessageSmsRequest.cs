@@ -18,6 +18,7 @@ namespace bbt.gateway.common.Models
         public HeaderInfo HeaderInfo;
         public MessageContentType ContentType { get; set; }
         public SmsTypes SmsType { get; set; }
+        public string ContactId { get; set; }
 
     }
 }

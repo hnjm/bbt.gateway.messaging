@@ -9,6 +9,7 @@ namespace bbt.gateway.common.Models
     public class MiddlewareRequest
     {
         public ulong? CustomerNo { get; set; }
+        public string ContactId { get; set; }
         public Phone Phone { get; set; }
         public string Email { get; set; }
         public string TemplateId { get; set; }

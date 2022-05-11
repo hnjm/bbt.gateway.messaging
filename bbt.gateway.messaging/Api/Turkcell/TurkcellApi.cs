@@ -10,7 +10,7 @@ using Newtonsoft.Json;
 
 namespace bbt.gateway.messaging.Api.Turkcell
 {
-    public class TurkcellApi:BaseApi
+    public class TurkcellApi:BaseApi,ITurkcellApi
     {
         private readonly HttpClient _httpClient;
         public TurkcellApi(ITransactionManager transactionManager):base(transactionManager) {

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -3606,6 +3607,29 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
     {
         public string BusinessLine { get; set; }
         public int MainBranchCode { get; set; }
+    }
+
+    public class PusulaPhoneRoot
+    {
+        public PusulaPhoneInfo root { get; set; }
+    }
+    public class PusulaPhoneInfo
+    {
+        public int TelephoneType { get; set; }
+        public int CountryCode { get; set; }
+        public int AreaCode { get; set; }
+        public int TelephoneNumber { get; set; }
+    }
+
+    public class PusulaMailRoot
+    {
+        public PusulaMailInfo root { get; set; }
+    }
+    public class PusulaMailInfo
+    {
+        public int EmailType { get; set; }
+        [JsonProperty(PropertyName = "E-mail")]
+        public string Email { get; set; }
     }
 
 }

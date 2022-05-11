@@ -21,6 +21,7 @@ namespace bbt.gateway.common
         public DbSet<MailResponseLog> MailResponseLog { get; set; }
 
         public DbSet<Transaction> Transactions { get; set; }
+        public DbSet<WhiteList> WhiteList { get; set; }
 
         public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options)
         {
@@ -42,6 +43,8 @@ namespace bbt.gateway.common
             builder.Entity<BlackListEntryLog>().OwnsOne(i => i.CreatedBy);
             builder.Entity<Transaction>().OwnsOne(i => i.CreatedBy);
             builder.Entity<Transaction>().OwnsOne(i => i.Phone);
+            builder.Entity<WhiteList>().OwnsOne(i => i.CreatedBy);
+            builder.Entity<WhiteList>().OwnsOne(i => i.Phone);
 
             //Non-cluster Guid index sample
             builder.Entity<PhoneConfiguration>()

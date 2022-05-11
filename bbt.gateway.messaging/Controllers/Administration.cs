@@ -1,6 +1,6 @@
-﻿using bbt.gateway.common.Extensions;
-using bbt.gateway.common.Models;
+﻿using bbt.gateway.common.Models;
 using bbt.gateway.common.Repositories;
+using bbt.gateway.messaging.Filters;
 using bbt.gateway.messaging.Workers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -20,15 +20,15 @@ namespace bbt.gateway.messaging.Controllers
     {
         private readonly HeaderManager _headerManager;
         private readonly OperatorManager _operatorManager;
-        private readonly ILogger<Administration> _logger;
         private readonly IRepositoryManager _repositoryManager;
-        public Administration(ILogger<Administration> logger,HeaderManager headerManager,OperatorManager operatorManager,
-            IRepositoryManager repositoryManager)
+        private readonly ITransactionManager _transactionManager;
+        public Administration(HeaderManager headerManager,OperatorManager operatorManager,
+            IRepositoryManager repositoryManager,ITransactionManager transactionManager)
         {
-            _logger = logger;
             _headerManager = headerManager;
             _operatorManager = operatorManager;
             _repositoryManager = repositoryManager;
+            _transactionManager = transactionManager;
         }
 
         [SwaggerOperation(Summary = "Returns content headers configuration")]
@@ -175,6 +175,36 @@ namespace bbt.gateway.messaging.Controllers
             _repositoryManager.SaveChanges();
             
             return StatusCode(201);
+        }
+
+        [SwaggerOperation(Summary = "Adds phone or mail to whitelist records")]
+        [HttpPost("whitelist")]
+        [SwaggerResponse(201, "Record was created successfully", typeof(void))]
+        public IActionResult AddPhoneToWhitelist([FromBody] AddWhitelistRequest data)
+        {
+            if (string.IsNullOrEmpty(data.Email) && data.Phone == null)
+            {
+                return NotFound();
+            }
+
+            var whitelistRecord = new WhiteList() { 
+                CreatedBy = data.CreatedBy,
+                IpAddress = _transactionManager.Ip
+            };
+
+            if (data.Phone != null)
+            {
+                whitelistRecord.Phone = data.Phone;    
+            }
+            if (!string.IsNullOrEmpty(data.Email))
+            {
+                whitelistRecord.Mail = data.Email;
+            }
+
+            _repositoryManager.Whitelist.Add(whitelistRecord);
+            _repositoryManager.SaveChanges();
+
+            return Created("",whitelistRecord.Id);
         }
 
         [SwaggerOperation(Summary = "Returns phones otp sending logs")]

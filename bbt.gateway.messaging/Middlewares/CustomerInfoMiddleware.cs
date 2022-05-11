@@ -31,13 +31,11 @@ namespace bbt.gateway.messaging.Middlewares
 
         public async Task InvokeAsync(HttpContext context,ITransactionManager transactionManager,IRepositoryManager repositoryManager)
         {
-            
             _transactionManager = transactionManager;
             _repositoryManager = repositoryManager;
             
             try
             {
-                var ipAdress = context.Request.Headers["X-Forwarded-For"].FirstOrDefault();
                 context.Request.EnableBuffering();
 
                 await using var requestStream = _recyclableMemoryStreamManager.GetStream();
@@ -52,7 +50,7 @@ namespace bbt.gateway.messaging.Middlewares
                 {
                     Id = _transactionManager.TxnId,
                     Request = body,
-                    IpAdress = string.IsNullOrEmpty(ipAdress) ? context.Connection.RemoteIpAddress.ToString() : ipAdress,
+                    IpAdress = _transactionManager.Ip,
                 };
                 _repositoryManager.Transactions.Add(_transaction);
                 _repositoryManager.SaveChanges();
@@ -65,56 +63,16 @@ namespace bbt.gateway.messaging.Middlewares
                 
                 _repositoryManager.SaveChanges();
 
-                var path = context.Request.Path.ToString();
-                if (path.Contains("sms") && !path.Contains("check"))
-                {
-                    if (_middlewareRequest.ContentType == MessageContentType.Otp)
-                    {
-                        SetTransactionAsOtp();
-                    }
-                    else
-                    {
-                        if (path.Contains("templated"))
-                        {
-                            SetTransactionAsTemplatedSms();                  
-                        }
-                        else
-                        {
-                            SetTransactionAsSms();
-                        }
-                    }
-                }
-
-                if (path.Contains("email"))
-                {
-                        
-                    if (path.Contains("templated"))
-                    {
-                        SetTransactionAsTemplatedMail();
-                    }
-                    else
-                    {
-                        SetTransactionAsMail();
-                    }
-                        
-                }
-
-                if (_middlewareRequest.CustomerNo != null && _middlewareRequest.CustomerNo > 0)
-                {
-                    await GetCustomerInfo();
-                }
-                    
-                if (_middlewareRequest.Phone != null)
-                {
-                    await GetCustomerInfoByPhone(_transactionManager.CustomerRequestInfo.CustomerNo);
-                }
-                else
-                {
-                    await GetCustomerInfoByEmail(_transactionManager.CustomerRequestInfo.CustomerNo);
-                }
-
-
                 
+                SetTransaction(context);
+
+                await GetCustomerDetail();
+
+                if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "Prod")
+                {
+                    CheckWhitelist();
+                }
+
                 var originalStream = context.Response.Body;
                 await using var responseBody = _recyclableMemoryStreamManager.GetStream();
                 context.Response.Body = responseBody;
@@ -158,6 +116,22 @@ namespace bbt.gateway.messaging.Middlewares
 
                 context.Response.StatusCode = 500;
             }
+            catch (BadHttpRequestException ex)
+            {
+                _transaction.TransactionType = _transactionManager.TransactionType;
+                _transaction.OtpRequestLog = _transactionManager.OtpRequestLog;
+                _transaction.SmsRequestLog = _transactionManager.SmsRequestLog;
+                _transaction.MailRequestLog = _transactionManager.MailRequestLog;
+                _transaction.Response = "An Error Occured | Detail :" + ex.ToString();
+                _repositoryManager.SaveChanges();
+
+                _transactionManager.LogState();
+                _transactionManager.LogError("An Error Occured | Detail :" + ex.ToString());
+
+                context.Response.ContentType = "text/plain";
+                context.Response.StatusCode = ex.StatusCode;
+                await context.Response.WriteAsync(ex.Message);
+            }
             catch (Exception ex)
             {
                 _transaction.TransactionType = _transactionManager.TransactionType;
@@ -174,6 +148,130 @@ namespace bbt.gateway.messaging.Middlewares
             }
         }
 
+        private void CheckWhitelist()
+        {
+            if (_transactionManager.TransactionType == TransactionType.Otp)
+            {
+                if (_repositoryManager.Whitelist.Find(w => 
+                (w.Phone.CountryCode == _transactionManager.OtpRequestInfo.Phone.CountryCode
+                && w.Phone.Prefix == _transactionManager.OtpRequestInfo.Phone.Prefix
+                && w.Phone.Number == _transactionManager.OtpRequestInfo.Phone.Number
+                )).FirstOrDefault() == null)
+                {
+                    throw new BadHttpRequestException("İletişime geçmek istediğiniz numaranın non-prod ortamlarda gönderim izni yoktur. " +
+                        "/Whitelist endpoint ile whitelist tablosuna eklemeniz gerekmektedir.",403);
+                }
+            }
+
+            if (_transactionManager.TransactionType == TransactionType.TransactionalSms ||
+                _transactionManager.TransactionType == TransactionType.TransactionalTemplatedSms)
+            {
+                if (_repositoryManager.Whitelist.Find(w =>
+                (w.Phone.CountryCode == _transactionManager.SmsRequestInfo.Phone.CountryCode
+                && w.Phone.Prefix == _transactionManager.SmsRequestInfo.Phone.Prefix
+                && w.Phone.Number == _transactionManager.SmsRequestInfo.Phone.Number
+                )).FirstOrDefault() == null)
+                {
+                    throw new BadHttpRequestException("İletişime geçmek istediğiniz numaranın non-prod ortamlarda gönderim izni yoktur. " +
+                        "/Whitelist endpoint ile whitelist tablosuna eklemeniz gerekmektedir.", 403);
+                }
+            }
+
+            if (_transactionManager.TransactionType == TransactionType.TransactionalMail ||
+                _transactionManager.TransactionType == TransactionType.TransactionalTemplatedMail)
+            {
+                if (_repositoryManager.Whitelist.Find(w => w.Mail == _transactionManager.MailRequestInfo.Email).FirstOrDefault()
+                    == null)
+                {
+                    throw new BadHttpRequestException("İletişime geçmek istediğiniz mail adresinin non-prod ortamlarda gönderim izni yoktur. " +
+                        "/Whitelist endpoint ile whitelist tablosuna eklemeniz gerekmektedir.", 403);
+                }
+            }
+        }
+
+        private async Task GetCustomerDetail()
+        {
+            if (_middlewareRequest.CustomerNo != null && _middlewareRequest.CustomerNo > 0)
+            {
+                await GetCustomerInfo();
+                if (_middlewareRequest.Phone == null)
+                {
+                    _middlewareRequest.Phone = _transactionManager.CustomerRequestInfo.MainPhone;
+                }
+                if (_middlewareRequest.Email == null)
+                {
+                    _middlewareRequest.Email = _transactionManager.CustomerRequestInfo.MainEmail;
+                }
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(_middlewareRequest.ContactId))
+                {
+                    await GetCustomerInfoByCitizenshipNumber();
+                    if (_middlewareRequest.Phone == null)
+                    {
+                        _middlewareRequest.Phone = _transactionManager.CustomerRequestInfo.MainPhone;
+                    }
+                    if (_middlewareRequest.Email == null)
+                    {
+                        _middlewareRequest.Email = _transactionManager.CustomerRequestInfo.MainEmail;
+                    }
+                }
+            }
+
+            if (_middlewareRequest.Phone != null)
+            {
+                await GetCustomerInfoByPhone(_transactionManager.CustomerRequestInfo.CustomerNo);
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(_middlewareRequest.Email))
+                {
+                    await GetCustomerInfoByEmail(_transactionManager.CustomerRequestInfo.CustomerNo);
+                }
+                else
+                { 
+                
+                }
+            }
+        }
+
+        private void SetTransaction(HttpContext context)
+        {
+            var path = context.Request.Path.ToString();
+            if (path.Contains("sms") && !path.Contains("check"))
+            {
+                if (_middlewareRequest.ContentType == MessageContentType.Otp)
+                {
+                    SetTransactionAsOtp();
+                }
+                else
+                {
+                    if (path.Contains("templated"))
+                    {
+                        SetTransactionAsTemplatedSms();
+                    }
+                    else
+                    {
+                        SetTransactionAsSms();
+                    }
+                }
+            }
+
+            if (path.Contains("email"))
+            {
+
+                if (path.Contains("templated"))
+                {
+                    SetTransactionAsTemplatedMail();
+                }
+                else
+                {
+                    SetTransactionAsMail();
+                }
+
+            }
+        }
         private void SetTransactionAsOtp()
         {
             _transactionManager.TransactionType = TransactionType.Otp;
@@ -214,6 +312,12 @@ namespace bbt.gateway.messaging.Middlewares
             _transactionManager.MailRequestInfo.TemplateId = _middlewareRequest.TemplateId;
             _transactionManager.MailRequestInfo.TemplateParams = _middlewareRequest.TemplateParams?.MaskFields();
             _transactionManager.MailRequestInfo.Email = _middlewareRequest.Email;
+        }
+
+        private async Task GetCustomerInfoByCitizenshipNumber()
+        {
+            await _transactionManager.GetCustomerInfoByCitizenshipNumber(_middlewareRequest.ContactId);
+            await _transactionManager.GetCustomerInfoByCustomerNo(_transactionManager.CustomerRequestInfo.CustomerNo.Value);
         }
 
         private async Task GetCustomerInfoByPhone(ulong? CustomerNo = null)
@@ -312,8 +416,7 @@ namespace bbt.gateway.messaging.Middlewares
 
         private async Task GetCustomerInfo()
         {
-            var customerNo = Convert.ToInt64(_middlewareRequest.CustomerNo);
-            await _transactionManager.GetCustomerInfoByCustomerNo((ulong)customerNo);
+            await _transactionManager.GetCustomerInfoByCustomerNo(_middlewareRequest.CustomerNo.Value);
         }
 
         private  string ReadStreamInChunks(Stream stream)

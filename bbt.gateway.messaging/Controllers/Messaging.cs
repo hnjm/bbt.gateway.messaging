@@ -1,8 +1,6 @@
 ﻿using bbt.gateway.common.Models;
 using bbt.gateway.messaging.Workers;
-using bbt.gateway.messaging.Workers.OperatorGateway;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Swashbuckle.AspNetCore.Annotations;
 using System.Linq;
 using System.Threading.Tasks;
@@ -37,9 +35,12 @@ namespace bbt.gateway.messaging.Controllers
 
         public async Task<IActionResult> SendTemplatedSms([FromBody] SendTemplatedSmsRequest data)
         {
+            if (data.Phone == null)
+            {
+                data.Phone = _transactionManager.CustomerRequestInfo.MainPhone;
+            }
             return Ok(await _dEngageSender.SendTemplatedSms(data));
         }
-
 
         [SwaggerOperation(
            Summary = "Send Sms message",
@@ -52,6 +53,11 @@ namespace bbt.gateway.messaging.Controllers
         [SwaggerResponse(460, "Has Blacklist Record.", typeof(void))]
         public async Task<IActionResult> SendMessageSms([FromBody] SendMessageSmsRequest data)
         {
+            if (data.Phone == null)
+            {
+                data.Phone = _transactionManager.CustomerRequestInfo.MainPhone;
+            }
+
             if (ModelState.IsValid)
             {
                 await _transactionManager.GetCustomerInfoByPhone(data.Phone);
@@ -117,6 +123,10 @@ namespace bbt.gateway.messaging.Controllers
         [SwaggerResponse(460, "Given template is not found on dEngage", typeof(void))]
         public async Task<IActionResult> SendTemplatedEmail([FromBody] SendTemplatedEmailRequest data)
         {
+            if (data.Email == null)
+            {
+                data.Email = _transactionManager.CustomerRequestInfo.MainEmail;
+            }
             var response = await _dEngageSender.SendTemplatedMail(data);
             return Ok(response);
         }
@@ -130,6 +140,10 @@ namespace bbt.gateway.messaging.Controllers
         [SwaggerResponse(200, "Email was sent successfully", typeof(SendEmailResponse))]
         public async Task<IActionResult> SendMessageEmail([FromBody] SendMessageEmailRequest data)
         {
+            if (data.Email == null)
+            {
+                data.Email = _transactionManager.CustomerRequestInfo.MainEmail;
+            }
             var response = await _dEngageSender.SendMail(data);
             return Ok(response);
         }

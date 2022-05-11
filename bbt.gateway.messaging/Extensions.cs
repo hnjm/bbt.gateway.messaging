@@ -61,16 +61,16 @@ namespace bbt.gateway.messaging
             return Regex.Match(fixedString, regex).Groups[groupIndex].Value;            
         }
 
-        public static string GetWithRegexMultiple(this string content, string regex)
+        public static List<string> GetWithRegexMultiple(this string content, string regex, int groupIndex)
         {
             var fixedString = Regex.Replace(content, @"\t|\n|\r", "");
-            string returnValue = "";
+            List<string> returnList = new();
             var matchList =  Regex.Matches(fixedString, regex);
             foreach (Match match in matchList)
             {
-                returnValue += match.Groups[2].Value;
+                returnList.Add(match.Groups[groupIndex].Value);
             }
-            return returnValue;
+            return returnList;
 
         }
 

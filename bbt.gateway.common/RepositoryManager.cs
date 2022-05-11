@@ -22,7 +22,7 @@ namespace bbt.gateway.common
         private MailResponseLogRepository _mailResponseLogRepository;
         private OtpTrackingLogRepository _otpTrackingLogRepository;
         private TransactionRepository _transactionRepository;
-        
+        private WhitelistRepository _whitelistRepository;
 
         public RepositoryManager(DatabaseContext databaseContext,
             SmsBankingDatabaseContext smsBankingDatabaseContext)
@@ -61,6 +61,8 @@ namespace bbt.gateway.common
         public IMailResponseLogRepository MailResponseLogs => _mailResponseLogRepository ??= new MailResponseLogRepository(_databaseContext);
 
         public ITransactionRepository Transactions => _transactionRepository ??= new TransactionRepository(_databaseContext);
+
+        public IWhitelistRepository Whitelist => _whitelistRepository ??= new WhitelistRepository(_databaseContext);
 
         public int SaveChanges()
         {

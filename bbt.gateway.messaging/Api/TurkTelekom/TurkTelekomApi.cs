@@ -9,7 +9,7 @@ using Newtonsoft.Json;
 
 namespace bbt.gateway.messaging.Api.TurkTelekom
 {
-    public class TurkTelekomApi:BaseApi
+    public class TurkTelekomApi:BaseApi,ITurkTelekomApi
     {
         private readonly HttpClient _httpClient;
         public TurkTelekomApi(ITransactionManager transactionManager):base(transactionManager) {

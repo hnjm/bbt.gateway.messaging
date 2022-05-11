@@ -1,31 +1,28 @@
+using bbt.gateway.common;
 using bbt.gateway.common.Models;
+using bbt.gateway.common.Repositories;
+using bbt.gateway.messaging.Api.dEngage;
+using bbt.gateway.messaging.Api.Pusula;
 using bbt.gateway.messaging.Api.Turkcell;
 using bbt.gateway.messaging.Api.TurkTelekom;
 using bbt.gateway.messaging.Api.Vodafone;
-using bbt.gateway.common;
-using bbt.gateway.common.Repositories;
+using bbt.gateway.messaging.Middlewares;
 using bbt.gateway.messaging.Workers;
 using bbt.gateway.messaging.Workers.OperatorGateway;
 using Elastic.Apm.NetCoreAll;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using Refit;
 using System;
 using System.Collections.Generic;
-using bbt.gateway.common.Models.Settings;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using bbt.gateway.messaging.Api.Pusula;
-using bbt.gateway.messaging.Middlewares;
-using Serilog;
-using bbt.gateway.messaging.Api.dEngage;
-using Refit;
-using System.Text.Json;
 
 namespace bbt.gateway.messaging
 {
@@ -41,10 +38,11 @@ namespace bbt.gateway.messaging
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddHealthChecks(); 
+            services.AddHealthChecks();
 
             services.AddControllers()
-                    .AddNewtonsoftJson(opts => {
+                    .AddNewtonsoftJson(opts =>
+                    {
                         opts.SerializerSettings.Converters.Add(new StringEnumConverter());
                         opts.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
                     });
@@ -82,18 +80,19 @@ namespace bbt.gateway.messaging
 
             services.AddScoped<IRepositoryManager, RepositoryManager>();
 
-        
+
             services.AddRefitClient<IdEngageClient>(new RefitSettings
             {
                 ContentSerializer = new NewtonsoftJsonContentSerializer(
-                        new JsonSerializerSettings() { 
+                        new JsonSerializerSettings()
+                        {
                             NullValueHandling = NullValueHandling.Ignore,
                         }
                 )
             })
                .ConfigureHttpClient(c => c.BaseAddress = new Uri(Configuration["Api:dEngage:BaseAddress"]));
 
-            services.AddScoped<ITransactionManager,TransactionManager>();
+            services.AddScoped<ITransactionManager, TransactionManager>();
             services.AddScoped<OperatorTurkTelekom>();
             services.AddScoped<OperatorVodafone>();
             services.AddScoped<OperatorTurkcell>();
@@ -116,14 +115,15 @@ namespace bbt.gateway.messaging
                 }
             });
 
+            services.AddScoped<ITurkTelekomApi, TurkTelekomApi>();
+            services.AddScoped<IVodafoneApi, VodafoneApi>();
+            services.AddScoped<ITurkcellApi, TurkcellApi>();
+
             services.AddScoped<OtpSender>();
             services.AddScoped<dEngageSender>();
             services.AddScoped<HeaderManager>();
             services.AddScoped<OperatorManager>();
             services.AddScoped<OperatorIVN>();
-            services.AddScoped<TurkTelekomApi>();
-            services.AddScoped<VodafoneApi>();
-            services.AddScoped<TurkcellApi>();
             services.AddScoped<PusulaClient>();
         }
 
@@ -131,7 +131,8 @@ namespace bbt.gateway.messaging
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IApiVersionDescriptionProvider provider)
         {
             app.UseCustomerInfoMiddleware();
-            
+            app.UseRequestInfoMiddleware();
+
             app.UseSwagger();
 
             app.UseSwaggerUI(options =>
@@ -144,7 +145,7 @@ namespace bbt.gateway.messaging
                     options.RoutePrefix = "";
                 }
             });
-            
+
 
             app.UseHealthChecks("/hc", new HealthCheckOptions()
             {

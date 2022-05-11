@@ -15,8 +15,8 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
     public class OperatorVodafone : OperatorGatewayBase, IOperatorGateway
     {
         private string _authToken;
-        private readonly VodafoneApi _vodafoneApi;
-        public OperatorVodafone(VodafoneApi vodafoneApi, IConfiguration configuration,
+        private readonly IVodafoneApi _vodafoneApi;
+        public OperatorVodafone(IVodafoneApi vodafoneApi, IConfiguration configuration,
             ITransactionManager transactionManager) : base(configuration,transactionManager)
         {
             _vodafoneApi = vodafoneApi;

@@ -12,7 +12,7 @@ namespace bbt.gateway.messaging.Api
             TransactionManager = transactionManager;
         }
 
-        protected OperatorType Type
+        public OperatorType Type
         {
             get { return _type; }
             set
