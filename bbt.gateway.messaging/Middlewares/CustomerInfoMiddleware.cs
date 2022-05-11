@@ -153,9 +153,9 @@ namespace bbt.gateway.messaging.Middlewares
             if (_transactionManager.TransactionType == TransactionType.Otp)
             {
                 if (_repositoryManager.Whitelist.Find(w => 
-                (w.Phone.CountryCode == _transactionManager.OtpRequestInfo.Phone.CountryCode
-                && w.Phone.Prefix == _transactionManager.OtpRequestInfo.Phone.Prefix
-                && w.Phone.Number == _transactionManager.OtpRequestInfo.Phone.Number
+                (w.Phone.CountryCode == _middlewareRequest.Phone.CountryCode
+                && w.Phone.Prefix == _middlewareRequest.Phone.Prefix
+                && w.Phone.Number == _middlewareRequest.Phone.Number
                 )).FirstOrDefault() == null)
                 {
                     throw new BadHttpRequestException("İletişime geçmek istediğiniz numaranın non-prod ortamlarda gönderim izni yoktur. " +
@@ -167,9 +167,9 @@ namespace bbt.gateway.messaging.Middlewares
                 _transactionManager.TransactionType == TransactionType.TransactionalTemplatedSms)
             {
                 if (_repositoryManager.Whitelist.Find(w =>
-                (w.Phone.CountryCode == _transactionManager.SmsRequestInfo.Phone.CountryCode
-                && w.Phone.Prefix == _transactionManager.SmsRequestInfo.Phone.Prefix
-                && w.Phone.Number == _transactionManager.SmsRequestInfo.Phone.Number
+                (w.Phone.CountryCode == _middlewareRequest.Phone.CountryCode
+                && w.Phone.Prefix == _middlewareRequest.Phone.Prefix
+                && w.Phone.Number == _middlewareRequest.Phone.Number
                 )).FirstOrDefault() == null)
                 {
                     throw new BadHttpRequestException("İletişime geçmek istediğiniz numaranın non-prod ortamlarda gönderim izni yoktur. " +
@@ -180,7 +180,7 @@ namespace bbt.gateway.messaging.Middlewares
             if (_transactionManager.TransactionType == TransactionType.TransactionalMail ||
                 _transactionManager.TransactionType == TransactionType.TransactionalTemplatedMail)
             {
-                if (_repositoryManager.Whitelist.Find(w => w.Mail == _transactionManager.MailRequestInfo.Email).FirstOrDefault()
+                if (_repositoryManager.Whitelist.Find(w => w.Mail == _middlewareRequest.Email).FirstOrDefault()
                     == null)
                 {
                     throw new BadHttpRequestException("İletişime geçmek istediğiniz mail adresinin non-prod ortamlarda gönderim izni yoktur. " +
