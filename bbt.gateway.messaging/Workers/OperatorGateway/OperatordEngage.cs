@@ -10,6 +10,7 @@ using bbt.gateway.messaging.Api.dEngage.Model.Transactional;
 using bbt.gateway.common.Models;
 using Refit;
 using SendSmsResponse = bbt.gateway.messaging.Api.dEngage.Model.Transactional.SendSmsResponse;
+using System.Collections.Generic;
 
 namespace bbt.gateway.messaging.Workers.OperatorGateway
 {
@@ -116,7 +117,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             return null;
         }
 
-        public async Task<MailResponseLog> SendMail(string to, string? from, string? subject, string? html, string? templateId, string? templateParams)
+        public async Task<MailResponseLog> SendMail(string to, string? from, string? subject, string? html, string? templateId, string? templateParams,List<common.Models.Attachment> attachments)
         {
             var mailResponseLog = new MailResponseLog() { 
                 Topic = "dEngage Mail Sending",
@@ -147,7 +148,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                
                 try
                 {
-                    var req = CreateMailRequest(to, from, subject, html, templateId, templateParams);
+                    var req = CreateMailRequest(to, from, subject, html, templateId, templateParams,attachments);
                     try
                     {
                         var sendMailResponse = await _dEngageClient.SendMail(req, _authToken);
@@ -166,7 +167,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                                 _authTryCount++;
                                 if (_authTryCount < 3)
                                 {
-                                    return await SendMail(to,from,subject,html,templateId,templateParams);
+                                    return await SendMail(to,from,subject,html,templateId,templateParams,attachments);
                                 }
                                 else
                                 {
@@ -297,10 +298,22 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             }
         }
 
-        private SendMailRequest CreateMailRequest(string to,string from = null,string subject = null, string html = null, string templateId = null, string templateParams = null)
+        private SendMailRequest CreateMailRequest(string to,string from,string subject, string html, string templateId, string templateParams,List<common.Models.Attachment> attachments)
         {
             SendMailRequest sendMailRequest = new();
             sendMailRequest.send.to = to;
+            if (attachments != null)
+            {
+                sendMailRequest.attachments = new();
+                foreach (common.Models.Attachment attachment in attachments)
+                {
+                    sendMailRequest.attachments.Add(new()
+                    {
+                        fileName = attachment.Name,
+                        fileContent = attachment.Data 
+                    });
+                }
+            }
             if (!string.IsNullOrEmpty(templateId))
             {
                 sendMailRequest.content.templateId = templateId;

@@ -3,13 +3,15 @@ using bbt.gateway.common.Repositories;
 using bbt.gateway.messaging.Filters;
 using bbt.gateway.messaging.Workers;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using Swashbuckle.AspNetCore.Annotations;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
-
+using System.Text;
+using System.Threading.Tasks;
 
 namespace bbt.gateway.messaging.Controllers
 {
@@ -22,13 +24,16 @@ namespace bbt.gateway.messaging.Controllers
         private readonly OperatorManager _operatorManager;
         private readonly IRepositoryManager _repositoryManager;
         private readonly ITransactionManager _transactionManager;
+        private readonly IDistributedCache _distributedCache;
         public Administration(HeaderManager headerManager,OperatorManager operatorManager,
-            IRepositoryManager repositoryManager,ITransactionManager transactionManager)
+            IRepositoryManager repositoryManager,ITransactionManager transactionManager,
+            IDistributedCache distributedCache)
         {
             _headerManager = headerManager;
             _operatorManager = operatorManager;
             _repositoryManager = repositoryManager;
             _transactionManager = transactionManager;
+            _distributedCache = distributedCache;
         }
 
         [SwaggerOperation(Summary = "Returns content headers configuration")]
@@ -37,6 +42,14 @@ namespace bbt.gateway.messaging.Controllers
         [SwaggerResponse(200, "Headers is returned successfully", typeof(Header[]))]
         public IActionResult GetHeaders([FromQuery][Range(0, 100)] int page = 0, [FromQuery][Range(1, 100)] int pageSize = 20)
         {
+            //var list = await _distributedCache.GetAsync("SmsTemplates");
+            //if (list == null)
+            //{
+            //    await _distributedCache.SetAsync("SmsTemplates", Encoding.UTF8.GetBytes("test"), new DistributedCacheEntryOptions()
+            //    {
+            //        AbsoluteExpiration = DateTimeOffset.UtcNow.AddMinutes(1),
+            //    });
+            //}
             return Ok(_headerManager.Get(page, pageSize));
         }
 
