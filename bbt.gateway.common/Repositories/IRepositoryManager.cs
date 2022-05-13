@@ -14,6 +14,8 @@ namespace bbt.gateway.common.Repositories
         ISmsRequestLogRepository SmsRequestLogs { get; }
         IMailRequestLogRepository MailRequestLogs { get; }
         IMailResponseLogRepository MailResponseLogs { get; }
+        IPushNotificationRequestLogRepository PushNotificationRequestLogs { get; }
+        IPushNotificationResponseLogRepository PushNotificationResponseLogs { get; }
         IOtpResponseLogRepository OtpResponseLogs { get; }
         IOtpTrackingLogRepository OtpTrackingLog { get; }
         ITransactionRepository Transactions { get; }

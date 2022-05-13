@@ -23,10 +23,13 @@ namespace bbt.gateway.messaging.Workers
         public OtpRequestLog OtpRequestLog { get; set; }
         public SmsRequestLog SmsRequestLog { get; set; }
         public MailRequestLog MailRequestLog { get; set; }
+        public PushNotificationRequestLog PushNotificationRequestLog { get; set; }
 
         public OtpRequestInfo OtpRequestInfo { get; set; } = new();
         public SmsRequestInfo SmsRequestInfo { get; set; } = new();
         public MailRequestInfo MailRequestInfo { get; set; } = new();
+        public PushRequestInfo PushRequestInfo { get; set; } = new();
+
         public CustomerRequestInfo CustomerRequestInfo { get; set; } = new();
 
         public TransactionManager(ILogger<TransactionManager> logger, PusulaClient pusulaClient)
@@ -240,6 +243,16 @@ namespace bbt.gateway.messaging.Workers
         public string Content { get; set; }
         public string TemplateId { get; set; }
         public string TemplateParams { get; set; }
+        public Process Process { get; set; }
+    }
+
+    public class PushRequestInfo
+    {
+        public string ContactId { get; set; }
+        public OperatorType Operator { get; set; }
+        public string TemplateId { get; set; }
+        public string TemplateParams { get; set; }
+        public string CustomParameters { get; set; }
         public Process Process { get; set; }
     }
 

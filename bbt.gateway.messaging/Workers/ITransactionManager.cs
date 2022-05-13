@@ -11,9 +11,11 @@ namespace bbt.gateway.messaging.Workers
         public OtpRequestLog OtpRequestLog { get; set; }
         public SmsRequestLog SmsRequestLog { get; set; }
         public MailRequestLog MailRequestLog { get; set; }
+        public PushNotificationRequestLog PushNotificationRequestLog { get; set; }
         public OtpRequestInfo OtpRequestInfo { get; set; }
         public SmsRequestInfo SmsRequestInfo { get; set; }
         public MailRequestInfo MailRequestInfo { get; set; }
+        public PushRequestInfo PushRequestInfo { get; set; }
         public CustomerRequestInfo CustomerRequestInfo { get; set; }
         public TransactionType TransactionType { get; set; }
 

@@ -210,6 +210,81 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             }
 
         }
+
+        public async Task<PushNotificationResponseLog> SendPush(string contactId, string template, string templateParams, string customParameters)
+        {
+            var pushNotificationResponseLog = new PushNotificationResponseLog()
+            {
+                Topic = "dEngage Push Notification Sending",
+            };
+
+            var authResponse = await Auth();
+            if (authResponse.ResponseCode == "0")
+            {
+                try
+                {
+                    var req = CreatePushRequest(contactId,template,templateParams,customParameters);
+                    try
+                    {
+                        var sendPushResponse = await _dEngageClient.SendPush(req, _authToken);
+                        pushNotificationResponseLog.ResponseCode = sendPushResponse.code.ToString();
+                        pushNotificationResponseLog.ResponseMessage = sendPushResponse.message;
+
+                    }
+                    catch (ApiException ex)
+                    {
+                        if (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                        {
+                            authResponse = await RefreshToken();
+                            if (authResponse.ResponseCode == "0")
+                            {
+                                _authTryCount++;
+                                if (_authTryCount < 3)
+                                {
+                                    return await SendPush(contactId, template, templateParams, customParameters);
+                                }
+                                else
+                                {
+                                    pushNotificationResponseLog.ResponseCode = "99999";
+                                    pushNotificationResponseLog.ResponseMessage = "dEngage Auth Failed For 3 Times";
+                                    return pushNotificationResponseLog;
+                                }
+                            }
+                            else
+                            {
+                                pushNotificationResponseLog.ResponseCode = authResponse.ResponseCode;
+                                pushNotificationResponseLog.ResponseMessage = authResponse.ResponseMessage;
+                                return pushNotificationResponseLog;
+                            }
+                        }
+                        var error = await ex.GetContentAsAsync<SendMailResponse>();
+                        pushNotificationResponseLog.ResponseCode = error.code.ToString();
+                        pushNotificationResponseLog.ResponseMessage = error.message;
+                    }
+
+
+                    return pushNotificationResponseLog;
+                }
+                catch (Exception ex)
+                {
+                    pushNotificationResponseLog.ResponseCode = "-99999";
+                    pushNotificationResponseLog.ResponseMessage = ex.ToString();
+
+                    //logging
+                    return pushNotificationResponseLog;
+                }
+
+            }
+            else
+            {
+                pushNotificationResponseLog.ResponseCode = authResponse.ResponseCode;
+                pushNotificationResponseLog.ResponseMessage = authResponse.ResponseMessage;
+
+                return pushNotificationResponseLog;
+            }
+
+        }
+
         public async Task<SmsResponseLog> SendSms(Phone phone,SmsTypes smsType, string? content,string? templateId,string? templateParams)
         {
             var smsLog = new SmsResponseLog()
@@ -337,6 +412,30 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
             }
             return sendMailRequest;
+        }
+
+        private SendPushRequest CreatePushRequest(string contactId, string template, string templateParams,string customParameters)
+        {
+            SendPushRequest sendPushRequest = new();
+            sendPushRequest.contactKey = contactId;
+            sendPushRequest.contentId = template;
+            if (string.IsNullOrEmpty(templateParams))
+            {
+                sendPushRequest.current = null;
+            }
+            else
+            {
+                sendPushRequest.current = templateParams?.ClearMaskingFields();
+            }
+            if (string.IsNullOrEmpty(customParameters))
+            {
+                sendPushRequest.customParameters = null;
+            }
+            else
+            {
+                sendPushRequest.customParameters = customParameters?.ClearMaskingFields();
+            }
+            return sendPushRequest;
         }
 
         private Api.dEngage.Model.Transactional.SendSmsRequest CreateSmsRequest(Phone phone, SmsTypes smsType, string content = null,string templateId = null,string templateParams = null)

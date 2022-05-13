@@ -11,7 +11,6 @@ namespace bbt.gateway.common.Models
         public string Template { get; set; }
         public string CustomerNo { get; set; }
         public string ContactId { get; set; }
-        public string Title { get; set; }
-        public string Content { get; set; }
+        public string CustomParameters { get; set; }
     }
 }

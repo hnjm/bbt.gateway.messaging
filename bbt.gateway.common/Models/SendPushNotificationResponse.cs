@@ -7,9 +7,9 @@ namespace bbt.gateway.common.Models
 {
     public class SendPushNotificationResponse
     {
-        public Guid Id { get; set; }
+        public Guid TxnId { get; set; }
 
-        public string Status { get; set; }
+        public dEngageResponseCodes Status { get; set; }
 
     }
 }

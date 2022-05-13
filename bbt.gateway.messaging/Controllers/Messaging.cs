@@ -154,9 +154,10 @@ namespace bbt.gateway.messaging.Controllers
            )]
         [HttpPost("push-notification")]
         [SwaggerResponse(200, "Push notification was sent successfully", typeof(SendPushNotificationResponse))]
-        public IActionResult SendPushNotification([FromBody] SendMessagePushNotificationRequest data)
+        public async Task<IActionResult> SendPushNotification([FromBody] SendMessagePushNotificationRequest data)
         {
-            return Ok();
+            var response = await _dEngageSender.SendPushNotification(data);
+            return Ok(response);
         }
 
         [SwaggerOperation(
@@ -165,9 +166,10 @@ namespace bbt.gateway.messaging.Controllers
            )]
         [HttpPost("push-notification/templated")]
         [SwaggerResponse(200, "Push notification was sent successfully", typeof(SendPushNotificationResponse))]
-        public IActionResult SendTemplatedPushNotification([FromBody] SendTemplatedPushNotificationRequest data)
+        public async Task<IActionResult> SendTemplatedPushNotification([FromBody] SendTemplatedPushNotificationRequest data)
         {
-            return Ok();
+            var response = await _dEngageSender.SendTemplatedPushNotification(data);
+            return Ok(response);
         }
 
     }

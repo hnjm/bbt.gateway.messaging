@@ -20,6 +20,7 @@ namespace bbt.gateway.common.Models
         public OtpRequestLog OtpRequestLog { get; set; }
         public SmsRequestLog SmsRequestLog { get; set; }
         public MailRequestLog MailRequestLog { get; set; }
+        public PushNotificationRequestLog PushNotificationRequestLog { get; set; }
         
         
     }

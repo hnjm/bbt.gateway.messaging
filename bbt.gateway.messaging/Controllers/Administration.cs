@@ -26,14 +26,12 @@ namespace bbt.gateway.messaging.Controllers
         private readonly ITransactionManager _transactionManager;
         private readonly IDistributedCache _distributedCache;
         public Administration(HeaderManager headerManager,OperatorManager operatorManager,
-            IRepositoryManager repositoryManager,ITransactionManager transactionManager,
-            IDistributedCache distributedCache)
+            IRepositoryManager repositoryManager,ITransactionManager transactionManager)
         {
             _headerManager = headerManager;
             _operatorManager = operatorManager;
             _repositoryManager = repositoryManager;
             _transactionManager = transactionManager;
-            _distributedCache = distributedCache;
         }
 
         [SwaggerOperation(Summary = "Returns content headers configuration")]

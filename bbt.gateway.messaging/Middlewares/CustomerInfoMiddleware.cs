@@ -38,6 +38,11 @@ namespace bbt.gateway.messaging.Middlewares
             {
                 context.Request.EnableBuffering();
 
+                var ipAdress = context.Request.Headers["X-Forwarded-For"].FirstOrDefault()
+                ?? context.Connection.RemoteIpAddress.ToString();
+
+                _transactionManager.Ip = ipAdress;
+
                 await using var requestStream = _recyclableMemoryStreamManager.GetStream();
 
                 await context.Request.Body.CopyToAsync(requestStream);
@@ -60,9 +65,8 @@ namespace bbt.gateway.messaging.Middlewares
                 _transaction.CreatedBy = _middlewareRequest.Process;
                 _transaction.Mail = _middlewareRequest.Email;
                 _transaction.Phone = _middlewareRequest.Phone;
-                
+        
                 _repositoryManager.SaveChanges();
-
                 
                 SetTransaction(context);
 
@@ -108,6 +112,7 @@ namespace bbt.gateway.messaging.Middlewares
                 _transaction.OtpRequestLog = _transactionManager.OtpRequestLog;
                 _transaction.SmsRequestLog = _transactionManager.SmsRequestLog;
                 _transaction.MailRequestLog = _transactionManager.MailRequestLog;
+                _transaction.PushNotificationRequestLog = _transactionManager.PushNotificationRequestLog;
                 _transaction.Response = "Customer No Should Be Valid Long Value | Detail :" + ex.ToString();
                 _repositoryManager.SaveChanges();
 
@@ -122,6 +127,7 @@ namespace bbt.gateway.messaging.Middlewares
                 _transaction.OtpRequestLog = _transactionManager.OtpRequestLog;
                 _transaction.SmsRequestLog = _transactionManager.SmsRequestLog;
                 _transaction.MailRequestLog = _transactionManager.MailRequestLog;
+                _transaction.PushNotificationRequestLog = _transactionManager.PushNotificationRequestLog;
                 _transaction.Response = "An Error Occured | Detail :" + ex.ToString();
                 _repositoryManager.SaveChanges();
 
@@ -138,6 +144,7 @@ namespace bbt.gateway.messaging.Middlewares
                 _transaction.OtpRequestLog = _transactionManager.OtpRequestLog;
                 _transaction.SmsRequestLog = _transactionManager.SmsRequestLog;
                 _transaction.MailRequestLog = _transactionManager.MailRequestLog;
+                _transaction.PushNotificationRequestLog = _transactionManager.PushNotificationRequestLog;
                 _transaction.Response = "An Error Occured | Detail :" + ex.ToString();
                 _repositoryManager.SaveChanges();
 
@@ -271,6 +278,20 @@ namespace bbt.gateway.messaging.Middlewares
                 }
 
             }
+
+            if (path.Contains("push"))
+            {
+
+                if (path.Contains("templated"))
+                {
+                    SetTransactionAsTemplatedPushNotification();
+                }
+                else
+                {
+                    SetTransactionAsPushNotification();
+                }
+
+            }
         }
         private void SetTransactionAsOtp()
         {
@@ -312,6 +333,26 @@ namespace bbt.gateway.messaging.Middlewares
             _transactionManager.MailRequestInfo.TemplateId = _middlewareRequest.TemplateId;
             _transactionManager.MailRequestInfo.TemplateParams = _middlewareRequest.TemplateParams?.MaskFields();
             _transactionManager.MailRequestInfo.Email = _middlewareRequest.Email;
+        }
+
+        private void SetTransactionAsPushNotification()
+        {
+            _transactionManager.TransactionType = TransactionType.TransactionalPush;
+            _transactionManager.PushRequestInfo.Process = _middlewareRequest.Process;
+            _transactionManager.PushRequestInfo.ContactId = _middlewareRequest.ContactId;
+            _transactionManager.PushRequestInfo.TemplateId = _middlewareRequest.TemplateId;
+            _transactionManager.PushRequestInfo.TemplateParams = _middlewareRequest.TemplateParams?.MaskFields();
+            _transactionManager.PushRequestInfo.CustomParameters = _middlewareRequest.CustomParameters?.MaskFields();
+        }
+
+        private void SetTransactionAsTemplatedPushNotification()
+        {
+            _transactionManager.TransactionType = TransactionType.TransactionalTemplatedPush;
+            _transactionManager.PushRequestInfo.Process = _middlewareRequest.Process;
+            _transactionManager.PushRequestInfo.ContactId = _middlewareRequest.ContactId;
+            _transactionManager.PushRequestInfo.TemplateId = _middlewareRequest.TemplateId;
+            _transactionManager.PushRequestInfo.TemplateParams = _middlewareRequest.TemplateParams?.MaskFields();
+            _transactionManager.PushRequestInfo.CustomParameters = _middlewareRequest.CustomParameters?.MaskFields();
         }
 
         private async Task GetCustomerInfoByCitizenshipNumber()

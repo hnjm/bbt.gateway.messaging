@@ -16,10 +16,12 @@ namespace bbt.gateway.common
         private MailConfigurationRepository _mailConfigurationRepository;
         private OtpRequestLogRepository _otpRequestLogRepository;
         private MailRequestLogRepository _mailRequestLogRepository;
+        private PushNotificationRequestLogRepository _pushNotificationRequestLogRepository;
         private SmsResponseLogRepository _smsResponseLogRepository;
         private SmsRequestLogRepository _smsRequestLogRepository;
         private OtpResponseLogRepository _otpResponseLogRepository;
         private MailResponseLogRepository _mailResponseLogRepository;
+        private PushNotificationResponseLogRepository _pushNotificationResponseLogRepository;
         private OtpTrackingLogRepository _otpTrackingLogRepository;
         private TransactionRepository _transactionRepository;
         private WhitelistRepository _whitelistRepository;
@@ -59,6 +61,9 @@ namespace bbt.gateway.common
         public IMailRequestLogRepository MailRequestLogs => _mailRequestLogRepository ??= new MailRequestLogRepository(_databaseContext);
 
         public IMailResponseLogRepository MailResponseLogs => _mailResponseLogRepository ??= new MailResponseLogRepository(_databaseContext);
+        public IPushNotificationRequestLogRepository PushNotificationRequestLogs => _pushNotificationRequestLogRepository ??= new PushNotificationRequestLogRepository(_databaseContext);
+
+        public IPushNotificationResponseLogRepository PushNotificationResponseLogs => _pushNotificationResponseLogRepository ??= new PushNotificationResponseLogRepository(_databaseContext);
 
         public ITransactionRepository Transactions => _transactionRepository ??= new TransactionRepository(_databaseContext);
 

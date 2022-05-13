@@ -20,6 +20,9 @@ namespace bbt.gateway.common
         public DbSet<MailRequestLog> MailRequestLog { get; set; }
         public DbSet<MailResponseLog> MailResponseLog { get; set; }
 
+        public DbSet<PushNotificationRequestLog> PushNotificationRequestLogs { get; set; }
+        public DbSet<PushNotificationResponseLog> PushNotificationResponseLogs { get; set; }
+
         public DbSet<Transaction> Transactions { get; set; }
         public DbSet<WhiteList> WhiteList { get; set; }
 
@@ -45,7 +48,7 @@ namespace bbt.gateway.common
             builder.Entity<Transaction>().OwnsOne(i => i.Phone);
             builder.Entity<WhiteList>().OwnsOne(i => i.CreatedBy);
             builder.Entity<WhiteList>().OwnsOne(i => i.Phone);
-
+            builder.Entity<PushNotificationRequestLog>().OwnsOne(i => i.CreatedBy);
             //Non-cluster Guid index sample
             builder.Entity<PhoneConfiguration>()
                 .HasIndex(c => c.Id)

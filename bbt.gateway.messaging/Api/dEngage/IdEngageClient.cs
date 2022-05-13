@@ -21,6 +21,8 @@ namespace bbt.gateway.messaging.Api.dEngage
         Task<SendSmsResponse> SendSms(SendSmsRequest sendSmsRequest, [Authorize("Bearer")] string token);
         [Post("/transactional/email")]
         Task<SendSmsResponse> SendMail(SendMailRequest sendMailRequest, [Authorize("Bearer")] string token);
+        [Post("/transactional/push")]
+        Task<SendPushResponse> SendPush(SendPushRequest sendPushRequest, [Authorize("Bearer")] string token);
 
         [Get("/transactional/sms")]
         Task<SmsStatusResponse> GetSmsStatus([Authorize("Bearer")] string token,SmsStatusRequest smsStatusRequest);

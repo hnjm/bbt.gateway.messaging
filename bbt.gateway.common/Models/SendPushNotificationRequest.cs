@@ -9,11 +9,7 @@ namespace bbt.gateway.common.Models
     {
         public Guid Id { get; set; }
 
-        public string DeviceToken { get; set; }
-
         public Process Process { get; set; }
-
-        public MessageContentType ContentType { get; set; }
 
     }
 }

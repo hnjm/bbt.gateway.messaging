@@ -225,8 +225,35 @@ namespace bbt.gateway.messaging.Workers
         public async Task<SendPushNotificationResponse> SendTemplatedPushNotification(SendTemplatedPushNotificationRequest sendTemplatedPushNotificationRequest)
         {
 
-            SendPushNotificationResponse sendPushNotificationResponse = new();
+            SendPushNotificationResponse sendPushNotificationResponse = new() { 
+                TxnId = _transactionManager.TxnId,
+            };
 
+            if (_transactionManager.CustomerRequestInfo.BusinessLine == "X")
+                _operatordEngage.Type = OperatorType.dEngageOn;
+            else
+                _operatordEngage.Type = OperatorType.dEngageBurgan;
+
+            var pushRequest = new PushNotificationRequestLog()
+            {
+                Operator = _operatordEngage.Type,
+                TemplateId = sendTemplatedPushNotificationRequest.Template,
+                TemplateParams = sendTemplatedPushNotificationRequest.TemplateParams?.MaskFields(),
+                ContactId = sendTemplatedPushNotificationRequest.ContactId,
+                CustomParameters = sendTemplatedPushNotificationRequest.CustomParameters?.MaskFields(),
+                CreatedBy = sendTemplatedPushNotificationRequest.Process
+            };
+
+
+            var response = await _operatordEngage.SendPush(sendTemplatedPushNotificationRequest.ContactId, sendTemplatedPushNotificationRequest.Template, sendTemplatedPushNotificationRequest.TemplateParams, sendTemplatedPushNotificationRequest.CustomParameters);
+
+            pushRequest.ResponseLogs.Add(response);
+
+            _repositoryManager.PushNotificationRequestLogs.Add(pushRequest);
+
+            _repositoryManager.SaveChanges();
+            _transactionManager.PushNotificationRequestLog = pushRequest;
+            sendPushNotificationResponse.Status = response.GetdEngageStatus();
 
             return sendPushNotificationResponse;
         }

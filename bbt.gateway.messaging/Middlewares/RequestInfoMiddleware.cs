@@ -25,10 +25,6 @@ namespace bbt.gateway.messaging.Middlewares
 
         public async Task InvokeAsync(HttpContext context,ITransactionManager transactionManager)
         {            
-            var ipAdress = context.Request.Headers["X-Forwarded-For"].FirstOrDefault()
-                ?? context.Connection.RemoteIpAddress.ToString();
-
-            transactionManager.Ip = ipAdress;
             await _next(context);
         }
 
