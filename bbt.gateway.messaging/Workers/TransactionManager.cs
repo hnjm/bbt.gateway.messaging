@@ -31,7 +31,7 @@ namespace bbt.gateway.messaging.Workers
         public PushRequestInfo PushRequestInfo { get; set; } = new();
 
         public CustomerRequestInfo CustomerRequestInfo { get; set; } = new();
-
+        public bool UseFakeSmtp { get; set; }
         public TransactionManager(ILogger<TransactionManager> logger, PusulaClient pusulaClient)
         {
             _txnId = Guid.NewGuid();

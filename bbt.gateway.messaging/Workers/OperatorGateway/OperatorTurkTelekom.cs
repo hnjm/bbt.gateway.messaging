@@ -13,10 +13,10 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
     public class OperatorTurkTelekom : OperatorGatewayBase, IOperatorGateway
     {
         private readonly ITurkTelekomApi _turkTelekomApi;
-        public OperatorTurkTelekom(ITurkTelekomApi turkTelekomApi, IConfiguration configuration,
+        public OperatorTurkTelekom(TurkTelekomApiFactory turkTelekomApiFactory, IConfiguration configuration,
             ITransactionManager transactionManager) : base(configuration, transactionManager)
         {
-            _turkTelekomApi = turkTelekomApi;
+            _turkTelekomApi = turkTelekomApiFactory(TransactionManager.UseFakeSmtp);
             Type = OperatorType.TurkTelekom;
             _turkTelekomApi.SetOperatorType(OperatorConfig);
         }

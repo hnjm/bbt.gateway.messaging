@@ -6,14 +6,16 @@ using System.Threading.Tasks;
 using bbt.gateway.messaging.Workers;
 using Newtonsoft.Json;
 using System;
+using bbt.gateway.messaging.Helpers;
 
 namespace bbt.gateway.messaging.Api.Vodafone
 {
     public class VodafoneApiMock:BaseApi,IVodafoneApi
     {
-
-        public VodafoneApiMock(ITransactionManager transactionManager):base(transactionManager) 
+        private IFakeSmtpHelper _fakeSmtpHelper;
+        public VodafoneApiMock(IFakeSmtpHelper fakeSmtpHelper,ITransactionManager transactionManager):base(transactionManager) 
         {
+            _fakeSmtpHelper = fakeSmtpHelper;
             Type = OperatorType.Vodafone;
         }
 
@@ -23,12 +25,13 @@ namespace bbt.gateway.messaging.Api.Vodafone
             OperatorApiResponse vodafoneSmsResponse = new(){ OperatorType = this.Type };
             var requests = getSendSmsXml(vodafoneSmsRequest);
             
-            vodafoneSmsResponse.ResponseCode = "0";
+            vodafoneSmsResponse.ResponseCode = "100";
             vodafoneSmsResponse.ResponseMessage = "";
             vodafoneSmsResponse.MessageId = Guid.NewGuid().ToString();
             vodafoneSmsResponse.ResponseBody = "<Mock>Successfull</Mock>";
             vodafoneSmsResponse.RequestBody = requests.Item2;
-                
+
+            _fakeSmtpHelper.SendFakeMail("Vodafone@Otp.com", "Vodafone", vodafoneSmsRequest.PhoneNo+"@maildev.com", "Vodafone Otp Sms", vodafoneSmsRequest.Message, null);
 
             return vodafoneSmsResponse;
         }

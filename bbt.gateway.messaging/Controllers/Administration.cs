@@ -1,17 +1,12 @@
 ﻿using bbt.gateway.common.Models;
 using bbt.gateway.common.Repositories;
-using bbt.gateway.messaging.Filters;
 using bbt.gateway.messaging.Workers;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Logging;
 using Swashbuckle.AspNetCore.Annotations;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace bbt.gateway.messaging.Controllers
 {
@@ -24,9 +19,8 @@ namespace bbt.gateway.messaging.Controllers
         private readonly OperatorManager _operatorManager;
         private readonly IRepositoryManager _repositoryManager;
         private readonly ITransactionManager _transactionManager;
-        private readonly IDistributedCache _distributedCache;
-        public Administration(HeaderManager headerManager,OperatorManager operatorManager,
-            IRepositoryManager repositoryManager,ITransactionManager transactionManager)
+        public Administration(HeaderManager headerManager, OperatorManager operatorManager,
+            IRepositoryManager repositoryManager, ITransactionManager transactionManager)
         {
             _headerManager = headerManager;
             _operatorManager = operatorManager;
@@ -40,14 +34,6 @@ namespace bbt.gateway.messaging.Controllers
         [SwaggerResponse(200, "Headers is returned successfully", typeof(Header[]))]
         public IActionResult GetHeaders([FromQuery][Range(0, 100)] int page = 0, [FromQuery][Range(1, 100)] int pageSize = 20)
         {
-            //var list = await _distributedCache.GetAsync("SmsTemplates");
-            //if (list == null)
-            //{
-            //    await _distributedCache.SetAsync("SmsTemplates", Encoding.UTF8.GetBytes("test"), new DistributedCacheEntryOptions()
-            //    {
-            //        AbsoluteExpiration = DateTimeOffset.UtcNow.AddMinutes(1),
-            //    });
-            //}
             return Ok(_headerManager.Get(page, pageSize));
         }
 
@@ -91,9 +77,9 @@ namespace bbt.gateway.messaging.Controllers
         [HttpGet("phone-monitor/{countryCode}/{prefix}/{number}")]
         [SwaggerResponse(200, "Records was returned successfully", typeof(PhoneConfiguration))]
 
-        public IActionResult GetPhoneMonitorRecords(int countryCode, int prefix, int number,int count)
+        public IActionResult GetPhoneMonitorRecords(int countryCode, int prefix, int number, int count)
         {
-            return Ok(_repositoryManager.PhoneConfigurations.GetWithRelatedLogsAndBlacklistEntries(countryCode,prefix,number,count)
+            return Ok(_repositoryManager.PhoneConfigurations.GetWithRelatedLogsAndBlacklistEntries(countryCode, prefix, number, count)
                 .ToArray());
         }
 
@@ -105,7 +91,7 @@ namespace bbt.gateway.messaging.Controllers
         public IActionResult GetPhoneBlacklistRecords(int countryCode, int prefix, int number, [Range(0, 100)] int page = 0, [Range(1, 100)] int pageSize = 20)
         {
             return Ok(_repositoryManager.BlackListEntries
-                .getWithLogs(countryCode,prefix,number,page,pageSize)
+                .getWithLogs(countryCode, prefix, number, page, pageSize)
                 .ToArray());
         }
 
@@ -153,7 +139,7 @@ namespace bbt.gateway.messaging.Controllers
 
             _repositoryManager.BlackListEntries.Add(newOtpBlackListEntry);
             _repositoryManager.SaveChanges();
-            
+
 
             return Created("", newOtpBlackListEntryId);
         }
@@ -184,7 +170,7 @@ namespace bbt.gateway.messaging.Controllers
             }
 
             _repositoryManager.SaveChanges();
-            
+
             return StatusCode(201);
         }
 
@@ -198,14 +184,15 @@ namespace bbt.gateway.messaging.Controllers
                 return NotFound();
             }
 
-            var whitelistRecord = new WhiteList() { 
+            var whitelistRecord = new WhiteList()
+            {
                 CreatedBy = data.CreatedBy,
                 IpAddress = _transactionManager.Ip
             };
 
             if (data.Phone != null)
             {
-                whitelistRecord.Phone = data.Phone;    
+                whitelistRecord.Phone = data.Phone;
             }
             if (!string.IsNullOrEmpty(data.Email))
             {
@@ -215,7 +202,7 @@ namespace bbt.gateway.messaging.Controllers
             _repositoryManager.Whitelist.Add(whitelistRecord);
             _repositoryManager.SaveChanges();
 
-            return Created("",whitelistRecord.Id);
+            return Created("", whitelistRecord.Id);
         }
 
         [SwaggerOperation(Summary = "Returns phones otp sending logs")]
@@ -224,7 +211,7 @@ namespace bbt.gateway.messaging.Controllers
         public IActionResult GetOtpLog(int countryCode, int prefix, int number, [Range(0, 100)] int page = 0, [Range(1, 100)] int pageSize = 20)
         {
             return Ok(_repositoryManager.OtpRequestLogs
-                .GetWithResponseLogs(countryCode,prefix,number,page,pageSize)
+                .GetWithResponseLogs(countryCode, prefix, number, page, pageSize)
                 .ToArray());
         }
 
@@ -246,7 +233,7 @@ namespace bbt.gateway.messaging.Controllers
         [SwaggerResponse(200, "Records was returned successfully", typeof(Transaction[]))]
         public IActionResult GetTransactionsWithPhone(int countryCode, int prefix, int number, [Range(0, 100)] int page = 0, [Range(1, 100)] int pageSize = 20)
         {
-            return Ok(_repositoryManager.Transactions.GetWithPhone(countryCode,prefix,number,page,pageSize));
+            return Ok(_repositoryManager.Transactions.GetWithPhone(countryCode, prefix, number, page, pageSize));
         }
 
     }

@@ -5,12 +5,16 @@ using System.Text;
 using System.Threading.Tasks;
 using bbt.gateway.messaging.Workers;
 using System;
+using bbt.gateway.messaging.Helpers;
 
 namespace bbt.gateway.messaging.Api.TurkTelekom
 {
     public class TurkTelekomApiMock:BaseApi,ITurkTelekomApi
     {
-        public TurkTelekomApiMock(ITransactionManager transactionManager):base(transactionManager) {
+        private IFakeSmtpHelper _fakeSmtpHelper;
+        public TurkTelekomApiMock(IFakeSmtpHelper fakeSmtpHelper,ITransactionManager transactionManager):base(transactionManager) {
+
+            _fakeSmtpHelper = fakeSmtpHelper;
             Type = OperatorType.TurkTelekom;
         }
 
@@ -24,6 +28,8 @@ namespace bbt.gateway.messaging.Api.TurkTelekom
             operatorApiResponse.MessageId = Guid.NewGuid().ToString();
             operatorApiResponse.RequestBody = turkTelekomSmsRequest.SerializeXml();
             operatorApiResponse.ResponseBody = "<Mock>Successfull</Mock>";
+
+            _fakeSmtpHelper.SendFakeMail("TurkTelekom@Otp", "Turk Telekom", turkTelekomSmsRequest.GsmNo+"@maildev", "Turk Telekom Otp Sms", turkTelekomSmsRequest.Message, null);
 
             return operatorApiResponse;
         }

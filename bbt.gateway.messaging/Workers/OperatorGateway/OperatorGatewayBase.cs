@@ -8,18 +8,18 @@ using Microsoft.EntityFrameworkCore;
 
 namespace bbt.gateway.messaging.Workers.OperatorGateway
 {
-    public abstract class OperatorGatewayBase
+    public abstract class OperatorGatewayBase:IOperatorGatewayBase
     {
         private OperatorType type;
-        protected readonly IConfiguration Configuration;
+        private readonly IConfiguration _configuration;
         private DbContextOptions<DatabaseContext> _dbOptions;
-        protected readonly ITransactionManager TransactionManager;
+        private readonly ITransactionManager _transactionManager;
         protected OperatorGatewayBase(IConfiguration configuration,ITransactionManager transactionManager) 
         {
-            TransactionManager = transactionManager;
-            Configuration = configuration;
+            _transactionManager = transactionManager;
+            _configuration = configuration;
             _dbOptions = new DbContextOptionsBuilder<DatabaseContext>()
-                .UseSqlServer(configuration.GetConnectionString("DefaultConnection"))
+                .UseSqlServer(_configuration.GetConnectionString("DefaultConnection"))
                 .Options;
         }
 
@@ -33,16 +33,20 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 OperatorConfig = databaseContext.Operators.FirstOrDefault(o => o.Type == type);
             }
         }
-        protected Operator OperatorConfig { get; set; }
+        public Operator OperatorConfig { get; set; }
 
-        protected void SaveOperator()
+        public IConfiguration Configuration => _configuration;
+
+        public ITransactionManager TransactionManager => _transactionManager;
+
+        public void SaveOperator()
         {
             using var databaseContext = new DatabaseContext(_dbOptions);
             databaseContext.Operators.Update(OperatorConfig);
             databaseContext.SaveChanges();
         }
 
-        protected PhoneConfiguration GetPhoneConfiguration(Phone phone)
+        public PhoneConfiguration GetPhoneConfiguration(Phone phone)
         {
             using var databaseContext = new DatabaseContext(_dbOptions);
             return databaseContext.PhoneConfigurations.Where(i =>

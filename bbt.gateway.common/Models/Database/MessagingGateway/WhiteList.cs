@@ -10,6 +10,7 @@ namespace bbt.gateway.common.Models
     {
         public Guid Id { get; set; }
         public string Mail { get; set; }
+        public string ContactId { get; set; }
         public Phone Phone { get; set; }
         public Process CreatedBy { get; set; }
         public string IpAddress { get; set; }

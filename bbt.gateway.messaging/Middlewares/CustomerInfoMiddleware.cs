@@ -72,6 +72,7 @@ namespace bbt.gateway.messaging.Middlewares
 
                 await GetCustomerDetail();
 
+                _transactionManager.UseFakeSmtp = false;
                 if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "Prod")
                 {
                     CheckWhitelist();
@@ -165,8 +166,7 @@ namespace bbt.gateway.messaging.Middlewares
                 && w.Phone.Number == _middlewareRequest.Phone.Number
                 )).FirstOrDefault() == null)
                 {
-                    throw new BadHttpRequestException("İletişime geçmek istediğiniz numaranın non-prod ortamlarda gönderim izni yoktur. " +
-                        "/Whitelist endpoint ile whitelist tablosuna eklemeniz gerekmektedir.",403);
+                    _transactionManager.UseFakeSmtp = true;
                 }
             }
 
@@ -179,8 +179,7 @@ namespace bbt.gateway.messaging.Middlewares
                 && w.Phone.Number == _middlewareRequest.Phone.Number
                 )).FirstOrDefault() == null)
                 {
-                    throw new BadHttpRequestException("İletişime geçmek istediğiniz numaranın non-prod ortamlarda gönderim izni yoktur. " +
-                        "/Whitelist endpoint ile whitelist tablosuna eklemeniz gerekmektedir.", 403);
+                    _transactionManager.UseFakeSmtp = true;
                 }
             }
 
@@ -190,8 +189,17 @@ namespace bbt.gateway.messaging.Middlewares
                 if (_repositoryManager.Whitelist.Find(w => w.Mail == _middlewareRequest.Email).FirstOrDefault()
                     == null)
                 {
-                    throw new BadHttpRequestException("İletişime geçmek istediğiniz mail adresinin non-prod ortamlarda gönderim izni yoktur. " +
-                        "/Whitelist endpoint ile whitelist tablosuna eklemeniz gerekmektedir.", 403);
+                    _transactionManager.UseFakeSmtp = true;
+                }
+            }
+
+            if (_transactionManager.TransactionType == TransactionType.TransactionalPush ||
+                _transactionManager.TransactionType == TransactionType.TransactionalTemplatedPush)
+            {
+                if (_repositoryManager.Whitelist.Find(w => w.ContactId == _middlewareRequest.ContactId).FirstOrDefault()
+                    == null)
+                {
+                    _transactionManager.UseFakeSmtp = true;
                 }
             }
         }

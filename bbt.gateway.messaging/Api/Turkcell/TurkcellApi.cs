@@ -27,6 +27,7 @@ namespace bbt.gateway.messaging.Api.Turkcell
             try
             {
                 HttpContent httpRequest = new StringContent(requests.Item1, Encoding.UTF8, "text/xml");
+
                 var httpResponse = await _httpClient.PostAsync(OperatorConfig.SendService, httpRequest);
                 response = httpResponse.Content.ReadAsStringAsync().Result;
                 

@@ -4,12 +4,15 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System;
 using bbt.gateway.messaging.Workers;
+using bbt.gateway.messaging.Helpers;
 
 namespace bbt.gateway.messaging.Api.Turkcell
 {
     public class TurkcellApiMock:BaseApi,ITurkcellApi
     {
-        public TurkcellApiMock(ITransactionManager transactionManager):base(transactionManager) {
+        private IFakeSmtpHelper _fakeSmtpHelper;
+        public TurkcellApiMock(IFakeSmtpHelper fakeSmtpHelper,ITransactionManager transactionManager):base(transactionManager) {
+            _fakeSmtpHelper = fakeSmtpHelper;
             Type = OperatorType.Turkcell;
         }
 
@@ -25,6 +28,7 @@ namespace bbt.gateway.messaging.Api.Turkcell
             turkcellSmsResponse.RequestBody = requests.Item2;
             turkcellSmsResponse.ResponseBody = response;
 
+            _fakeSmtpHelper.SendFakeMail("Turkcell@Otp", "Turkcell",turkcellSmsRequest.PhoneNo+"@maildev", "Turkcell Otp Sms", turkcellSmsRequest.Content, null);
 
             return turkcellSmsResponse;
         }

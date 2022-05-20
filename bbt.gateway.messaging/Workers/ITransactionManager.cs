@@ -18,7 +18,7 @@ namespace bbt.gateway.messaging.Workers
         public PushRequestInfo PushRequestInfo { get; set; }
         public CustomerRequestInfo CustomerRequestInfo { get; set; }
         public TransactionType TransactionType { get; set; }
-
+        public bool UseFakeSmtp { get; set; }
         public Task GetCustomerInfoByPhone(Phone Phone);
         public Task GetCustomerInfoByEmail(string Email);
         public Task GetCustomerInfoByCitizenshipNumber(string CitizenshipNumber);

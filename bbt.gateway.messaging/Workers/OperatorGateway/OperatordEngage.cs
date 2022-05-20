@@ -11,10 +11,13 @@ using bbt.gateway.common.Models;
 using Refit;
 using SendSmsResponse = bbt.gateway.messaging.Api.dEngage.Model.Transactional.SendSmsResponse;
 using System.Collections.Generic;
+using bbt.gateway.messaging.Api.dEngage.Model.Contents;
+using Microsoft.Extensions.Caching.Distributed;
+using Newtonsoft.Json;
 
 namespace bbt.gateway.messaging.Workers.OperatorGateway
 {
-    public class OperatordEngage : OperatorGatewayBase
+    public class OperatordEngage : OperatorGatewayBase,IOperatordEngage
     {
         private GetSmsFromsResponse _smsIds;
         private GetMailFromsResponse _mailIds;
@@ -22,12 +25,13 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
         private int _authTryCount;
         private string _authToken;
         private readonly IdEngageClient _dEngageClient;
+        private IDistributedCache _distrubitedCache;
         public OperatordEngage(IdEngageClient dEngageClient, IConfiguration configuration,
-            ITransactionManager transactionManager) : base(configuration,transactionManager)
+            ITransactionManager transactionManager,IDistributedCache distributedCache) : base(configuration,transactionManager)
         {
             _authTryCount = 0;
             _dEngageClient = dEngageClient;
-            
+            _distrubitedCache = distributedCache;
         }
 
         private async Task<OperatorApiAuthResponse> Auth()
@@ -117,6 +121,54 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             return null;
         }
 
+        public async Task<MailContentsResponse> GetMailContents()
+        {
+            MailContentsResponse mailContentsResponse = null;
+            var authResponse = await Auth();
+            if (authResponse.ResponseCode == "0")
+            {
+                mailContentsResponse = await _dEngageClient.GetMailContents(_authToken);
+            }
+            else
+            {
+                TransactionManager.LogCritical("dEngage Auth Failed | " + authResponse.ResponseMessage);
+            }
+
+            return mailContentsResponse;
+        }
+
+        public async Task<SmsContentsResponse> GetSmsContents()
+        {
+            SmsContentsResponse smsContentsResponse = null;
+            var authResponse = await Auth();
+            if (authResponse.ResponseCode == "0")
+            {
+                smsContentsResponse = await _dEngageClient.GetSmsContents(_authToken);
+            }
+            else
+            {
+                TransactionManager.LogCritical("dEngage Auth Failed | " + authResponse.ResponseMessage);
+            }
+
+            return smsContentsResponse;
+        }
+
+        public async Task<PushContentsResponse> GetPushContents()
+        {
+            PushContentsResponse pushContentsResponse = null;
+            var authResponse = await Auth();
+            if (authResponse.ResponseCode == "0")
+            {
+                pushContentsResponse = await _dEngageClient.GetPushContents(_authToken);
+            }
+            else
+            {
+                TransactionManager.LogCritical("dEngage Auth Failed | " + authResponse.ResponseMessage);
+            }
+
+            return pushContentsResponse;
+        }
+
         public async Task<MailResponseLog> SendMail(string to, string? from, string? subject, string? html, string? templateId, string? templateParams,List<common.Models.Attachment> attachments)
         {
             var mailResponseLog = new MailResponseLog() { 
@@ -130,8 +182,23 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 {
                     try
                     {
-                        var res = await _dEngageClient.GetMailFroms(_authToken);
-                        _mailIds = res;
+                        var mailFromsByteArray = await _distrubitedCache.GetAsync(OperatorConfig.Type.ToString() + "_mailFroms");
+                        if (mailFromsByteArray != null)
+                        {
+                            _mailIds = JsonConvert.DeserializeObject<GetMailFromsResponse>(System.Text.Encoding.UTF8.GetString(mailFromsByteArray));
+                        }
+                        else
+                        {
+                            var res = await _dEngageClient.GetMailFroms(_authToken);
+                            await _distrubitedCache.SetAsync(OperatorConfig.Type.ToString() + "_mailFroms",
+                                System.Text.Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(res)),
+                                new DistributedCacheEntryOptions
+                                {
+                                    AbsoluteExpiration = DateTimeOffset.UtcNow.AddHours(1)
+                                }
+                                );
+                            _mailIds = res;
+                        }
                     }
                     catch (ApiException ex)
                     {
@@ -301,8 +368,24 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 {
                     try
                     {
-                        var res = await _dEngageClient.GetSmsFroms(_authToken);
-                        _smsIds = res;
+                        var smsFromsByteArray = await _distrubitedCache.GetAsync(OperatorConfig.Type.ToString() + "_smsFroms");
+                        if (smsFromsByteArray != null)
+                        {
+                            _smsIds = JsonConvert.DeserializeObject<GetSmsFromsResponse>(System.Text.Encoding.UTF8.GetString(smsFromsByteArray));
+                        }
+                        else
+                        {
+                            var res = await _dEngageClient.GetSmsFroms(_authToken);
+                            await _distrubitedCache.SetAsync(OperatorConfig.Type.ToString() + "_smsFroms",
+                                System.Text.Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(res)),
+                                new DistributedCacheEntryOptions
+                                {
+                                    AbsoluteExpiration = DateTimeOffset.UtcNow.AddHours(1)
+                                }
+                                );
+                            _smsIds = res;
+                        }
+                        
                     }
                     catch (ApiException ex)
                     {

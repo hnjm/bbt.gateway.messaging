@@ -16,10 +16,10 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
     {
         private readonly ITurkcellApi _turkcellApi;
         private string _authToken;
-        public OperatorTurkcell(ITurkcellApi turkcellApi,IConfiguration configuration,
+        public OperatorTurkcell(TurkcellApiFactory turkcellApiFactory,IConfiguration configuration,
             ITransactionManager transactionManager) : base(configuration,transactionManager)
         {
-            _turkcellApi = turkcellApi;
+            _turkcellApi = turkcellApiFactory(TransactionManager.UseFakeSmtp);
             Type = OperatorType.Turkcell;
             _turkcellApi.SetOperatorType(OperatorConfig);
         }

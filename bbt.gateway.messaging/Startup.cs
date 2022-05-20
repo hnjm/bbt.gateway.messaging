@@ -6,6 +6,7 @@ using bbt.gateway.messaging.Api.Pusula;
 using bbt.gateway.messaging.Api.Turkcell;
 using bbt.gateway.messaging.Api.TurkTelekom;
 using bbt.gateway.messaging.Api.Vodafone;
+using bbt.gateway.messaging.Helpers;
 using bbt.gateway.messaging.Middlewares;
 using bbt.gateway.messaging.Workers;
 using bbt.gateway.messaging.Workers.OperatorGateway;
@@ -26,6 +27,11 @@ using System.Collections.Generic;
 
 namespace bbt.gateway.messaging
 {
+    public delegate IVodafoneApi VodafoneApiFactory(bool useFakeSmtp);
+    public delegate ITurkcellApi TurkcellApiFactory(bool useFakeSmtp);
+    public delegate ITurkTelekomApi TurkTelekomApiFactory(bool useFakeSmtp);
+    public delegate IOperatordEngage dEngageFactory(bool useFakeSmtp);
+
     public class Startup
     {
         public Startup(IConfiguration configuration)
@@ -34,6 +40,7 @@ namespace bbt.gateway.messaging
         }
 
         public IConfiguration Configuration { get; }
+        
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -74,9 +81,10 @@ namespace bbt.gateway.messaging
             services.AddSwaggerGenNewtonsoftSupport();
             services.ConfigureOptions<ConfigureSwaggerOptions>();
 
-            //services.AddStackExchangeRedisCache(opt => {
-            //    opt.Configuration = "";
-            //});
+            services.AddStackExchangeRedisCache(opt =>
+            {
+                opt.Configuration = $"{Configuration["Redis:Host"]},port:{Configuration["Redis:Port"]},password={Configuration["Redis:Password"]}";
+            });
 
             services.AddDbContext<DatabaseContext>(o => o.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("bbt.gateway.messaging")));
             //services.AddDbContext<DodgeDatabaseContext>(o => o.UseSqlServer(Configuration.GetConnectionString("DodgeConnection")));
@@ -96,12 +104,53 @@ namespace bbt.gateway.messaging
             })
                .ConfigureHttpClient(c => c.BaseAddress = new Uri(Configuration["Api:dEngage:BaseAddress"]));
 
+            services.AddScoped<IFakeSmtpHelper, FakeSmtpHelper>();
             services.AddScoped<ITransactionManager, TransactionManager>();
             services.AddScoped<OperatorTurkTelekom>();
             services.AddScoped<OperatorVodafone>();
             services.AddScoped<OperatorTurkcell>();
             services.AddScoped<OperatorIVN>();
             services.AddScoped<OperatordEngage>();
+            services.AddScoped<OperatordEngageMock>();
+
+            services.AddScoped<TurkTelekomApi>();
+            services.AddScoped<VodafoneApi>();
+            services.AddScoped<TurkcellApi>();
+            services.AddScoped<TurkTelekomApiMock>();
+            services.AddScoped<VodafoneApiMock>();
+            services.AddScoped<TurkcellApiMock>();
+            services.AddScoped<TurkcellApiFactory>(serviceProvider => useFakeSmtp =>
+            {
+                return useFakeSmtp switch
+                {
+                    true => serviceProvider.GetRequiredService<TurkcellApiMock>(),
+                    _ => serviceProvider.GetRequiredService<TurkcellApi>()
+                };
+            });
+            services.AddScoped<VodafoneApiFactory>(serviceProvider => useFakeSmtp =>
+            {
+                return useFakeSmtp switch
+                {
+                    true => serviceProvider.GetRequiredService<VodafoneApiMock>(),
+                    _ => serviceProvider.GetRequiredService<VodafoneApi>()
+                };
+            });
+            services.AddScoped<TurkTelekomApiFactory>(serviceProvider => useFakeSmtp =>
+            {
+                return useFakeSmtp switch
+                {
+                    true => serviceProvider.GetRequiredService<TurkTelekomApiMock>(),
+                    _ => serviceProvider.GetRequiredService<TurkTelekomApi>()
+                };
+            });
+            services.AddScoped<dEngageFactory>(serviceProvider => useFakeSmtp =>
+            {
+                return useFakeSmtp switch
+                {
+                    true => serviceProvider.GetRequiredService<OperatordEngageMock>(),
+                    _ => serviceProvider.GetRequiredService<OperatordEngage>()
+                };
+            });
             services.AddScoped<Func<OperatorType, IOperatorGateway>>(serviceProvider => key =>
             {
                 switch (key)
@@ -119,9 +168,6 @@ namespace bbt.gateway.messaging
                 }
             });
 
-            services.AddScoped<ITurkTelekomApi, TurkTelekomApi>();
-            services.AddScoped<IVodafoneApi, VodafoneApi>();
-            services.AddScoped<ITurkcellApi, TurkcellApi>();
 
             services.AddScoped<OtpSender>();
             services.AddScoped<dEngageSender>();

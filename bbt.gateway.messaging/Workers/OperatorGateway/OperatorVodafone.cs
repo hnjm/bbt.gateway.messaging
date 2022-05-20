@@ -16,10 +16,10 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
     {
         private string _authToken;
         private readonly IVodafoneApi _vodafoneApi;
-        public OperatorVodafone(IVodafoneApi vodafoneApi, IConfiguration configuration,
+        public OperatorVodafone(VodafoneApiFactory vodafoneApiFactory, IConfiguration configuration,
             ITransactionManager transactionManager) : base(configuration,transactionManager)
         {
-            _vodafoneApi = vodafoneApi;
+            _vodafoneApi = vodafoneApiFactory(TransactionManager.UseFakeSmtp);
             Type = OperatorType.Vodafone;
             _vodafoneApi.SetOperatorType(OperatorConfig);
         }
