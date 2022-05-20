@@ -73,9 +73,17 @@ namespace bbt.gateway.messaging.Middlewares
                 await GetCustomerDetail();
 
                 _transactionManager.UseFakeSmtp = false;
-                if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "Prod")
+                var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+                if (environment != "Prod")
                 {
-                    CheckWhitelist();
+                    if (environment == "Mock")
+                    {
+                        _transactionManager.UseFakeSmtp = true;
+                    }
+                    else
+                    {
+                        CheckWhitelist();
+                    }
                 }
 
                 var originalStream = context.Response.Body;
