@@ -255,7 +255,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             }
             else
             {
-                _fakeSmtpHelper.SendFakeMail("Sender@mailDev.com","Sender",phone.ToString()+"mailDev.com", "dEngage Transactional Sms", content, null);
+                _fakeSmtpHelper.SendFakeMail("Sender@mailDev.com","Sender",phone.ToString()+"@mailDev.com", "dEngage Transactional Sms", content, null);
             }
 
             return smsResponseLog;
