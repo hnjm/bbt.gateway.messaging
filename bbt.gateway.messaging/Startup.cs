@@ -22,6 +22,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Refit;
+using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 
@@ -81,9 +82,13 @@ namespace bbt.gateway.messaging
             services.AddSwaggerGenNewtonsoftSupport();
             services.ConfigureOptions<ConfigureSwaggerOptions>();
 
+            ConfigurationOptions configurationOptions = new()
+            {
+                
+            };
             services.AddStackExchangeRedisCache(opt =>
             {
-                opt.Configuration = $"{Configuration["Redis:Host"]},port:{Configuration["Redis:Port"]},password={Configuration["Redis:Password"]}";
+                opt.Configuration = $"{Configuration["Redis:Host"]}:{Configuration["Redis:Port"]},password={Configuration["Redis:Password"]}";
             });
 
             services.AddDbContext<DatabaseContext>(o => o.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("bbt.gateway.messaging")));
