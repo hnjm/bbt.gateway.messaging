@@ -21,7 +21,6 @@ namespace bbt.gateway.messaging.Controllers
             _otpSender = otpSender;
             _dEngageSender = dEngageSender;
         }
-
         
         [SwaggerOperation(
             Summary = "Send templated Sms message",
@@ -60,7 +59,6 @@ namespace bbt.gateway.messaging.Controllers
 
             if (ModelState.IsValid)
             {
-                await _transactionManager.GetCustomerInfoByPhone(data.Phone);
                 if(data.ContentType == MessageContentType.Otp)
                 {
                     return Ok(await _otpSender.SendMessage(data));
@@ -132,33 +130,33 @@ namespace bbt.gateway.messaging.Controllers
         }
 
 
-        [SwaggerOperation(
-           Summary = "Send Email message",
-           Description = "Send given content directly."
-           )]
-        [HttpPost("email/message")]
-        [SwaggerResponse(200, "Email was sent successfully", typeof(SendEmailResponse))]
-        public async Task<IActionResult> SendMessageEmail([FromBody] SendMessageEmailRequest data)
-        {
-            if (data.Email == null)
-            {
-                data.Email = _transactionManager.CustomerRequestInfo.MainEmail;
-            }
-            var response = await _dEngageSender.SendMail(data);
-            return Ok(response);
-        }
+        //[SwaggerOperation(
+        //   Summary = "Send Email message",
+        //   Description = "Send given content directly."
+        //   )]
+        //[HttpPost("email/message")]
+        //[SwaggerResponse(200, "Email was sent successfully", typeof(SendEmailResponse))]
+        //public async Task<IActionResult> SendMessageEmail([FromBody] SendMessageEmailRequest data)
+        //{
+        //    if (data.Email == null)
+        //    {
+        //        data.Email = _transactionManager.CustomerRequestInfo.MainEmail;
+        //    }
+        //    var response = await _dEngageSender.SendMail(data);
+        //    return Ok(response);
+        //}
 
-        [SwaggerOperation(
-           Summary = "Send Push Notification",
-           Description = "Send push notification to device."
-           )]
-        [HttpPost("push-notification")]
-        [SwaggerResponse(200, "Push notification was sent successfully", typeof(SendPushNotificationResponse))]
-        public async Task<IActionResult> SendPushNotification([FromBody] SendMessagePushNotificationRequest data)
-        {
-            var response = await _dEngageSender.SendPushNotification(data);
-            return Ok(response);
-        }
+        //[SwaggerOperation(
+        //   Summary = "Send Push Notification",
+        //   Description = "Send push notification to device."
+        //   )]
+        //[HttpPost("push-notification")]
+        //[SwaggerResponse(200, "Push notification was sent successfully", typeof(SendPushNotificationResponse))]
+        //public async Task<IActionResult> SendPushNotification([FromBody] SendMessagePushNotificationRequest data)
+        //{
+        //    var response = await _dEngageSender.SendPushNotification(data);
+        //    return Ok(response);
+        //}
 
         [SwaggerOperation(
            Summary = "Send Templated Push Notification",

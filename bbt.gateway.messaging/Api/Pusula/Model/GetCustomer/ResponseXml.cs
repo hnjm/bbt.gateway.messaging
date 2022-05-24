@@ -3607,6 +3607,7 @@ namespace bbt.gateway.messaging.Api.Pusula.Model.GetCustomer
     {
         public string BusinessLine { get; set; }
         public int MainBranchCode { get; set; }
+        public string CitizenshipNumber { get; set; }
     }
 
     public class PusulaPhoneRoot

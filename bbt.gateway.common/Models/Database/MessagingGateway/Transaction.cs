@@ -10,6 +10,8 @@ namespace bbt.gateway.common.Models
         public Guid Id { get; set; }
         public Phone Phone { get; set; }
         public string Mail { get; set; }
+        public string CitizenshipNo { get; set; }
+        public ulong CustomerNo { get; set; }
         public TransactionType TransactionType { get; set; }
         public string Request { get; set; }
         public string Response { get; set; }

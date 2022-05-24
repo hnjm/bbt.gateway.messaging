@@ -3,6 +3,7 @@ using bbt.gateway.messaging.Api.Pusula;
 using bbt.gateway.messaging.Api.Pusula.Model.GetByCitizenshipNumber;
 using bbt.gateway.messaging.Api.Pusula.Model.GetByPhone;
 using bbt.gateway.messaging.Api.Pusula.Model.GetCustomer;
+using bbt.gateway.messaging.Exceptions;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Serilog;
@@ -95,6 +96,14 @@ namespace bbt.gateway.messaging.Workers
                 {
                     SetCustomerRequestInfo(customerDetail);
                 }
+                else
+                {
+                    throw new WorkflowException("Couldn't get customer info", System.Net.HttpStatusCode.NotFound);
+                }
+            }
+            else
+            {
+                throw new WorkflowException("Couldn't get customer with phone",System.Net.HttpStatusCode.NotFound);
             }
 
         }
@@ -119,6 +128,14 @@ namespace bbt.gateway.messaging.Workers
                 {
                     SetCustomerRequestInfo(customerDetail);
                 }
+                else
+                {
+                    throw new WorkflowException("Couldn't get customer info", System.Net.HttpStatusCode.NotFound);
+                }
+            }
+            else
+            {
+                throw new WorkflowException("Couldn't get customer with Email", System.Net.HttpStatusCode.NotFound);
             }
         }
 
@@ -142,6 +159,14 @@ namespace bbt.gateway.messaging.Workers
                 {
                     SetCustomerRequestInfo(customerDetail);
                 }
+                else
+                {
+                    throw new WorkflowException("Couldn't get customer info", System.Net.HttpStatusCode.NotFound);
+                }
+            }
+            else
+            {
+                throw new WorkflowException("Couldn't get customer with CitizenshipNo", System.Net.HttpStatusCode.NotFound);
             }
         }
 
@@ -158,6 +183,10 @@ namespace bbt.gateway.messaging.Workers
             {
                 SetCustomerRequestInfo(customerDetail);
             }
+            else
+            {
+                throw new WorkflowException("Couldn't get customer info", System.Net.HttpStatusCode.NotFound);
+            }
         }
 
         private void SetCustomerRequestInfo(GetCustomerResponse customerDetail)
@@ -166,6 +195,7 @@ namespace bbt.gateway.messaging.Workers
             CustomerRequestInfo.BranchCode = customerDetail.BranchCode;
             CustomerRequestInfo.MainPhone = customerDetail.MainPhone;
             CustomerRequestInfo.MainEmail = customerDetail.MainEmail;
+            CustomerRequestInfo.Tckn = customerDetail.CitizenshipNo;
         }
 
         public void LogCritical(string LogMessage)

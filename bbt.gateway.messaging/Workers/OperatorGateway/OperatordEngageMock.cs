@@ -188,6 +188,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
         public async Task<PushNotificationResponseLog> SendPush(string contactId, string template, string templateParams, string customParameters)
         {
+            await Auth();
             PushNotificationResponseLog pushNotificationResponseLog = new()
             {
                 ResponseCode = "0",
@@ -224,7 +225,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
         public async Task<SmsResponseLog> SendSms(Phone phone, SmsTypes smsType, string content, string templateId, string templateParams)
         {
-            await Task.CompletedTask;
+            await Auth();
             SmsResponseLog smsResponseLog = new()
             {
                 Operator = _transactionManager.CustomerRequestInfo.BusinessLine == "X" ? OperatorType.dEngageOn : OperatorType.dEngageBurgan,

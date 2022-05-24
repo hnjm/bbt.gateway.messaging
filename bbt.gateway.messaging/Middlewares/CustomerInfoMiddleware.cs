@@ -1,5 +1,6 @@
 ﻿using bbt.gateway.common.Models;
 using bbt.gateway.common.Repositories;
+using bbt.gateway.messaging.Exceptions;
 using bbt.gateway.messaging.Workers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -99,10 +100,7 @@ namespace bbt.gateway.messaging.Middlewares
                 context.Response.Body.Seek(0, SeekOrigin.Begin);
                 await responseBody.CopyToAsync(originalStream);
 
-                _transaction.TransactionType = _transactionManager.TransactionType;
-                _transaction.OtpRequestLog = _transactionManager.OtpRequestLog;
-                _transaction.SmsRequestLog = _transactionManager.SmsRequestLog;
-                _transaction.MailRequestLog = _transactionManager.MailRequestLog;
+                SetTransactionInfo();
                 if (_transactionManager.TransactionType == TransactionType.Otp)
                 {
                     _transaction.Response = response.MaskOtpContent();
@@ -115,28 +113,22 @@ namespace bbt.gateway.messaging.Middlewares
 
                 _repositoryManager.SaveChanges();
             }
-            catch (FormatException ex)
+            catch (WorkflowException ex)
             {
-                _transaction.TransactionType = _transactionManager.TransactionType;
-                _transaction.OtpRequestLog = _transactionManager.OtpRequestLog;
-                _transaction.SmsRequestLog = _transactionManager.SmsRequestLog;
-                _transaction.MailRequestLog = _transactionManager.MailRequestLog;
-                _transaction.PushNotificationRequestLog = _transactionManager.PushNotificationRequestLog;
-                _transaction.Response = "Customer No Should Be Valid Long Value | Detail :" + ex.ToString();
+                SetTransactionInfo();
+                _transaction.Response = "An Error Occured | Detail :" + ex.ToString();
                 _repositoryManager.SaveChanges();
 
                 _transactionManager.LogState();
-                _transactionManager.LogError("Customer No Should Be Valid Long Value | Detail :" + ex.ToString());
+                _transactionManager.LogError("An Error Occured | Detail :" + ex.ToString());
 
-                context.Response.StatusCode = 500;
+                context.Response.ContentType = "text/plain";
+                context.Response.StatusCode = (int)ex.StatusCode;
+                await context.Response.WriteAsync(ex.Message);
             }
             catch (BadHttpRequestException ex)
             {
-                _transaction.TransactionType = _transactionManager.TransactionType;
-                _transaction.OtpRequestLog = _transactionManager.OtpRequestLog;
-                _transaction.SmsRequestLog = _transactionManager.SmsRequestLog;
-                _transaction.MailRequestLog = _transactionManager.MailRequestLog;
-                _transaction.PushNotificationRequestLog = _transactionManager.PushNotificationRequestLog;
+                SetTransactionInfo();
                 _transaction.Response = "An Error Occured | Detail :" + ex.ToString();
                 _repositoryManager.SaveChanges();
 
@@ -149,11 +141,7 @@ namespace bbt.gateway.messaging.Middlewares
             }
             catch (Exception ex)
             {
-                _transaction.TransactionType = _transactionManager.TransactionType;
-                _transaction.OtpRequestLog = _transactionManager.OtpRequestLog;
-                _transaction.SmsRequestLog = _transactionManager.SmsRequestLog;
-                _transaction.MailRequestLog = _transactionManager.MailRequestLog;
-                _transaction.PushNotificationRequestLog = _transactionManager.PushNotificationRequestLog;
+                SetTransactionInfo();
                 _transaction.Response = "An Error Occured | Detail :" + ex.ToString();
                 _repositoryManager.SaveChanges();
 
@@ -162,6 +150,16 @@ namespace bbt.gateway.messaging.Middlewares
 
                 context.Response.StatusCode = 500;
             }
+        }
+
+        private void SetTransactionInfo()
+        {
+            _transaction.TransactionType = _transactionManager.TransactionType;
+            _transaction.OtpRequestLog = _transactionManager.OtpRequestLog;
+            _transaction.SmsRequestLog = _transactionManager.SmsRequestLog;
+            _transaction.MailRequestLog = _transactionManager.MailRequestLog;
+            _transaction.CustomerNo = _transactionManager.CustomerRequestInfo.CustomerNo.GetValueOrDefault();
+            _transaction.CitizenshipNo = _transactionManager.CustomerRequestInfo.Tckn;
         }
 
         private void CheckWhitelist()

@@ -186,7 +186,6 @@ namespace bbt.gateway.messaging
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IApiVersionDescriptionProvider provider)
         {
             app.UseCustomerInfoMiddleware();
-            app.UseRequestInfoMiddleware();
 
             app.UseSwagger();
 
