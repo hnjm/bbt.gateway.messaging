@@ -13,8 +13,8 @@ on:
 env:
   APP_NAME: messaging-gateway
   NAMESPACE: bbt-integration
-  CLUSTER_NAME: messaging-gateway
-  CLUSTER_RESOURCE_GROUP: messaging-gateway_group
+  CLUSTER_NAME: Endorsement
+  CLUSTER_RESOURCE_GROUP: Endorsement_group
   SECRET: docker-hub
 
 jobs:
@@ -72,9 +72,8 @@ jobs:
       - uses: azure/k8s-deploy@v1
         with:
           manifests: |
-            ${{ github.workspace }}/manifests/api-deployment.yaml
-            ${{ github.workspace }}/manifests/api-service.yaml
-            ${{ github.workspace }}/manifests/ingress.yaml
+            ${{ github.workspace }}/manifests/Api/deployment.yaml
+            ${{ github.workspace }}/manifests/Api/service.yaml
           images: |
             ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.APP_NAME }}:${{ github.sha }}
           imagepullsecrets: |
