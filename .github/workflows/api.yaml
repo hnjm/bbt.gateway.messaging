@@ -37,7 +37,9 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
           
-          
+      - name: Replace AppSettings
+        run: |
+          cat ${{ secrets.DEFAULT_CONNECTION }} > ./bbt.gateway.messaging/appsettings.json    
           
       - name: Build and push
         uses: docker/build-push-action@v2
