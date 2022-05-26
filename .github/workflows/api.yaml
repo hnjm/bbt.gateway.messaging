@@ -39,7 +39,7 @@ jobs:
           
       - name: Replace AppSettings
         run: |
-          cat ${{ secrets.DEFAULT_CONNECTION }} > ./bbt.gateway.messaging/appsettings.json    
+          cat ${{ secrets.APP_SETTINGS }} > ./bbt.gateway.messaging/appsettings.json    
           
       - name: Build and push
         uses: docker/build-push-action@v2
