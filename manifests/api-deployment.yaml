@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: messaging-gateway
-  namespace: messaging-gateway
+  namespace: bbt-integration
   labels:
     app: messaging-gateway
 spec:
