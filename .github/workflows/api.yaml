@@ -39,7 +39,7 @@ jobs:
           
       - name: Replace AppSettings
         run: |
-          ls
+          find . -name appsettings.json
           cat ${{ secrets.APP_SETTINGS }} > bbt.gateway.messaging/appsettings.json    
           
       - name: Build and push
