@@ -12,7 +12,7 @@ on:
 
 env:
   APP_NAME: messaging-gateway
-  NAMESPACE: messaging-gateway
+  NAMESPACE: bbt-integration
   CLUSTER_NAME: messaging-gateway
   CLUSTER_RESOURCE_GROUP: messaging-gateway_group
   SECRET: docker-hub
