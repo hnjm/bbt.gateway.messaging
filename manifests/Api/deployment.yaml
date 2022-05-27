@@ -20,3 +20,6 @@ spec:
         image: burganbank/messaging-gateway:latest
         ports:
         - containerPort: 5070
+        env:
+          - name: ASPNETCORE_ENVIRONMENT
+            value: "Mock"
