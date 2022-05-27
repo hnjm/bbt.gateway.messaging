@@ -40,7 +40,7 @@ jobs:
       - name: Replace AppSettings
         run: |
           find . -name appsettings.json
-          echo ${{ secrets.APP_SETTINGS }} > ./bbt.gateway.messaging/appsettings.json    
+          echo "${{ secrets.APP_SETTINGS }}" > ./bbt.gateway.messaging/appsettings.json    
           
       - name: Build and push
         uses: docker/build-push-action@v2
