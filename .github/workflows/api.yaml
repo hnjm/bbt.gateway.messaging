@@ -40,8 +40,8 @@ jobs:
           
       - name: Replace MsSQL DefaultConnection
         run: |
-         # sed -i -e "s/mssqldefaultconnection/${{ secrets.MSSQL_DB_CONNECTION }}/g" ./bbt.gateway.messaging/appsettings.Mock.json
-         # sed -i -e "s/mssqlbankingconnection/${{ secrets.MSSQL_DB_CONNECTION }}/g" ./bbt.gateway.messaging/appsettings.Mock.json
+          sed -i -e "s/mssqldefaultconnection/${{ secrets.MSSQL_DB_CONNECTION }}/g" ./bbt.gateway.messaging/appsettings.Mock.json
+          sed -i -e "s/mssqlbankingconnection/${{ secrets.MSSQL_DB_CONNECTION }}/g" ./bbt.gateway.messaging/appsettings.Mock.json
           cat ./bbt.gateway.messaging/appsettings.Mock.json
 
           
