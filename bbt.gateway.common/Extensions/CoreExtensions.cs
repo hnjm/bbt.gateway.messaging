@@ -19,6 +19,8 @@ namespace bbt.gateway.common
         /// <returns></returns>
         public static IHostBuilder UseConsulSettings(this IHostBuilder host,Type type)
         {
+            
+
             return host.ConfigureAppConfiguration((context, builder) =>
             {
                 string applicationName = context.HostingEnvironment.ApplicationName;
@@ -26,6 +28,9 @@ namespace bbt.gateway.common
 
                 builder.AddJsonFile($"appsettings.{environmentName}.json", false, true)
                 .AddUserSecrets(type.Assembly).AddEnvironmentVariables();
+
+                if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Mock")
+                    return;
 
                 context.Configuration = builder.Build();
 
@@ -63,6 +68,9 @@ namespace bbt.gateway.common
         /// <returns></returns>
         public static IHostBuilder UseSeriLog(this IHostBuilder host, string indexFormat)
         {
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Mock")
+                return host;
+
             return host.ConfigureAppConfiguration((context, builder) =>
             {
                 string environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");

@@ -2,6 +2,7 @@
 using bbt.gateway.messaging.Workers;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -34,6 +35,13 @@ namespace bbt.gateway.messaging.Controllers
 
         public async Task<IActionResult> SendTemplatedSms([FromBody] SendTemplatedSmsRequest data)
         {
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Mock")
+            {
+                return Ok(new SendSmsResponse() { 
+                    Status = dEngageResponseCodes.Success,
+                    TxnId = Guid.NewGuid(),
+                });
+            }
             if (data.Phone == null)
             {
                 data.Phone = _transactionManager.CustomerRequestInfo.MainPhone;
@@ -52,6 +60,15 @@ namespace bbt.gateway.messaging.Controllers
         [SwaggerResponse(460, "Has Blacklist Record.", typeof(void))]
         public async Task<IActionResult> SendMessageSms([FromBody] SendMessageSmsRequest data)
         {
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Mock")
+            {
+                return Ok(new SendSmsResponse()
+                {
+                    Status = dEngageResponseCodes.Success,
+                    TxnId = Guid.NewGuid(),
+                });
+            }
+
             if (data.Phone == null)
             {
                 data.Phone = _transactionManager.CustomerRequestInfo.MainPhone;
@@ -85,6 +102,16 @@ namespace bbt.gateway.messaging.Controllers
         [HttpGet("sms/check")]
         public async Task<IActionResult> CheckSmsStatus(System.Guid TxnId)
         {
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Mock")
+            {
+                return Ok(new CheckSmsStatusResponse()
+                {
+                    code = 0,
+                    message = "Delivered",
+                    status = SmsStatus.Delivered
+                });
+            }
+
             CheckSmsStatusRequest request = new();
             request.TxnId = TxnId;
             return Ok(await _dEngageSender.CheckSms(request));
@@ -121,6 +148,15 @@ namespace bbt.gateway.messaging.Controllers
         [SwaggerResponse(460, "Given template is not found on dEngage", typeof(void))]
         public async Task<IActionResult> SendTemplatedEmail([FromBody] SendTemplatedEmailRequest data)
         {
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Mock")
+            {
+                return Ok(new SendEmailResponse()
+                {
+                    Status = dEngageResponseCodes.Success,
+                    TxnId = Guid.NewGuid(),
+                });
+            }
+
             if (data.Email == null)
             {
                 data.Email = _transactionManager.CustomerRequestInfo.MainEmail;
@@ -130,21 +166,21 @@ namespace bbt.gateway.messaging.Controllers
         }
 
 
-        //[SwaggerOperation(
-        //   Summary = "Send Email message",
-        //   Description = "Send given content directly."
-        //   )]
-        //[HttpPost("email/message")]
-        //[SwaggerResponse(200, "Email was sent successfully", typeof(SendEmailResponse))]
-        //public async Task<IActionResult> SendMessageEmail([FromBody] SendMessageEmailRequest data)
-        //{
-        //    if (data.Email == null)
-        //    {
-        //        data.Email = _transactionManager.CustomerRequestInfo.MainEmail;
-        //    }
-        //    var response = await _dEngageSender.SendMail(data);
-        //    return Ok(response);
-        //}
+        [SwaggerOperation(
+           Summary = "Send Email message",
+           Description = "Send given content directly."
+           )]
+        [HttpPost("email/message")]
+        [SwaggerResponse(200, "Email was sent successfully", typeof(SendEmailResponse))]
+        public async Task<IActionResult> SendMessageEmail([FromBody] SendMessageEmailRequest data)
+        {
+            if (data.Email == null)
+            {
+                data.Email = _transactionManager.CustomerRequestInfo.MainEmail;
+            }
+            var response = await _dEngageSender.SendMail(data);
+            return Ok(response);
+        }
 
         //[SwaggerOperation(
         //   Summary = "Send Push Notification",
@@ -166,6 +202,15 @@ namespace bbt.gateway.messaging.Controllers
         [SwaggerResponse(200, "Push notification was sent successfully", typeof(SendPushNotificationResponse))]
         public async Task<IActionResult> SendTemplatedPushNotification([FromBody] SendTemplatedPushNotificationRequest data)
         {
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Mock")
+            {
+                return Ok(new SendPushNotificationResponse()
+                {
+                    Status = dEngageResponseCodes.Success,
+                    TxnId = Guid.NewGuid(),
+                });
+            }
+
             var response = await _dEngageSender.SendTemplatedPushNotification(data);
             return Ok(response);
         }

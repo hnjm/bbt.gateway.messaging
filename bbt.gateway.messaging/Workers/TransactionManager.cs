@@ -1,4 +1,5 @@
 ﻿using bbt.gateway.common.Models;
+using bbt.gateway.common.Repositories;
 using bbt.gateway.messaging.Api.Pusula;
 using bbt.gateway.messaging.Api.Pusula.Model.GetByCitizenshipNumber;
 using bbt.gateway.messaging.Api.Pusula.Model.GetByPhone;
@@ -17,15 +18,10 @@ namespace bbt.gateway.messaging.Workers
         private readonly Guid _txnId;
         private Serilog.ILogger _logger;
         private readonly PusulaClient _pusulaClient;
-        public TransactionType TransactionType { get; set; }
+        private readonly IRepositoryManager _repositoryManager;
+        public Transaction Transaction { get; set; }
 
         public Guid TxnId { get { return _txnId; } }
-        public string Ip { get; set; }
-        public OtpRequestLog OtpRequestLog { get; set; }
-        public SmsRequestLog SmsRequestLog { get; set; }
-        public MailRequestLog MailRequestLog { get; set; }
-        public PushNotificationRequestLog PushNotificationRequestLog { get; set; }
-
         public OtpRequestInfo OtpRequestInfo { get; set; } = new();
         public SmsRequestInfo SmsRequestInfo { get; set; } = new();
         public MailRequestInfo MailRequestInfo { get; set; } = new();
@@ -33,18 +29,34 @@ namespace bbt.gateway.messaging.Workers
 
         public CustomerRequestInfo CustomerRequestInfo { get; set; } = new();
         public bool UseFakeSmtp { get; set; }
-        public TransactionManager(ILogger<TransactionManager> logger, PusulaClient pusulaClient)
+        public TransactionManager(PusulaClient pusulaClient,IRepositoryManager repositoryManager)
         {
             _txnId = Guid.NewGuid();
             _logger = Log.ForContext<TransactionManager>();
             _pusulaClient = pusulaClient;
-            
+            _repositoryManager = repositoryManager;
+
+            Transaction = new()
+            {
+                Id = _txnId
+            };
+        }
+
+        public void AddTransaction()
+        {
+            _repositoryManager.Transactions.Add(Transaction);
+            _repositoryManager.SaveChanges();
+        }
+
+        public void SaveTransaction()
+        {
+            _repositoryManager.SaveChanges();
         }
 
         public void LogState()
         {
             
-            switch (TransactionType)
+            switch (Transaction.TransactionType)
             {
                 case TransactionType.Otp:
                     LogInformation(JsonConvert.SerializeObject(new { CustomerRequestInfo, OtpRequestInfo }));
@@ -73,13 +85,13 @@ namespace bbt.gateway.messaging.Workers
 
         }
 
-        public async Task GetCustomerInfoByPhone(Phone Phone)
+        public async Task GetCustomerInfoByPhone()
         {
             var customer = await _pusulaClient.GetCustomerByPhoneNumber(new GetByPhoneNumberRequest()
             {
-                CountryCode = Phone.CountryCode,
-                CityCode = Phone.Prefix,
-                TelephoneNumber = Phone.Number
+                CountryCode = Transaction.Phone.CountryCode,
+                CityCode = Transaction.Phone.Prefix,
+                TelephoneNumber = Transaction.Phone.Number
             });
 
             if (customer.IsSuccess)
@@ -108,11 +120,11 @@ namespace bbt.gateway.messaging.Workers
 
         }
 
-        public async Task GetCustomerInfoByEmail(string Email)
+        public async Task GetCustomerInfoByEmail()
         {
             var customer = await _pusulaClient.GetCustomerByEmail(new GetByEmailRequest()
             {
-                Email = Email
+                Email = Transaction.Mail
             });
 
             if (customer.IsSuccess)
@@ -139,11 +151,11 @@ namespace bbt.gateway.messaging.Workers
             }
         }
 
-        public async Task GetCustomerInfoByCitizenshipNumber(string CitizenshipNumber)
+        public async Task GetCustomerInfoByCitizenshipNumber()
         {
             var customer = await _pusulaClient.GetCustomerByCitizenshipNumber(new GetByCitizenshipNumberRequest()
             {
-                CitizenshipNumber = CitizenshipNumber
+                CitizenshipNumber = Transaction.CitizenshipNo
             });
 
             if (customer.IsSuccess)
@@ -170,13 +182,13 @@ namespace bbt.gateway.messaging.Workers
             }
         }
 
-        public async Task GetCustomerInfoByCustomerNo(ulong CustomerNo)
+        public async Task GetCustomerInfoByCustomerNo()
         {
-            CustomerRequestInfo.CustomerNo = CustomerNo;
+            CustomerRequestInfo.CustomerNo = Transaction.CustomerNo;
 
             var customerDetail = await _pusulaClient.GetCustomer(new GetCustomerRequest()
             {
-                CustomerNo = CustomerNo
+                CustomerNo = CustomerRequestInfo.CustomerNo
             });
 
             if (customerDetail.IsSuccess)
@@ -196,36 +208,46 @@ namespace bbt.gateway.messaging.Workers
             CustomerRequestInfo.MainPhone = customerDetail.MainPhone;
             CustomerRequestInfo.MainEmail = customerDetail.MainEmail;
             CustomerRequestInfo.Tckn = customerDetail.CitizenshipNo;
+
+            if (Transaction.Phone == null)
+            {
+                Transaction.Phone = CustomerRequestInfo.MainPhone;
+            }
+
+            if (String.IsNullOrEmpty(Transaction.Mail))
+            {
+                Transaction.Mail = CustomerRequestInfo.MainEmail;
+            }
         }
 
         public void LogCritical(string LogMessage)
         {
-            _logger.Fatal("TxnId:" + _txnId + " | Type : " + TransactionType + " :" + LogMessage);
+            _logger.Fatal("TxnId:" + _txnId + " | Type : " + Transaction.TransactionType + " :" + LogMessage);
         }
 
         public void LogError(string LogMessage)
         {
-            _logger.Error("TxnId:" + _txnId + " | Type : " + TransactionType + " :" + LogMessage);
+            _logger.Error("TxnId:" + _txnId + " | Type : " + Transaction.TransactionType + " :" + LogMessage);
         }
 
         public void LogDebug(string LogMessage)
         {
-            _logger.Debug("TxnId:" + _txnId + " | Type : " + TransactionType + " :" + LogMessage);
+            _logger.Debug("TxnId:" + _txnId + " | Type : " + Transaction.TransactionType + " :" + LogMessage);
         }
 
         public void LogTrace(string LogMessage)
         {
-            _logger.Verbose("TxnId:" + _txnId + " | Type : " + TransactionType + " :" + LogMessage);
+            _logger.Verbose("TxnId:" + _txnId + " | Type : " + Transaction.TransactionType + " :" + LogMessage);
         }
 
         public void LogInformation(string LogMessage)
         {
-            _logger.Information("TxnId:" + _txnId + " | Type : " + TransactionType + " :" + LogMessage);
+            _logger.Information("TxnId:" + _txnId + " | Type : " + Transaction.TransactionType + " :" + LogMessage);
         }
 
         public void LogWarning(string LogMessage)
         {
-            _logger.Warning("TxnId:" + _txnId + " | Type : " + TransactionType + " :" + LogMessage);
+            _logger.Warning("TxnId:" + _txnId + " | Type : " + Transaction.TransactionType + " :" + LogMessage);
         }
     }
 
@@ -233,7 +255,7 @@ namespace bbt.gateway.messaging.Workers
 
     public class CustomerRequestInfo
     {
-        public ulong? CustomerNo { get; set; }
+        public ulong CustomerNo { get; set; }
         public string BusinessLine { get; set; }
         public int BranchCode { get; set; }
         public Phone? MainPhone { get; set; }

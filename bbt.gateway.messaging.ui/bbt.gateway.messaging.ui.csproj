@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+	<PropertyGroup>
+	<TargetFramework>net6.0</TargetFramework>
+	<Nullable>enable</Nullable>
+	<ImplicitUsings>enable</ImplicitUsings>
+	<UserSecretsId>f03ac448-a6e4-46db-8c1b-4c514a9a2ef1</UserSecretsId>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="Refit" Version="6.3.2" />
+		<PackageReference Include="Refit.HttpClientFactory" Version="6.3.2" />
+		<PackageReference Include="Refit.Newtonsoft.Json" Version="6.3.2" />
+	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\bbt.gateway.common\bbt.gateway.common.csproj" />
+	</ItemGroup>
+</Project>

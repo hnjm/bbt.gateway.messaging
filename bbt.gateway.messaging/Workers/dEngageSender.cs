@@ -1,6 +1,7 @@
 ﻿using bbt.gateway.common.Models;
 using bbt.gateway.common.Repositories;
 using bbt.gateway.messaging.Api.dEngage.Model.Contents;
+using bbt.gateway.messaging.Exceptions;
 using bbt.gateway.messaging.Workers.OperatorGateway;
 using Microsoft.Extensions.Caching.Distributed;
 using Newtonsoft.Json;
@@ -33,10 +34,7 @@ namespace bbt.gateway.messaging.Workers
             _operatordEngage = dEngageFactory(_transactionManager.UseFakeSmtp);
             _distributedCache = distributedCache;
 
-            if (_transactionManager.CustomerRequestInfo.BusinessLine == "X")
-                _operatordEngage.Type = OperatorType.dEngageOn;
-            else
-                _operatordEngage.Type = OperatorType.dEngageBurgan;
+            
         }
 
         private async Task<List<ContentInfo>> SetMailContents()
@@ -126,7 +124,11 @@ namespace bbt.gateway.messaging.Workers
                 TxnId = _transactionManager.TxnId,
             };
 
-            var header =  _headerManager.Get(_transactionManager.SmsRequestInfo.PhoneConfiguration, sendMessageSmsRequest.ContentType, sendMessageSmsRequest.HeaderInfo);
+            var header =  _headerManager.Get(sendMessageSmsRequest.ContentType, sendMessageSmsRequest.HeaderInfo);
+            if (_transactionManager.CustomerRequestInfo.BusinessLine == "X")
+                _operatordEngage.Type = OperatorType.dEngageOn;
+            else
+                _operatordEngage.Type = OperatorType.dEngageBurgan;
 
             var smsRequest = new SmsRequestLog()
             {
@@ -147,7 +149,7 @@ namespace bbt.gateway.messaging.Workers
             _repositoryManager.SmsRequestLogs.Add(smsRequest);
 
             _repositoryManager.SaveChanges();
-            _transactionManager.SmsRequestLog = smsRequest;
+            _transactionManager.Transaction.SmsRequestLog = smsRequest;
             sendSmsResponse.Status = response.GetdEngageStatus();
 
             return sendSmsResponse;
@@ -159,6 +161,17 @@ namespace bbt.gateway.messaging.Workers
             {
                 TxnId = _transactionManager.TxnId,
             };
+
+            if (sendTemplatedSmsRequest.HeaderInfo?.Sender != null)
+            {
+                if(sendTemplatedSmsRequest.HeaderInfo.Sender != SenderType.AutoDetect)
+                _transactionManager.CustomerRequestInfo.BusinessLine = sendTemplatedSmsRequest.HeaderInfo.Sender == SenderType.On ? "X" : "B";
+            }
+
+            if (_transactionManager.CustomerRequestInfo.BusinessLine == "X")
+                _operatordEngage.Type = OperatorType.dEngageOn;
+            else
+                _operatordEngage.Type = OperatorType.dEngageBurgan;
 
             var contentListByteArray = await _distributedCache.GetAsync(_operatordEngage.Type.ToString() + "_SmsContents");
             List<SmsContentInfo> contentList = null;
@@ -176,7 +189,12 @@ namespace bbt.gateway.messaging.Workers
             var templateInfo = contentList.Where(c => c.contentName.Trim() == sendTemplatedSmsRequest.Template.Trim()).FirstOrDefault();
             if (templateInfo == null)
             {
-                throw new Exception();
+                await SetSmsContents();
+                templateInfo = contentList.Where(c => c.contentName.Trim() == sendTemplatedSmsRequest.Template.Trim()).FirstOrDefault();
+                if (templateInfo == null)
+                {
+                    throw new WorkflowException("Template Not Found", System.Net.HttpStatusCode.NotFound);
+                }
             }
 
             var smsRequest = new SmsRequestLog()
@@ -198,7 +216,7 @@ namespace bbt.gateway.messaging.Workers
             _repositoryManager.SmsRequestLogs.Add(smsRequest);
 
             _repositoryManager.SaveChanges();
-            _transactionManager.SmsRequestLog = smsRequest;
+            _transactionManager.Transaction.SmsRequestLog = smsRequest;
             sendSmsResponse.Status = response.GetdEngageStatus();
 
             return sendSmsResponse;
@@ -231,7 +249,7 @@ namespace bbt.gateway.messaging.Workers
             _repositoryManager.MailRequestLogs.Add(mailRequest);
 
             _repositoryManager.SaveChanges();
-            _transactionManager.MailRequestLog = mailRequest;
+            _transactionManager.Transaction.MailRequestLog = mailRequest;
             sendEmailResponse.Status = response.GetdEngageStatus();
 
             return sendEmailResponse;
@@ -242,6 +260,16 @@ namespace bbt.gateway.messaging.Workers
             SendEmailResponse sendEmailResponse = new SendEmailResponse() {
                 TxnId = _transactionManager.TxnId,
             };
+
+            if (sendTemplatedEmailRequest.HeaderInfo?.Sender != null)
+            {
+                if (sendTemplatedEmailRequest.HeaderInfo.Sender != SenderType.AutoDetect)
+                    _transactionManager.CustomerRequestInfo.BusinessLine = sendTemplatedEmailRequest.HeaderInfo.Sender == SenderType.On ? "X" : "B";
+            }
+            if (_transactionManager.CustomerRequestInfo.BusinessLine == "X")
+                _operatordEngage.Type = OperatorType.dEngageOn;
+            else
+                _operatordEngage.Type = OperatorType.dEngageBurgan;
 
             var contentListByteArray = await _distributedCache.GetAsync(_operatordEngage.Type.ToString() + "_MailContents");
             List<ContentInfo> contentList = null;
@@ -259,7 +287,12 @@ namespace bbt.gateway.messaging.Workers
             var templateInfo = contentList.Where(c => c.contentName.Trim() == sendTemplatedEmailRequest.Template.Trim()).FirstOrDefault();
             if (templateInfo == null)
             {
-                throw new Exception();
+                await SetMailContents();
+                templateInfo = contentList.Where(c => c.contentName.Trim() == sendTemplatedEmailRequest.Template.Trim()).FirstOrDefault();
+                if (templateInfo == null)
+                {
+                    throw new WorkflowException("Template Not Found", System.Net.HttpStatusCode.NotFound);
+                }
             }
 
             var mailRequest = new MailRequestLog() {
@@ -280,7 +313,7 @@ namespace bbt.gateway.messaging.Workers
             _repositoryManager.MailRequestLogs.Add(mailRequest);
 
             _repositoryManager.SaveChanges();
-            _transactionManager.MailRequestLog = mailRequest;
+            _transactionManager.Transaction.MailRequestLog = mailRequest;
             sendEmailResponse.Status = response.GetdEngageStatus();
 
             return sendEmailResponse;
@@ -318,7 +351,12 @@ namespace bbt.gateway.messaging.Workers
             var templateInfo = contentList.Where(c => c.name.Trim() == sendTemplatedPushNotificationRequest.Template.Trim()).FirstOrDefault();
             if (templateInfo == null)
             {
-                throw new Exception();
+                await SetPushContents();
+                templateInfo = contentList.Where(c => c.name.Trim() == sendTemplatedPushNotificationRequest.Template.Trim()).FirstOrDefault();
+                if (templateInfo == null)
+                {
+                    throw new WorkflowException("Template Not Found", System.Net.HttpStatusCode.NotFound);
+                }
             }
 
             var pushRequest = new PushNotificationRequestLog()
@@ -337,9 +375,9 @@ namespace bbt.gateway.messaging.Workers
             pushRequest.ResponseLogs.Add(response);
 
             _repositoryManager.PushNotificationRequestLogs.Add(pushRequest);
-
+            _transactionManager.Transaction.PushNotificationRequestLog = pushRequest;
             _repositoryManager.SaveChanges();
-            _transactionManager.PushNotificationRequestLog = pushRequest;
+            _transactionManager.Transaction.PushNotificationRequestLog = pushRequest;
             sendPushNotificationResponse.Status = response.GetdEngageStatus();
 
             return sendPushNotificationResponse;

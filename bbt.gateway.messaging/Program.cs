@@ -19,7 +19,6 @@ namespace bbt.gateway.messaging
             {
                 webBuilder.UseStartup<Startup>();
             }).Build().Run();
-
         }
 
 

@@ -7,6 +7,7 @@ namespace bbt.gateway.common.Models
 {
     public class SendTemplatedEmailRequest : SendEmailRequest
     {
+        public HeaderInfo HeaderInfo { get; set; }
         public string TemplateParams { get; set; }
         public long? CustomerNo { get; set; }
         public string ContactId { get; set; }

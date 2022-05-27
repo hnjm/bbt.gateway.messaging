@@ -187,7 +187,8 @@ namespace bbt.gateway.messaging.Controllers
             var whitelistRecord = new WhiteList()
             {
                 CreatedBy = data.CreatedBy,
-                IpAddress = _transactionManager.Ip
+                IpAddress = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault()
+                    ?? HttpContext.Connection.RemoteIpAddress.ToString()
             };
 
             if (data.Phone != null)

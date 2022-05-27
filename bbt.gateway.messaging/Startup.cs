@@ -185,7 +185,12 @@ namespace bbt.gateway.messaging
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IApiVersionDescriptionProvider provider)
         {
-            app.UseCustomerInfoMiddleware();
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "Mock")
+            {
+                app.UseTransactionMiddleware();
+                app.UseCustomerInfoMiddleware();
+                app.UseWhitelistMiddleware();
+            }
 
             app.UseSwagger();
 

@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "bbt.gateway.worker", "..\bb
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "bbt.gateway.common", "..\bbt.gateway.common\bbt.gateway.common.csproj", "{6131CD7C-6B26-4F39-86B4-1C970C1A6406}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "bbt.gateway.messaging.ui", "..\bbt.gateway.messaging.ui\bbt.gateway.messaging.ui.csproj", "{60BC7EF6-00F0-4842-AB47-130864B624AD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{6131CD7C-6B26-4F39-86B4-1C970C1A6406}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6131CD7C-6B26-4F39-86B4-1C970C1A6406}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6131CD7C-6B26-4F39-86B4-1C970C1A6406}.Release|Any CPU.Build.0 = Release|Any CPU
+		{60BC7EF6-00F0-4842-AB47-130864B624AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{60BC7EF6-00F0-4842-AB47-130864B624AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{60BC7EF6-00F0-4842-AB47-130864B624AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{60BC7EF6-00F0-4842-AB47-130864B624AD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

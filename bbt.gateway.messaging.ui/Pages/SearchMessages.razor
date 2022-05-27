@@ -1,0 +1,150 @@
+﻿@page "/searchMessages"
+
+<PageTitle>Weather forecast</PageTitle>
+
+@using bbt.gateway.common.Models
+@using bbt.gateway.messaging.ui.Data
+@inject IMessagingGatewayService MessagingGateway
+
+<h1>Gönderim Sorgulama</h1>
+
+<p>Müşteri Numarası,Kimlik Numarası,Telefon Numarası veya Mail Adresi ile gönderimleri sorgulayabilirsiniz.</p>
+
+@if (1 == 2)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+
+    @foreach (var choice in Constants.Filters)
+    {
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="flexRadioDefault"
+                   id="@choice.Key"
+                   checked=@(selectedFilterType == choice.Key)
+                   @onchange="@(() => {SelectionChanged(choice.Key);})">
+            <label class="form-check-label" for="flexRadioDefault2">
+                @choice.Value.Name</label>
+        </div>
+    }
+    @foreach (var choice in Constants.Filters)
+        @if (selectedFilterType == choice.Key)
+        {
+            <div class="row g-3 align-items-center">
+                <div class="col-auto">
+                    <label for="filter-value" class="col-form-label">@choice.Value.Name</label>
+                </div>
+                <div class="col-auto">
+                    <input type="text" @bind-value="filterValue" id="filter-value" class="form-control" aria-describedby="@choice.Value.Name">
+                </div>
+                <div class="col-auto">
+                    <span id="filterHelpline" class="form-text">
+                        @choice.Value.Helpline
+                    </span>
+                </div>
+            </div>
+        }
+    }
+
+    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+      <button class="btn btn-primary" type="button" @onclick="SearchTransactions">Sorgula</button>
+    </div>
+
+    @if(transactions != null)
+    {
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th scope="col">Gönderim Tarihi</th>
+          <th scope="col">İşlem Türü</th>
+          <th scope="col">Müşteri No</th>
+          <th scope="col">Kimlik No</th>
+          <th scope="col">Telefon Numarası</th>
+          <th scope="col">Mail Adresi</th>
+          <th scope="col">İşlemler</th>
+        </tr>
+      </thead>
+      <tbody> 
+            @foreach (Transaction txn in transactions)
+            {
+                <tr>
+                    <th scope="row">@txn.CreatedAt</th>
+                    <td>@Constants.TransactionTypeMap[txn.TransactionType]</td>
+                    <td>@txn.CustomerNo</td>
+                    <td>@txn.CitizenshipNo</td>
+                    <td>@txn.Phone.ToString()</td>
+                    <td>@txn.Mail</td>
+                    <td>
+                    <button type="button" class="btn btn-link btn-sm px-3" data-ripple-color="dark">
+                        <span class="oi oi-magnifying-glass"></span>
+                    </button>
+                    </td>
+                </tr>
+            }   
+            
+      </tbody>
+    </table>
+    <nav aria-label="Pagination">
+        <ul class="pagination justify-content-end">
+            <li class="page-item">
+                <a class="page-link" href="#" aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            <li class="page-item"><a class="page-link" href="#">1</a></li>
+            <li class="page-item"><a class="page-link" href="#">2</a></li>
+            <li class="page-item"><a class="page-link" href="#">3</a></li>
+            <li class="page-item">
+                <a class="page-link" href="#" aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    }
+    <div>Seçili- @selectedFilterType</div>
+
+
+@code {
+    private List<Transaction>? transactions = null;
+    private int selectedFilterType = 1;
+    private string filterValue { get; set; } = "";
+    void SelectionChanged(int i)
+    {
+        selectedFilterType = i;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+
+    }
+
+    async Task SearchTransactions()
+    {
+        switch (selectedFilterType)
+        {
+            case 1:
+                throw new Exception();
+            case 2:
+                throw new Exception();
+            case 3:
+                await SearchWithPhone();
+                break;
+            case 4:
+                throw new Exception();
+            default:
+                throw new Exception();
+        }
+    }
+
+    async Task SearchWithPhone()
+    {
+        transactions = await MessagingGateway.GetTransactionsByPhone(new Phone(filterValue), new QueryParams()
+            {
+                page = 0,
+                pageSize = 10
+        });    
+    }
+
+}

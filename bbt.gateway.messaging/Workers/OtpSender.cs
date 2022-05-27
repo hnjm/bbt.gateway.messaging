@@ -181,7 +181,7 @@ namespace bbt.gateway.messaging.Workers
 
             _repositoryManager.OtpRequestLogs.Add(_requestLog);
             _repositoryManager.SaveChanges();
-            _transactionManager.OtpRequestLog = _requestLog;
+            _transactionManager.Transaction.OtpRequestLog = _requestLog;
 
             sendSmsOtpResponse.Status = returnValue;
             return sendSmsOtpResponse;
@@ -231,7 +231,7 @@ namespace bbt.gateway.messaging.Workers
 
         private async Task<List<OtpResponseLog>> SendMessageToUnknown(PhoneConfiguration phoneConfiguration,bool useControlDays,bool discardCurrentOperator = false)
         {
-            var header =  _headerManager.Get(phoneConfiguration, _data.ContentType,_data.HeaderInfo);
+            var header =  _headerManager.Get(_data.ContentType,_data.HeaderInfo);
             _requestLog.Content = header.BuildContentForLog(_data.Content);
 
             ConcurrentBag<OtpResponseLog> responses = new ConcurrentBag<OtpResponseLog>();
@@ -270,7 +270,7 @@ namespace bbt.gateway.messaging.Workers
             _transactionManager.OtpRequestInfo.Operator = phoneConfiguration.Operator.Value;
 
             IOperatorGateway gateway = null;
-            var header =  _headerManager.Get(phoneConfiguration, _data.ContentType, _data.HeaderInfo);
+            var header =  _headerManager.Get(_data.ContentType, _data.HeaderInfo);
             _requestLog.Content = header.BuildContentForLog(_data.Content);
 
             switch (phoneConfiguration.Operator)

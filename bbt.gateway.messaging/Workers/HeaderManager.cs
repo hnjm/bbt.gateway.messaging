@@ -33,7 +33,7 @@ namespace bbt.gateway.messaging.Workers
             return returnValue;
         }
 
-        public Header Get(PhoneConfiguration config, MessageContentType contentType, HeaderInfo headerInfo)
+        public Header Get(MessageContentType contentType, HeaderInfo headerInfo)
         {
             Header header = null;
 
