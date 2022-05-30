@@ -18,6 +18,7 @@ RUN dotnet publish "bbt.gateway.messaging.csproj" -c Release -o /app/publish /p:
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+RUN ls
 EXPOSE 5000
 ENV ASPNETCORE_URLS=http://*:5000
 ENTRYPOINT ["dotnet", "bbt.gateway.messaging.dll"]
