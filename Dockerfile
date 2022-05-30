@@ -6,7 +6,7 @@ USER smsgatewayuser
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0-focal AS build
 WORKDIR /src
-RUN ls ; pwd
+COPY ["bbt.gateway.messaging/appsettings.Mock.json", "bbt.gateway.messaging/"] 
 COPY ["bbt.gateway.messaging/bbt.gateway.messaging.csproj", "bbt.gateway.messaging/"]
 RUN dotnet restore "bbt.gateway.messaging/bbt.gateway.messaging.csproj"
 COPY . .
