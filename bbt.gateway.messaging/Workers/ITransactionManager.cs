@@ -14,6 +14,7 @@ namespace bbt.gateway.messaging.Workers
         public MailRequestInfo MailRequestInfo { get; set; }
         public PushRequestInfo PushRequestInfo { get; set; }
         public CustomerRequestInfo CustomerRequestInfo { get; set; }
+        public HeaderInfo HeaderInfo { get; set; }
         public bool UseFakeSmtp { get; set; }
         public void AddTransaction();
         public void SaveTransaction();

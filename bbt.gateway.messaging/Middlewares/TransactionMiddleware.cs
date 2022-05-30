@@ -60,6 +60,7 @@ namespace bbt.gateway.messaging.Middlewares
                 _transactionManager.Transaction.Phone = _middlewareRequest.Phone;
                 _transactionManager.Transaction.CustomerNo = _middlewareRequest.CustomerNo;
                 _transactionManager.Transaction.CitizenshipNo = _middlewareRequest.ContactId;
+                _transactionManager.HeaderInfo = _middlewareRequest.HeaderInfo;
                 _transactionManager.SaveTransaction();
 
                 SetTransaction(context);

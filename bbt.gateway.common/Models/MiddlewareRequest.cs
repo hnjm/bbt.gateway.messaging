@@ -10,6 +10,7 @@ namespace bbt.gateway.common.Models
     {
         public ulong CustomerNo { get; set; }
         public string ContactId { get; set; }
+        public HeaderInfo HeaderInfo { get; set; }
         public Phone Phone { get; set; }
         public string Email { get; set; }
         public string Template { get; set; }

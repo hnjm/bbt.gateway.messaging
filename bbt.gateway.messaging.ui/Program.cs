@@ -3,7 +3,7 @@ using bbt.gateway.messaging.ui.Data;
 using Refit;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Host.UseConsulSettings(typeof(Program));
+//builder.Host.UseConsulSettings(typeof(Program));
 
 // Add services to the container.
 builder.Services.AddRazorPages();

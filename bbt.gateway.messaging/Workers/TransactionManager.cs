@@ -28,6 +28,7 @@ namespace bbt.gateway.messaging.Workers
         public PushRequestInfo PushRequestInfo { get; set; } = new();
 
         public CustomerRequestInfo CustomerRequestInfo { get; set; } = new();
+        public HeaderInfo HeaderInfo{ get; set; }
         public bool UseFakeSmtp { get; set; }
         public TransactionManager(PusulaClient pusulaClient,IRepositoryManager repositoryManager)
         {
@@ -110,12 +111,12 @@ namespace bbt.gateway.messaging.Workers
                 }
                 else
                 {
-                    throw new WorkflowException("Couldn't get customer info", System.Net.HttpStatusCode.NotFound);
+                    ThrowNotFoundError();
                 }
             }
             else
             {
-                throw new WorkflowException("Couldn't get customer with phone",System.Net.HttpStatusCode.NotFound);
+                ThrowNotFoundError();
             }
 
         }
@@ -142,12 +143,12 @@ namespace bbt.gateway.messaging.Workers
                 }
                 else
                 {
-                    throw new WorkflowException("Couldn't get customer info", System.Net.HttpStatusCode.NotFound);
+                    ThrowNotFoundError();
                 }
             }
             else
             {
-                throw new WorkflowException("Couldn't get customer with Email", System.Net.HttpStatusCode.NotFound);
+                ThrowNotFoundError();
             }
         }
 
@@ -173,12 +174,12 @@ namespace bbt.gateway.messaging.Workers
                 }
                 else
                 {
-                    throw new WorkflowException("Couldn't get customer info", System.Net.HttpStatusCode.NotFound);
+                    ThrowNotFoundError();
                 }
             }
             else
             {
-                throw new WorkflowException("Couldn't get customer with CitizenshipNo", System.Net.HttpStatusCode.NotFound);
+                ThrowNotFoundError();
             }
         }
 
@@ -197,7 +198,7 @@ namespace bbt.gateway.messaging.Workers
             }
             else
             {
-                throw new WorkflowException("Couldn't get customer info", System.Net.HttpStatusCode.NotFound);
+                ThrowNotFoundError();
             }
         }
 
@@ -217,6 +218,21 @@ namespace bbt.gateway.messaging.Workers
             if (String.IsNullOrEmpty(Transaction.Mail))
             {
                 Transaction.Mail = CustomerRequestInfo.MainEmail;
+            }
+        }
+
+        private void ThrowNotFoundError()
+        {
+            if (HeaderInfo != null)
+            {
+                if (HeaderInfo.Sender == SenderType.AutoDetect)
+                {
+                    throw new WorkflowException("Couldn't get customer info", System.Net.HttpStatusCode.NotFound);
+                }
+            }
+            else
+            {
+                throw new WorkflowException("Couldn't get customer info", System.Net.HttpStatusCode.NotFound);
             }
         }
 
