@@ -6,10 +6,10 @@ USER smsgatewayuser
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0-focal AS build
 WORKDIR /src
-COPY ["bbt.gateway.messaging/bbt.gateway.messaging.csproj", "bbt.gateway.messaging/"]
-RUN dotnet restore "bbt.gateway.messaging/bbt.gateway.messaging.csproj"
-RUN ls -l bbt.gateway.messaging/
+#COPY ["bbt.gateway.messaging/bbt.gateway.messaging.csproj", "bbt.gateway.messaging/"]
+#RUN ls -l bbt.gateway.messaging/
 COPY . .
+RUN dotnet restore "bbt.gateway.messaging/bbt.gateway.messaging.csproj"
 WORKDIR "/src/bbt.gateway.messaging"
 RUN dotnet build "bbt.gateway.messaging.csproj" -c Release -o /app/build
 
