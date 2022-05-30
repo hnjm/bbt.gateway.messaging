@@ -6,6 +6,7 @@ USER smsgatewayuser
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0-focal AS build
 WORKDIR /src
+RUN ls ; pwd
 COPY ["bbt.gateway.messaging/bbt.gateway.messaging.csproj", "bbt.gateway.messaging/"]
 RUN dotnet restore "bbt.gateway.messaging/bbt.gateway.messaging.csproj"
 COPY . .
@@ -18,7 +19,6 @@ RUN dotnet publish "bbt.gateway.messaging.csproj" -c Release -o /app/publish /p:
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-RUN ls
 EXPOSE 5000
 ENV ASPNETCORE_URLS=http://*:5000
 ENTRYPOINT ["dotnet", "bbt.gateway.messaging.dll"]
