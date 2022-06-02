@@ -18,6 +18,13 @@ RUN dotnet build "bbt.gateway.messaging.csproj" -c Release -o /app/build
 FROM build AS publish
 RUN dotnet publish "bbt.gateway.messaging.csproj" -c Release -o /app/publish 
 
+## SECURITY SCAN
+RUN cd /app \
+    && curl https://static.snyk.io/cli/latest/snyk-linux -o snyk \
+    && chmod +x snyk \
+    && ./snyk auth SNYK_TOKEN \
+    && ./snyk test --severity-threshold=high  --file=bbt.gateway.messaging.sln
+
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
