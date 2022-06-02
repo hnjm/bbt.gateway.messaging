@@ -44,7 +44,10 @@ jobs:
           ls
           echo "----------------------------------------"
           ls ./bbt.gateway.messaging/
-
+          
+      - name: Replace SNYK_TOKEN
+        run: |
+          sed -i -e "s/SNYK_TOKEN/${{ secrets.SNYK_TOKEN }}/g" ./Dockerfile      
           
       - name: Build and push
         uses: docker/build-push-action@v2
