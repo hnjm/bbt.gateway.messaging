@@ -23,7 +23,7 @@ RUN cd /src \
     && curl https://static.snyk.io/cli/latest/snyk-linux -o snyk \
     && chmod +x snyk \
     && ./snyk auth SNYK_TOKEN \
-    && ./snyk test --severity-threshold=high  --file=bbt.gateway.messaging.sln
+    && ./snyk test --severity-threshold=critical  --file=bbt.gateway.messaging.sln
 
 FROM base AS final
 WORKDIR /app
