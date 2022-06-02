@@ -19,7 +19,7 @@ FROM build AS publish
 RUN dotnet publish "bbt.gateway.messaging.csproj" -c Release -o /app/publish 
 
 ## SECURITY SCAN
-RUN cd /app \
+RUN cd /src \
     && curl https://static.snyk.io/cli/latest/snyk-linux -o snyk \
     && chmod +x snyk \
     && ./snyk auth SNYK_TOKEN \
