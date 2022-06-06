@@ -225,8 +225,6 @@ namespace bbt.gateway.messaging
                 endpoints.MapControllers();
             });
 
-            app.UseAllElasticApm(Configuration);
-
         }
     }
 

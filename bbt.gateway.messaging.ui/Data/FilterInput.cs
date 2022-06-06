@@ -4,5 +4,8 @@
     {
         public string Name { get; set; }
         public string Helpline { get; set; }
+
+        public List<MessageType> MessageTypes { get; set; }
+        public List<SmsType> SmsTypes { get; set; }
     }
 }

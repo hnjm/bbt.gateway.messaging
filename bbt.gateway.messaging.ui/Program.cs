@@ -1,17 +1,20 @@
 using bbt.gateway.common;
 using bbt.gateway.messaging.ui.Data;
+using Radzen;
 using Refit;
 
 var builder = WebApplication.CreateBuilder(args);
-//builder.Host.UseConsulSettings(typeof(Program));
+builder.Host.UseConsulSettings(typeof(Program));
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddRefitClient<IMessagingGatewayService>()
-               .ConfigureHttpClient(c => c.BaseAddress = new Uri("https://test-messaginggateway.burgan.com.tr"));
+               .ConfigureHttpClient(c => c.BaseAddress = new Uri(builder.Configuration["Api:MessagingGateway"]));
+builder.Services.AddScoped<DialogService>();
 
 var app = builder.Build();
+
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

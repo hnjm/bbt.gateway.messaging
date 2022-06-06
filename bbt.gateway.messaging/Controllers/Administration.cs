@@ -230,11 +230,99 @@ namespace bbt.gateway.messaging.Controllers
         }
 
         [SwaggerOperation(Summary = "Returns transactions info")]
-        [HttpGet("transactions/{countryCode}/{prefix}/{number}")]
+        [HttpGet("transactions/phone/{countryCode}/{prefix}/{number}")]
         [SwaggerResponse(200, "Records was returned successfully", typeof(Transaction[]))]
-        public IActionResult GetTransactionsWithPhone(int countryCode, int prefix, int number, [Range(0, 100)] int page = 0, [Range(1, 100)] int pageSize = 20)
+        public IActionResult GetTransactionsWithPhone(int countryCode, int prefix, int number, int smsType,DateTime startDate,DateTime endDate, [Range(0, 100)] int page = 0, [Range(1, 100)] int pageSize = 20)
         {
-            return Ok(_repositoryManager.Transactions.GetWithPhone(countryCode, prefix, number, page, pageSize));
+            if (smsType == 1)
+            {
+                var res = _repositoryManager.Transactions.GetOtpMessagesWithPhone(countryCode, prefix, number, startDate, endDate, page, pageSize);
+                return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
+            }
+            if (smsType == 2)
+            {
+                var res = _repositoryManager.Transactions.GetTransactionalSmsMessagesWithPhone(countryCode, prefix, number, startDate, endDate, page, pageSize);
+                return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
+            }
+
+            return Ok(new TransactionsDto());
+        }
+
+        [SwaggerOperation(Summary = "Returns transactions info")]
+        [HttpGet("transactions/mail/{email}")]
+        [SwaggerResponse(200, "Records was returned successfully", typeof(Transaction[]))]
+        public IActionResult GetTransactionsWithEmail(string mail, DateTime startDate, DateTime endDate, [Range(0, 100)] int page = 0, [Range(1, 100)] int pageSize = 20)
+        {
+            var res = _repositoryManager.Transactions.GetMailMessagesWithMail(mail, startDate, endDate, page, pageSize);
+            return Ok(new TransactionsDto { Transactions = res.Item1 ,Count = res.Item2});
+        }
+
+        [SwaggerOperation(Summary = "Returns transactions info")]
+        [HttpGet("transactions/customer/{customerNo}/{messageType}")]
+        [SwaggerResponse(200, "Records was returned successfully", typeof(Transaction[]))]
+        public IActionResult GetTransactionsWithCustomerNo(ulong customerNo,int messageType,int smsType, DateTime startDate, DateTime endDate, [Range(0, 100)] int page = 0, [Range(1, 100)] int pageSize = 20)
+        {
+            if (messageType == 1)
+            {
+                if (smsType == 1)
+                {
+                    var res = _repositoryManager.Transactions.GetOtpMessagesWithCustomerNo(customerNo, startDate, endDate, page, pageSize);
+                    return Ok(new TransactionsDto { Transactions = res.Item1,Count = res.Item2});
+                }
+                if (smsType == 2)
+                {
+                    var res = _repositoryManager.Transactions.GetTransactionalSmsMessagesWithCustomerNo(customerNo, startDate, endDate, page, pageSize);
+                    return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
+                }
+                    
+                return Ok(new TransactionsDto());
+            }
+            if (messageType == 2)
+            {
+                var res = _repositoryManager.Transactions.GetMailMessagesWithCustomerNo(customerNo, startDate, endDate, page, pageSize);
+                return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
+            }
+            if (messageType == 3)
+            {
+                var res = _repositoryManager.Transactions.GetPushMessagesWithCustomerNo(customerNo, startDate, endDate, page, pageSize);
+                return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
+            }
+
+            return Ok(new TransactionsDto());
+        }
+
+        [SwaggerOperation(Summary = "Returns transactions info")]
+        [HttpGet("transactions/citizen/{citizenshipNo}/{messageType}")]
+        [SwaggerResponse(200, "Records was returned successfully", typeof(Transaction[]))]
+        public IActionResult GetTransactionsWithCitizenshioNo(string citizenshipNo, int messageType, int smsType, DateTime startDate, DateTime endDate, [Range(0, 100)] int page = 0, [Range(1, 100)] int pageSize = 20)
+        {
+            if (messageType == 1)
+            {
+                if (smsType == 1)
+                {
+                    var res = _repositoryManager.Transactions.GetOtpMessagesWithCitizenshipNo(citizenshipNo, startDate, endDate, page, pageSize);
+                    return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
+                }
+                    
+                if (smsType == 2)
+                {
+                    var res = _repositoryManager.Transactions.GetTransactionalSmsMessagesWithCitizenshipNo(citizenshipNo, startDate, endDate, page, pageSize);
+                    return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
+                }
+                return Ok(new TransactionsDto());
+            }
+            if (messageType == 2)
+            {
+                var res = _repositoryManager.Transactions.GetMailMessagesWithCitizenshipNo(citizenshipNo, startDate, endDate, page, pageSize);
+                return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
+            }
+            if (messageType == 3)
+            {
+                var res = _repositoryManager.Transactions.GetPushMessagesWithCitizenshipNo(citizenshipNo, startDate, endDate, page, pageSize);
+                return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
+            }
+
+            return Ok(new List<Transaction>());
         }
 
     }

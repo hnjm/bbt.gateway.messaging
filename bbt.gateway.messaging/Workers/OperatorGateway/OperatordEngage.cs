@@ -218,6 +218,10 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                     var req = CreateMailRequest(to, from, subject, html, templateId, templateParams,attachments);
                     try
                     {
+                        var tt = JsonConvert.SerializeObject(req, new JsonSerializerSettings()
+                        {
+                            NullValueHandling = NullValueHandling.Ignore,
+                        });
                         var sendMailResponse = await _dEngageClient.SendMail(req, _authToken);
                         mailResponseLog.ResponseCode = sendMailResponse.code.ToString();
                         mailResponseLog.ResponseMessage = sendMailResponse.message;
