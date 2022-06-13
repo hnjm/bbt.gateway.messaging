@@ -28,6 +28,8 @@ using StackExchange.Redis;
 using Swashbuckle.AspNetCore.Filters;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
+using System.IO;
+using System.Reflection;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -46,7 +48,7 @@ namespace bbt.gateway.messaging
         }
 
         public IConfiguration Configuration { get; }
-        
+
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -85,6 +87,10 @@ namespace bbt.gateway.messaging
                 c.CustomSchemaIds(type => type.FullName);
                 c.OrderActionsBy((apiDesc) => $"{apiDesc.ActionDescriptor.RouteValues["controller"]}_{apiDesc.RelativePath}");
                 c.ExampleFilters();
+
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                c.IncludeXmlComments(xmlPath);
 
             });
             services.AddSwaggerExamplesFromAssemblyOf<Startup>();
@@ -230,7 +236,7 @@ namespace bbt.gateway.messaging
 
         }
     }
-    
+
 
 
 }
