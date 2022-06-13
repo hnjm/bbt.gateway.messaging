@@ -9,6 +9,7 @@ namespace bbt.gateway.common.Models
     public enum SmsTypes
     {
         Bulk,
-        Fast
+        Fast,
+        Otp
     }
 }

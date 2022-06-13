@@ -129,7 +129,7 @@ namespace bbt.gateway.messaging.Workers
                     if (!phoneConfiguration.BlacklistEntries.Any(b => b.Status == BlacklistStatus.NotResolved && b.ValidTo > DateTime.Today))
                     {
                         _transactionManager.LogError("Phone has a blacklist record");
-                        var oldBlackListEntry = createOldBlackListEntry(_headerManager.CustomerNo, phoneConfiguration.Phone.ToString());
+                        var oldBlackListEntry = createOldBlackListEntry((long)_transactionManager.CustomerRequestInfo.CustomerNo, phoneConfiguration.Phone.ToString());
                         _repositoryManager.DirectBlacklists.Add(oldBlackListEntry);
                         _repositoryManager.SaveSmsBankingChanges();
 
@@ -202,7 +202,7 @@ namespace bbt.gateway.messaging.Workers
                 _transactionManager.LogError("OperatorChange or SimChange Has Occured");
                 if (phoneConfiguration.BlacklistEntries.All(b => b.Status == BlacklistStatus.Resolved))
                 {
-                    var oldBlackListEntry = createOldBlackListEntry(_headerManager.CustomerNo, phoneConfiguration.Phone.ToString());
+                    var oldBlackListEntry = createOldBlackListEntry((long)_transactionManager.CustomerRequestInfo.CustomerNo, phoneConfiguration.Phone.ToString());
                     _repositoryManager.DirectBlacklists.Add(oldBlackListEntry);
                     _repositoryManager.SaveSmsBankingChanges();
 

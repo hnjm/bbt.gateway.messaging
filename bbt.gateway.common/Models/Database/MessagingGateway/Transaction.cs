@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace bbt.gateway.common.Models
 {
@@ -23,7 +20,7 @@ namespace bbt.gateway.common.Models
         public SmsRequestLog SmsRequestLog { get; set; }
         public MailRequestLog MailRequestLog { get; set; }
         public PushNotificationRequestLog PushNotificationRequestLog { get; set; }
-        
-        
+
+
     }
 }

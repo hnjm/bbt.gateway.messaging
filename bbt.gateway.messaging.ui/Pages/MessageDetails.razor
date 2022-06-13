@@ -1,0 +1,154 @@
+﻿@page "/dialogcard/{Txn}"
+
+
+@inject Radzen.DialogService dialogService
+@using bbt.gateway.common.Models
+
+<RadzenFieldset AllowCollapse="true">
+    <HeaderTemplate>
+        <span class="d-inline-flex align-items-center align-middle">
+            <RadzenIcon Icon="info" Class="mr-1" /><b>Operator Info</b>
+        </span>
+    </HeaderTemplate>
+    <ChildContent>
+        <div class="row d-flex">    
+            <div class="col-12 h-100">
+                <RadzenCard>
+                    <span>Operator : @GetOperator()</span>
+                </RadzenCard>
+            </div>
+        </div>
+    </ChildContent>
+</RadzenFieldset>
+
+    <RadzenFieldset AllowCollapse="true" class="mt-1">
+        <HeaderTemplate>
+            <span class="d-inline-flex align-items-center align-middle">
+                <RadzenIcon Icon="text_snippet" Class="mr-1" /><b>Response Logs</b>
+            </span>
+        </HeaderTemplate>
+        <ChildContent>
+        @if (responseLogs.Count > 0)
+        {
+            @foreach (var responseLog in responseLogs)
+            {
+                <div class="row">
+                    <div class="col-6">
+                        <RadzenCard>
+                            <span>Operator Cevap Kodu</span>
+                            <RadzenTextBox Disabled Value="@responseLog.ResponseCode.ToString()" />
+                        </RadzenCard>
+                    </div>
+                    <div class="col-6">
+                        <RadzenCard>
+                            <span>Operator Cevap Açıklama</span>
+                            <RadzenTextBox Disabled Value="@responseLog.ResponseMessage" />
+                        </RadzenCard>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12">
+                <RadzenCard>
+                    <span>Response Log Bulunamadı.</span>
+                </RadzenCard>
+            </div>
+        }
+        </ChildContent>
+        <SummaryTemplate>
+            <RadzenCard class="mt-3">
+                <b>@responseLogs.Count Response Logs</b>
+            </RadzenCard>
+        </SummaryTemplate>
+    </RadzenFieldset>
+
+    <RadzenFieldset AllowCollapse="true" class="mt-1">
+        <HeaderTemplate>
+            <span class="d-inline-flex align-items-center align-middle">
+                <RadzenIcon Icon="text_snippet" Class="mr-1" /><b>Tracking Logs</b>
+            </span>
+        </HeaderTemplate>
+        <ChildContent>
+            @if (trackingsLogs.Count > 0)
+            {
+                @foreach (var trackingLog in trackingsLogs)
+                {
+                    <div class="row">
+                        <div class="col-6">
+                            <RadzenCard>
+                                    <span>Tracking Response</span>
+                                    <RadzenTextBox Disabled Value="@trackingLog.Status.ToString()" />
+                            </RadzenCard>
+                        </div>
+                        <div class="col-6">
+                            <RadzenCard>
+                                    <span>Tracking Response Message</span>
+                                    <RadzenTextBox Disabled Value="@trackingLog.ResponseMessage" />
+                            </RadzenCard>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="col-12">
+                    <RadzenCard>
+                        <span>Tracking Log Bulunamadı.</span>
+                    </RadzenCard>
+                </div>
+            }
+        </ChildContent>
+        <SummaryTemplate>
+            <RadzenCard class="mt-3">
+                <b>@trackingsLogs.Count Response Logs</b>
+            </RadzenCard>
+        </SummaryTemplate>
+    </RadzenFieldset>
+
+<RadzenFieldset>
+    <HeaderTemplate>
+        <span class="d-inline-flex align-items-center align-middle">
+            <RadzenIcon Icon="note" Class="mr-1" /><b>Content Info</b>
+        </span>
+    </HeaderTemplate>
+    <ChildContent>
+        @if (Txn.TransactionType == TransactionType.Otp || Txn.TransactionType == TransactionType.TransactionalSms)
+        {
+            <div class="row">
+                <div class="col-12">
+                    <RadzenCard>
+                        <span>Mesaj</span>
+                        <RadzenTextBox Disabled Value="@message"></RadzenTextBox>
+                    </RadzenCard>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="row">
+                <div class="col-6">
+                    <RadzenCard>
+                        <span>Template</span>
+                        <RadzenTextBox Disabled Value="@GetTemplate()"></RadzenTextBox>
+                    </RadzenCard>
+                </div>
+                <div class="col-6">
+                    <RadzenCard>
+                        <span>Template Params</span>
+                        <RadzenTextBox Disabled Value="@GetTemplateParams()"></RadzenTextBox>
+                    </RadzenCard>
+                </div>
+            </div>
+        }
+    </ChildContent>
+
+</RadzenFieldset>
+
+
+<div class="row mb-1">
+    <div class="col-md-12 d-flex justify-content-end">
+        <RadzenButton Click="@((args) => dialogService.Close(false))" ButtonStyle="ButtonStyle.Secondary" Text="Çıkış" Style="width: 120px" Class="mr-1" />
+    </div>
+</div>

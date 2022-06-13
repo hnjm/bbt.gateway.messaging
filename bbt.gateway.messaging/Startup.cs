@@ -16,15 +16,20 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Refit;
 using StackExchange.Redis;
+using Swashbuckle.AspNetCore.Filters;
+using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace bbt.gateway.messaging
 {
@@ -72,20 +77,17 @@ namespace bbt.gateway.messaging
                 setup.SubstituteApiVersionInUrl = true;
             });
 
-            services.AddSwaggerGen(c =>
-            {
-                //c.SwaggerDoc("v1", new OpenApiInfo { Title = "bbt.gateway.messaging", Version = "v1" });
-                c.EnableAnnotations();
-                //TODO: is process info came from header or body ? Decide
-                //c.OperationFilter<AddRequiredHeaderParameter>();
-            });
             services.AddSwaggerGenNewtonsoftSupport();
             services.ConfigureOptions<ConfigureSwaggerOptions>();
-
-            ConfigurationOptions configurationOptions = new()
+            services.AddSwaggerGen(c =>
             {
-                
-            };
+                c.EnableAnnotations();
+                c.CustomSchemaIds(type => type.FullName);
+                c.OrderActionsBy((apiDesc) => $"{apiDesc.ActionDescriptor.RouteValues["controller"]}_{apiDesc.RelativePath}");
+                c.ExampleFilters();
+
+            });
+            services.AddSwaggerExamplesFromAssemblyOf<Startup>();
             services.AddStackExchangeRedisCache(opt =>
             {
                 opt.Configuration = $"{Configuration["Redis:Host"]}:{Configuration["Redis:Port"]},password={Configuration["Redis:Password"]}";
@@ -191,11 +193,12 @@ namespace bbt.gateway.messaging
                 app.UseCustomerInfoMiddleware();
                 app.UseWhitelistMiddleware();
             }
-
+            app.UseDeveloperExceptionPage();
             app.UseSwagger();
-
+            app.UseStaticFiles();
             app.UseSwaggerUI(options =>
             {
+                options.InjectStylesheet("Swagger.css");
                 foreach (var description in provider.ApiVersionDescriptions)
                 {
                     options.SwaggerEndpoint(
@@ -227,5 +230,7 @@ namespace bbt.gateway.messaging
 
         }
     }
+    
+
 
 }

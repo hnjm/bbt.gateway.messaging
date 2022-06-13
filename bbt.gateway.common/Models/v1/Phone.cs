@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace bbt.gateway.common.Models
 {
-    public  class Phone
+    [Index("CountryCode","Prefix","Number",IsUnique = false)]
+    public class Phone
     {
         public int CountryCode { get; set; }
         public int Prefix { get; set; }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using bbt.gateway.common;
 
@@ -11,9 +12,10 @@ using bbt.gateway.common;
 namespace bbt.gateway.messaging.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20220607083851_TransactionCustomerIndex")]
+    partial class TransactionCustomerIndex
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -56,7 +58,7 @@ namespace bbt.gateway.messaging.Migrations
 
                     b.HasIndex("PhoneConfigurationId");
 
-                    b.ToTable("BlackListEntries", (string)null);
+                    b.ToTable("BlackListEntries");
                 });
 
             modelBuilder.Entity("bbt.gateway.common.Models.BlackListEntryLog", b =>
@@ -87,7 +89,7 @@ namespace bbt.gateway.messaging.Migrations
 
                     b.HasIndex("BlackListEntryId");
 
-                    b.ToTable("BlackListEntryLog", (string)null);
+                    b.ToTable("BlackListEntryLog");
                 });
 
             modelBuilder.Entity("bbt.gateway.common.Models.Header", b =>
@@ -128,12 +130,12 @@ namespace bbt.gateway.messaging.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Headers", (string)null);
+                    b.ToTable("Headers");
 
                     b.HasData(
                         new
                         {
-                            Id = new Guid("ec0db1ca-b6ba-49cd-b633-7c8e8129dcab"),
+                            Id = new Guid("78d981ac-6842-4452-9bd7-1b4a13fba0e8"),
                             ContentType = 0,
                             EmailTemplatePrefix = "",
                             SmsPrefix = "",
@@ -143,7 +145,7 @@ namespace bbt.gateway.messaging.Migrations
                         },
                         new
                         {
-                            Id = new Guid("8b47cda1-36a8-46f3-995e-664539915480"),
+                            Id = new Guid("f5fa100e-fc96-4605-9e1c-2bf2c72fe8a7"),
                             Branch = 2000,
                             ContentType = 0,
                             EmailTemplatePrefix = "",
@@ -167,7 +169,7 @@ namespace bbt.gateway.messaging.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("MailConfigurations", (string)null);
+                    b.ToTable("MailConfigurations");
                 });
 
             modelBuilder.Entity("bbt.gateway.common.Models.MailConfigurationLog", b =>
@@ -195,7 +197,7 @@ namespace bbt.gateway.messaging.Migrations
 
                     b.HasIndex("MailId");
 
-                    b.ToTable("MailConfigurationLog", (string)null);
+                    b.ToTable("MailConfigurationLog");
                 });
 
             modelBuilder.Entity("bbt.gateway.common.Models.MailRequestLog", b =>
@@ -232,7 +234,7 @@ namespace bbt.gateway.messaging.Migrations
 
                     b.HasIndex("MailConfigurationId");
 
-                    b.ToTable("MailRequestLog", (string)null);
+                    b.ToTable("MailRequestLog");
                 });
 
             modelBuilder.Entity("bbt.gateway.common.Models.MailResponseLog", b =>
@@ -263,7 +265,7 @@ namespace bbt.gateway.messaging.Migrations
 
                     b.HasIndex("MailRequestLogId");
 
-                    b.ToTable("MailResponseLog", (string)null);
+                    b.ToTable("MailResponseLog");
                 });
 
             modelBuilder.Entity("bbt.gateway.common.Models.Operator", b =>
@@ -318,7 +320,7 @@ namespace bbt.gateway.messaging.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Operators", (string)null);
+                    b.ToTable("Operators");
 
                     b.HasData(
                         new
@@ -412,7 +414,7 @@ namespace bbt.gateway.messaging.Migrations
 
                     b.HasIndex("PhoneConfigurationId");
 
-                    b.ToTable("OtpRequestLogs", (string)null);
+                    b.ToTable("OtpRequestLogs");
                 });
 
             modelBuilder.Entity("bbt.gateway.common.Models.OtpResponseLog", b =>
@@ -455,7 +457,7 @@ namespace bbt.gateway.messaging.Migrations
 
                     b.HasIndex("OtpRequestLogId");
 
-                    b.ToTable("OtpResponseLog", (string)null);
+                    b.ToTable("OtpResponseLog");
                 });
 
             modelBuilder.Entity("bbt.gateway.common.Models.OtpTrackingLog", b =>
@@ -483,7 +485,7 @@ namespace bbt.gateway.messaging.Migrations
 
                     b.HasIndex("LogId");
 
-                    b.ToTable("OtpTrackingLog", (string)null);
+                    b.ToTable("OtpTrackingLog");
                 });
 
             modelBuilder.Entity("bbt.gateway.common.Models.PhoneConfiguration", b =>
@@ -504,7 +506,7 @@ namespace bbt.gateway.messaging.Migrations
 
                     SqlServerIndexBuilderExtensions.IsClustered(b.HasIndex("Id"), false);
 
-                    b.ToTable("PhoneConfigurations", (string)null);
+                    b.ToTable("PhoneConfigurations");
                 });
 
             modelBuilder.Entity("bbt.gateway.common.Models.PhoneConfigurationLog", b =>
@@ -532,7 +534,7 @@ namespace bbt.gateway.messaging.Migrations
 
                     b.HasIndex("PhoneId");
 
-                    b.ToTable("PhoneConfigurationLog", (string)null);
+                    b.ToTable("PhoneConfigurationLog");
                 });
 
             modelBuilder.Entity("bbt.gateway.common.Models.PushNotificationRequestLog", b =>
@@ -561,7 +563,7 @@ namespace bbt.gateway.messaging.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PushNotificationRequestLogs", (string)null);
+                    b.ToTable("PushNotificationRequestLogs");
                 });
 
             modelBuilder.Entity("bbt.gateway.common.Models.PushNotificationResponseLog", b =>
@@ -589,7 +591,7 @@ namespace bbt.gateway.messaging.Migrations
 
                     b.HasIndex("PushNotificationRequestLogId");
 
-                    b.ToTable("PushNotificationResponseLogs", (string)null);
+                    b.ToTable("PushNotificationResponseLogs");
                 });
 
             modelBuilder.Entity("bbt.gateway.common.Models.SmsRequestLog", b =>
@@ -623,7 +625,7 @@ namespace bbt.gateway.messaging.Migrations
 
                     b.HasIndex("PhoneConfigurationId");
 
-                    b.ToTable("SmsRequestLog", (string)null);
+                    b.ToTable("SmsRequestLog");
                 });
 
             modelBuilder.Entity("bbt.gateway.common.Models.SmsResponseLog", b =>
@@ -660,7 +662,7 @@ namespace bbt.gateway.messaging.Migrations
 
                     b.HasIndex("SmsRequestLogId");
 
-                    b.ToTable("SmsResponseLog", (string)null);
+                    b.ToTable("SmsResponseLog");
                 });
 
             modelBuilder.Entity("bbt.gateway.common.Models.Transaction", b =>
@@ -719,7 +721,7 @@ namespace bbt.gateway.messaging.Migrations
 
                     b.HasIndex("SmsRequestLogId");
 
-                    b.ToTable("Transactions", (string)null);
+                    b.ToTable("Transactions");
                 });
 
             modelBuilder.Entity("bbt.gateway.common.Models.WhiteList", b =>
@@ -739,7 +741,7 @@ namespace bbt.gateway.messaging.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("WhiteList", (string)null);
+                    b.ToTable("WhiteList");
                 });
 
             modelBuilder.Entity("bbt.gateway.common.Models.BlackListEntry", b =>
@@ -750,7 +752,7 @@ namespace bbt.gateway.messaging.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.OwnsOne("bbt.gateway.common.Models.BlackListEntry.CreatedBy#bbt.gateway.common.Models.Process", "CreatedBy", b1 =>
+                    b.OwnsOne("bbt.gateway.common.Models.Process", "CreatedBy", b1 =>
                         {
                             b1.Property<Guid>("BlackListEntryId")
                                 .HasColumnType("uniqueidentifier");
@@ -770,13 +772,13 @@ namespace bbt.gateway.messaging.Migrations
 
                             b1.HasKey("BlackListEntryId");
 
-                            b1.ToTable("BlackListEntries", (string)null);
+                            b1.ToTable("BlackListEntries");
 
                             b1.WithOwner()
                                 .HasForeignKey("BlackListEntryId");
                         });
 
-                    b.OwnsOne("bbt.gateway.common.Models.BlackListEntry.ResolvedBy#bbt.gateway.common.Models.Process", "ResolvedBy", b1 =>
+                    b.OwnsOne("bbt.gateway.common.Models.Process", "ResolvedBy", b1 =>
                         {
                             b1.Property<Guid>("BlackListEntryId")
                                 .HasColumnType("uniqueidentifier");
@@ -796,7 +798,7 @@ namespace bbt.gateway.messaging.Migrations
 
                             b1.HasKey("BlackListEntryId");
 
-                            b1.ToTable("BlackListEntries", (string)null);
+                            b1.ToTable("BlackListEntries");
 
                             b1.WithOwner()
                                 .HasForeignKey("BlackListEntryId");
@@ -815,7 +817,7 @@ namespace bbt.gateway.messaging.Migrations
                         .WithMany("Logs")
                         .HasForeignKey("BlackListEntryId");
 
-                    b.OwnsOne("bbt.gateway.common.Models.BlackListEntryLog.CreatedBy#bbt.gateway.common.Models.Process", "CreatedBy", b1 =>
+                    b.OwnsOne("bbt.gateway.common.Models.Process", "CreatedBy", b1 =>
                         {
                             b1.Property<Guid>("BlackListEntryLogId")
                                 .HasColumnType("uniqueidentifier");
@@ -835,7 +837,7 @@ namespace bbt.gateway.messaging.Migrations
 
                             b1.HasKey("BlackListEntryLogId");
 
-                            b1.ToTable("BlackListEntryLog", (string)null);
+                            b1.ToTable("BlackListEntryLog");
 
                             b1.WithOwner()
                                 .HasForeignKey("BlackListEntryLogId");
@@ -852,7 +854,7 @@ namespace bbt.gateway.messaging.Migrations
                         .WithMany("Logs")
                         .HasForeignKey("MailId");
 
-                    b.OwnsOne("bbt.gateway.common.Models.MailConfigurationLog.CreatedBy#bbt.gateway.common.Models.Process", "CreatedBy", b1 =>
+                    b.OwnsOne("bbt.gateway.common.Models.Process", "CreatedBy", b1 =>
                         {
                             b1.Property<Guid>("MailConfigurationLogId")
                                 .HasColumnType("uniqueidentifier");
@@ -872,7 +874,7 @@ namespace bbt.gateway.messaging.Migrations
 
                             b1.HasKey("MailConfigurationLogId");
 
-                            b1.ToTable("MailConfigurationLog", (string)null);
+                            b1.ToTable("MailConfigurationLog");
 
                             b1.WithOwner()
                                 .HasForeignKey("MailConfigurationLogId");
@@ -889,7 +891,7 @@ namespace bbt.gateway.messaging.Migrations
                         .WithMany("MailLogs")
                         .HasForeignKey("MailConfigurationId");
 
-                    b.OwnsOne("bbt.gateway.common.Models.MailRequestLog.CreatedBy#bbt.gateway.common.Models.Process", "CreatedBy", b1 =>
+                    b.OwnsOne("bbt.gateway.common.Models.Process", "CreatedBy", b1 =>
                         {
                             b1.Property<Guid>("MailRequestLogId")
                                 .HasColumnType("uniqueidentifier");
@@ -909,7 +911,7 @@ namespace bbt.gateway.messaging.Migrations
 
                             b1.HasKey("MailRequestLogId");
 
-                            b1.ToTable("MailRequestLog", (string)null);
+                            b1.ToTable("MailRequestLog");
 
                             b1.WithOwner()
                                 .HasForeignKey("MailRequestLogId");
@@ -933,7 +935,7 @@ namespace bbt.gateway.messaging.Migrations
                         .WithMany("OtpLogs")
                         .HasForeignKey("PhoneConfigurationId");
 
-                    b.OwnsOne("bbt.gateway.common.Models.OtpRequestLog.CreatedBy#bbt.gateway.common.Models.Process", "CreatedBy", b1 =>
+                    b.OwnsOne("bbt.gateway.common.Models.Process", "CreatedBy", b1 =>
                         {
                             b1.Property<Guid>("OtpRequestLogId")
                                 .HasColumnType("uniqueidentifier");
@@ -953,13 +955,13 @@ namespace bbt.gateway.messaging.Migrations
 
                             b1.HasKey("OtpRequestLogId");
 
-                            b1.ToTable("OtpRequestLogs", (string)null);
+                            b1.ToTable("OtpRequestLogs");
 
                             b1.WithOwner()
                                 .HasForeignKey("OtpRequestLogId");
                         });
 
-                    b.OwnsOne("bbt.gateway.common.Models.OtpRequestLog.Phone#bbt.gateway.common.Models.Phone", "Phone", b1 =>
+                    b.OwnsOne("bbt.gateway.common.Models.Phone", "Phone", b1 =>
                         {
                             b1.Property<Guid>("OtpRequestLogId")
                                 .HasColumnType("uniqueidentifier");
@@ -975,9 +977,7 @@ namespace bbt.gateway.messaging.Migrations
 
                             b1.HasKey("OtpRequestLogId");
 
-                            b1.HasIndex("CountryCode", "Prefix", "Number");
-
-                            b1.ToTable("OtpRequestLogs", (string)null);
+                            b1.ToTable("OtpRequestLogs");
 
                             b1.WithOwner()
                                 .HasForeignKey("OtpRequestLogId");
@@ -1010,7 +1010,7 @@ namespace bbt.gateway.messaging.Migrations
 
             modelBuilder.Entity("bbt.gateway.common.Models.PhoneConfiguration", b =>
                 {
-                    b.OwnsOne("bbt.gateway.common.Models.PhoneConfiguration.Phone#bbt.gateway.common.Models.Phone", "Phone", b1 =>
+                    b.OwnsOne("bbt.gateway.common.Models.Phone", "Phone", b1 =>
                         {
                             b1.Property<Guid>("PhoneConfigurationId")
                                 .HasColumnType("uniqueidentifier");
@@ -1026,9 +1026,7 @@ namespace bbt.gateway.messaging.Migrations
 
                             b1.HasKey("PhoneConfigurationId");
 
-                            b1.HasIndex("CountryCode", "Prefix", "Number");
-
-                            b1.ToTable("PhoneConfigurations", (string)null);
+                            b1.ToTable("PhoneConfigurations");
 
                             b1.WithOwner()
                                 .HasForeignKey("PhoneConfigurationId");
@@ -1043,7 +1041,7 @@ namespace bbt.gateway.messaging.Migrations
                         .WithMany("Logs")
                         .HasForeignKey("PhoneId");
 
-                    b.OwnsOne("bbt.gateway.common.Models.PhoneConfigurationLog.CreatedBy#bbt.gateway.common.Models.Process", "CreatedBy", b1 =>
+                    b.OwnsOne("bbt.gateway.common.Models.Process", "CreatedBy", b1 =>
                         {
                             b1.Property<Guid>("PhoneConfigurationLogId")
                                 .HasColumnType("uniqueidentifier");
@@ -1063,7 +1061,7 @@ namespace bbt.gateway.messaging.Migrations
 
                             b1.HasKey("PhoneConfigurationLogId");
 
-                            b1.ToTable("PhoneConfigurationLog", (string)null);
+                            b1.ToTable("PhoneConfigurationLog");
 
                             b1.WithOwner()
                                 .HasForeignKey("PhoneConfigurationLogId");
@@ -1076,7 +1074,7 @@ namespace bbt.gateway.messaging.Migrations
 
             modelBuilder.Entity("bbt.gateway.common.Models.PushNotificationRequestLog", b =>
                 {
-                    b.OwnsOne("bbt.gateway.common.Models.PushNotificationRequestLog.CreatedBy#bbt.gateway.common.Models.Process", "CreatedBy", b1 =>
+                    b.OwnsOne("bbt.gateway.common.Models.Process", "CreatedBy", b1 =>
                         {
                             b1.Property<Guid>("PushNotificationRequestLogId")
                                 .HasColumnType("uniqueidentifier");
@@ -1096,7 +1094,7 @@ namespace bbt.gateway.messaging.Migrations
 
                             b1.HasKey("PushNotificationRequestLogId");
 
-                            b1.ToTable("PushNotificationRequestLogs", (string)null);
+                            b1.ToTable("PushNotificationRequestLogs");
 
                             b1.WithOwner()
                                 .HasForeignKey("PushNotificationRequestLogId");
@@ -1118,7 +1116,7 @@ namespace bbt.gateway.messaging.Migrations
                         .WithMany("SmsLogs")
                         .HasForeignKey("PhoneConfigurationId");
 
-                    b.OwnsOne("bbt.gateway.common.Models.SmsRequestLog.CreatedBy#bbt.gateway.common.Models.Process", "CreatedBy", b1 =>
+                    b.OwnsOne("bbt.gateway.common.Models.Process", "CreatedBy", b1 =>
                         {
                             b1.Property<Guid>("SmsRequestLogId")
                                 .HasColumnType("uniqueidentifier");
@@ -1138,13 +1136,13 @@ namespace bbt.gateway.messaging.Migrations
 
                             b1.HasKey("SmsRequestLogId");
 
-                            b1.ToTable("SmsRequestLog", (string)null);
+                            b1.ToTable("SmsRequestLog");
 
                             b1.WithOwner()
                                 .HasForeignKey("SmsRequestLogId");
                         });
 
-                    b.OwnsOne("bbt.gateway.common.Models.SmsRequestLog.Phone#bbt.gateway.common.Models.Phone", "Phone", b1 =>
+                    b.OwnsOne("bbt.gateway.common.Models.Phone", "Phone", b1 =>
                         {
                             b1.Property<Guid>("SmsRequestLogId")
                                 .HasColumnType("uniqueidentifier");
@@ -1160,9 +1158,7 @@ namespace bbt.gateway.messaging.Migrations
 
                             b1.HasKey("SmsRequestLogId");
 
-                            b1.HasIndex("CountryCode", "Prefix", "Number");
-
-                            b1.ToTable("SmsRequestLog", (string)null);
+                            b1.ToTable("SmsRequestLog");
 
                             b1.WithOwner()
                                 .HasForeignKey("SmsRequestLogId");
@@ -1200,7 +1196,7 @@ namespace bbt.gateway.messaging.Migrations
                         .WithMany()
                         .HasForeignKey("SmsRequestLogId");
 
-                    b.OwnsOne("bbt.gateway.common.Models.Transaction.CreatedBy#bbt.gateway.common.Models.Process", "CreatedBy", b1 =>
+                    b.OwnsOne("bbt.gateway.common.Models.Process", "CreatedBy", b1 =>
                         {
                             b1.Property<Guid>("TransactionId")
                                 .HasColumnType("uniqueidentifier");
@@ -1220,13 +1216,13 @@ namespace bbt.gateway.messaging.Migrations
 
                             b1.HasKey("TransactionId");
 
-                            b1.ToTable("Transactions", (string)null);
+                            b1.ToTable("Transactions");
 
                             b1.WithOwner()
                                 .HasForeignKey("TransactionId");
                         });
 
-                    b.OwnsOne("bbt.gateway.common.Models.Transaction.Phone#bbt.gateway.common.Models.Phone", "Phone", b1 =>
+                    b.OwnsOne("bbt.gateway.common.Models.Phone", "Phone", b1 =>
                         {
                             b1.Property<Guid>("TransactionId")
                                 .HasColumnType("uniqueidentifier");
@@ -1242,9 +1238,7 @@ namespace bbt.gateway.messaging.Migrations
 
                             b1.HasKey("TransactionId");
 
-                            b1.HasIndex("CountryCode", "Prefix", "Number");
-
-                            b1.ToTable("Transactions", (string)null);
+                            b1.ToTable("Transactions");
 
                             b1.WithOwner()
                                 .HasForeignKey("TransactionId");
@@ -1265,7 +1259,7 @@ namespace bbt.gateway.messaging.Migrations
 
             modelBuilder.Entity("bbt.gateway.common.Models.WhiteList", b =>
                 {
-                    b.OwnsOne("bbt.gateway.common.Models.WhiteList.CreatedBy#bbt.gateway.common.Models.Process", "CreatedBy", b1 =>
+                    b.OwnsOne("bbt.gateway.common.Models.Process", "CreatedBy", b1 =>
                         {
                             b1.Property<Guid>("WhiteListId")
                                 .HasColumnType("uniqueidentifier");
@@ -1285,13 +1279,13 @@ namespace bbt.gateway.messaging.Migrations
 
                             b1.HasKey("WhiteListId");
 
-                            b1.ToTable("WhiteList", (string)null);
+                            b1.ToTable("WhiteList");
 
                             b1.WithOwner()
                                 .HasForeignKey("WhiteListId");
                         });
 
-                    b.OwnsOne("bbt.gateway.common.Models.WhiteList.Phone#bbt.gateway.common.Models.Phone", "Phone", b1 =>
+                    b.OwnsOne("bbt.gateway.common.Models.Phone", "Phone", b1 =>
                         {
                             b1.Property<Guid>("WhiteListId")
                                 .HasColumnType("uniqueidentifier");
@@ -1307,9 +1301,7 @@ namespace bbt.gateway.messaging.Migrations
 
                             b1.HasKey("WhiteListId");
 
-                            b1.HasIndex("CountryCode", "Prefix", "Number");
-
-                            b1.ToTable("WhiteList", (string)null);
+                            b1.ToTable("WhiteList");
 
                             b1.WithOwner()
                                 .HasForeignKey("WhiteListId");

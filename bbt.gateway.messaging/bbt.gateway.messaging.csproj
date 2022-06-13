@@ -13,6 +13,14 @@
   <ItemGroup>
     <Content Remove="appsettings.Mock2.json" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <None Remove="Swagger.css" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <EmbeddedResource Include="wwwroot\Swagger.css" />
+  </ItemGroup>
 
 
 
@@ -20,6 +28,9 @@
 
 
   <PackageReference Include="Elastic.Apm.NetCoreAll" Version="1.14.0" />
+
+
+  <PackageReference Include="MediatR" Version="10.0.1" />
 
 
   <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.2" />
@@ -56,6 +67,7 @@
 
     <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.2.3" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="7.0.3" />
     <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="6.2.3" />
 	<PackageReference Include="Winton.Extensions.Configuration.Consul" Version="3.1.2" />
 

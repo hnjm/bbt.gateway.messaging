@@ -14,6 +14,7 @@ namespace bbt.gateway.common.Models
         public string OperatorResponseMessage { get; set; }
         public string StatusQueryId { get; set; }
         public string Status { get; set; }
+        public ICollection<TransactionalTrackingLog> TrackingLogs { get; set; } = new List<TransactionalTrackingLog>();
         public DateTime CreatedAt { get; set; }
 
         public override string GetResponseCode()

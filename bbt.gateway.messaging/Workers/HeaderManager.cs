@@ -12,10 +12,7 @@ namespace bbt.gateway.messaging.Workers
         public List<Header> Headers = new List<Header>();
         private readonly ITransactionManager _transactionManager;
         private readonly IRepositoryManager _repositoryManager;
-        private ulong _customerNo;
-
-        public long CustomerNo { get { return (long)_customerNo; } }
-
+ 
         public HeaderManager(IRepositoryManager repositoryManager, 
             ITransactionManager transactionManager
             )
@@ -45,11 +42,6 @@ namespace bbt.gateway.messaging.Workers
                 defaultHeader.SmsPrefix = headerInfo.SmsPrefix;
                 defaultHeader.SmsSuffix = headerInfo.SmsSuffix;
 
-                defaultHeader.SmsTemplatePrefix = headerInfo.SmsTemplatePrefix;
-                defaultHeader.SmsTemplateSuffix = headerInfo.SmsTemplateSuffix;
-
-                defaultHeader.EmailTemplatePrefix = headerInfo.EmailTemplatePrefix;
-                defaultHeader.EmailTemplateSuffix = headerInfo.EmailTemplateSuffix;
                 return defaultHeader;
             }
 
@@ -105,20 +97,12 @@ namespace bbt.gateway.messaging.Workers
             if (lastPass != null) return lastPass;
 
 
-
-            //TODO: If db is not consistent, return firt value. Consider firing an enception 
-            //LOGGING HEADER BULUNAMADI
             var header = new Header()
             {
-                EmailTemplatePrefix = "",
-                EmailTemplateSuffix = "",
                 SmsPrefix = "",
                 SmsSuffix = "",
                 SmsSender = SenderType.Burgan,
-                SmsTemplatePrefix = "",
-                SmsTemplateSuffix = ""
             };
-
 
 
             return header;

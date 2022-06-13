@@ -85,10 +85,7 @@ namespace bbt.gateway.messaging.Workers
             var responseLog = txnInfo?.SmsRequestLog?.ResponseLogs?.Where(r => r.OperatorResponseCode == 0).SingleOrDefault();
             if (responseLog != null)
             {
-                if (responseLog.Operator == OperatorType.dEngageOn)
-                    _operatordEngage.Type = OperatorType.dEngageOn;
-                else
-                    _operatordEngage.Type = OperatorType.dEngageBurgan;
+                _operatordEngage.Type = responseLog.Operator;
 
                 var response = await _operatordEngage.CheckSms(responseLog.StatusQueryId);
                 checkSmsStatusResponse.code = response.code;

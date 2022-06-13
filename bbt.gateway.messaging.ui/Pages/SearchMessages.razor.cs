@@ -48,7 +48,7 @@ namespace bbt.gateway.messaging.ui.Pages
         public async Task OpenSmsDetails(Transaction txn)
         {
 
-            await dialogService.OpenAsync<SmsDetails>("title", new Dictionary<string, object>() { { "data", txn} }, new DialogOptions() { ShowTitle = false, Style = "min-height:auto;min-width:auto;width:auto", CloseDialogOnEsc = false });
+            await dialogService.OpenAsync<MessageDetails>("title", new Dictionary<string, object>() { { "Txn", txn} }, new DialogOptions() { ShowTitle = false, Style = "min-height:auto;min-width:auto;max-height:600px;width:60%", CloseDialogOnEsc = false });
 
         }
 
