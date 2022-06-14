@@ -3,5 +3,6 @@
     public class GetByCitizenshipNumberRequest
     {
         public string CitizenshipNumber { get; set; }
+        
     }
 }

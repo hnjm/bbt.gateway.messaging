@@ -10,29 +10,20 @@ using bbt.gateway.messaging.Helpers;
 using bbt.gateway.messaging.Middlewares;
 using bbt.gateway.messaging.Workers;
 using bbt.gateway.messaging.Workers.OperatorGateway;
-using Elastic.Apm.NetCoreAll;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
-using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Refit;
-using StackExchange.Redis;
 using Swashbuckle.AspNetCore.Filters;
-using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
-using System.IO;
-using System.Reflection;
 using System.Collections.Generic;
-using System.Linq;
-
 namespace bbt.gateway.messaging
 {
     public delegate IVodafoneApi VodafoneApiFactory(bool useFakeSmtp);
@@ -80,20 +71,33 @@ namespace bbt.gateway.messaging
             });
 
             services.AddSwaggerGenNewtonsoftSupport();
-            services.ConfigureOptions<ConfigureSwaggerOptions>();
+
             services.AddSwaggerGen(c =>
             {
                 c.EnableAnnotations();
+                c.UseInlineDefinitionsForEnums();
                 c.CustomSchemaIds(type => type.FullName);
                 c.OrderActionsBy((apiDesc) => $"{apiDesc.ActionDescriptor.RouteValues["controller"]}_{apiDesc.RelativePath}");
                 c.ExampleFilters();
+                c.SchemaFilter<AddSchemaExamples>();
 
-                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-                c.IncludeXmlComments(xmlPath);
+                c.IncludeXmlComments("wwwroot/bbt.gateway.messaging.xml");
+                c.IncludeXmlComments("wwwroot/bbt.gateway.common.xml");
 
+                c.SwaggerDoc("v1", new()
+                {
+                    Version = "v1",
+                    Title = "Bbt.Gateway.Messaging",
+                });
+                c.SwaggerDoc("v2", new()
+                {
+                    Version = "v2",
+                    Title = "Bbt.Gateway.Messaging",
+                });
             });
+
             services.AddSwaggerExamplesFromAssemblyOf<Startup>();
+
             services.AddStackExchangeRedisCache(opt =>
             {
                 opt.Configuration = $"{Configuration["Redis:Host"]}:{Configuration["Redis:Port"]},password={Configuration["Redis:Password"]}";

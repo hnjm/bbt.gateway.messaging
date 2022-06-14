@@ -5,6 +5,8 @@ using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using Swashbuckle.Swagger;
+using System;
 using System.Linq;
 
 namespace bbt.gateway.messaging
@@ -26,7 +28,6 @@ namespace bbt.gateway.messaging
                 options.SwaggerDoc(description.GroupName, CreateInfoForApiVersion(description));
             }
 
-            options.DocumentFilter<OrderTagsDocumentFilter>();
         }
 
         public void Configure(string name, SwaggerGenOptions options)
@@ -51,7 +52,7 @@ namespace bbt.gateway.messaging
         }
     }
 
-    public class OrderTagsDocumentFilter : IDocumentFilter
+    public class OrderTagsDocumentFilter : Swashbuckle.AspNetCore.SwaggerGen.IDocumentFilter
     {
         public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
         {
@@ -66,13 +67,43 @@ namespace bbt.gateway.messaging
         {
             return new TemplatedSmsRequest
             {
-                Sender = common.Models.SenderType.AutoDetect,
+                Sender = SenderType.AutoDetect,
                 Phone = new Phone() { CountryCode = 90, Prefix = 553, Number = 9495258 },
                 Template = "Test",
                 TemplateParams = "{\"test\":\"Sercan\"}",
                 Process = new Process() { Name = "Integration", Identity = "U05587" }
             };
 
+        }
+    }
+
+    public class SmsRequestExampleFilter : IExamplesProvider<object>
+    {
+        public object GetExamples()
+        {
+            return new SmsRequest
+            {
+                Sender = SenderType.AutoDetect,
+                Phone = new Phone() { CountryCode = 90, Prefix = 553, Number = 9495258 },
+                Content = "Test",
+                SmsType = SmsTypes.Fast,
+
+                Process = new Process() { Name = "Integration", Identity = "U05587" }
+            };
+
+        }
+    }
+
+    public class AddSchemaExamples : Swashbuckle.AspNetCore.SwaggerGen.ISchemaFilter
+    {
+
+        public void Apply(OpenApiSchema schema, SchemaFilterContext context)
+        {
+            if (context.Type == typeof(SmsRequest))
+            {
+                schema.Properties["phone"].Description = "Telefon numarası";
+
+            }
         }
     }
 }

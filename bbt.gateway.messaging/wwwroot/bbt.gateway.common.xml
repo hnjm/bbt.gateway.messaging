@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>bbt.gateway.common</name>
+    </assembly>
+    <members>
+        <member name="F:bbt.gateway.common.Models.SendMessageSmsRequest.HeaderInfo">
+            <summary>
+            Consumer can set sender direclty.  If sender is set to Burgan(1) or On(2) by consumer do not load header informattion and user selected sender and related prefix/suffix.  
+            </summary>
+        </member>
+        <member name="P:bbt.gateway.common.Models.SendMessageSmsRequest.ContactId">
+            <summary>
+            Consumer can set sender direclty.  If sender is set to Burgan(1) or On(2) by consumer do not load header informattion and user selected sender and related prefix/suffix.  
+            </summary>
+        </member>
+        <member name="P:bbt.gateway.common.Models.v2.SmsRequest.Sender">
+            <summary>
+            You have to submit sender source. There is two senders are available, **Burgan** end On. If you do not know sender of receiver, please set as AutoDetect.
+            </summary>
+            <remarks>
+            System uses header configuration to set sender automatically.
+            </remarks>
+        </member>
+        <member name="M:bbt.gateway.common.CoreExtensions.UseConsulSettings(Microsoft.Extensions.Hosting.IHostBuilder,System.Type)">
+            <summary>
+            Read Appsettings From Consule<br />
+            ConsulHost and ConsulToken have to be set in appsettings
+            </summary>
+            <param name="host"></param>
+            <param name="type">Type of Main | usage : typeof(Program)</param>
+            <returns></returns>
+        </member>
+        <member name="M:bbt.gateway.common.CoreExtensions.UseSeriLog(Microsoft.Extensions.Hosting.IHostBuilder,System.String)">
+            <summary>
+            Set Serilog Configuration To Logging Elastic Search<br />
+            ElasticSearch:ApiKey and ElasticSearch:Url have to be set in appsettings
+            </summary>
+            <param name="host"></param>
+            <param name="indexFormat">Index Format for Elastic Search</param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

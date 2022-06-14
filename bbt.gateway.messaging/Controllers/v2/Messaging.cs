@@ -105,7 +105,7 @@ namespace bbt.gateway.messaging.Controllers.v2
             {
                 return Ok(new SmsResponse()
                 {
-                    Status = common.Models.dEngageResponseCodes.Success,
+                    Status = dEngageResponseCodes.Success,
                     TxnId = Guid.NewGuid(),
                 });
             }
@@ -122,7 +122,7 @@ namespace bbt.gateway.messaging.Controllers.v2
 
             if (ModelState.IsValid)
             {
-                if (data.SmsType == common.Models.SmsTypes.Otp)
+                if (data.SmsType == SmsTypes.Otp)
                 {
                     //return Ok(await _otpSender.SendMessage(data));
                 }

@@ -12,6 +12,7 @@ namespace bbt.gateway.common.Models.v2
         [Required]
         public string Template { get; set; }
         public string? TemplateParams { get; set; }
+        public List<Attachment>? Attachments { get; set; }
         public List<string>? Cc { get; set; }
         public List<string>? Bcc { get; set; }
         public long? CustomerNo { get; set; }

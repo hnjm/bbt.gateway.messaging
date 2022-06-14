@@ -8,6 +8,7 @@
     <UserSecretsId>fbc00f5d-412e-4d33-a950-10da1fb88ab2</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>.</DockerfileContext>
+    <DocumentationFile>C:\WorkFile\bbt.gateway.messaging\bbt.gateway.messaging\wwwroot\bbt.gateway.messaging.xml</DocumentationFile>
   </PropertyGroup>
   
   <ItemGroup>
@@ -65,10 +66,11 @@
     <PackageReference Include="Serilog.Sinks.Debug" Version="2.0.0" />
     <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="8.4.1" />
 
-    <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.2.3" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.3.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.3.1" />
     <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="7.0.3" />
-    <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="6.2.3" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="6.3.1" />
+    <PackageReference Include="Swashbuckle.Core" Version="5.6.0" />
 	<PackageReference Include="Winton.Extensions.Configuration.Consul" Version="3.1.2" />
 
    

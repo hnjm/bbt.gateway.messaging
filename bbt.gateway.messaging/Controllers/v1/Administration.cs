@@ -29,7 +29,6 @@ namespace bbt.gateway.messaging.Controllers.v1
         }
 
         [SwaggerOperation(Summary = "Returns content headers configuration")]
-        [MapToApiVersion("1.0")]
         [HttpGet("headers")]
         [SwaggerResponse(200, "Headers is returned successfully", typeof(Header[]))]
         public IActionResult GetHeaders([FromQuery][Range(0, 100)] int page = 0, [FromQuery][Range(1, 100)] int pageSize = 20)

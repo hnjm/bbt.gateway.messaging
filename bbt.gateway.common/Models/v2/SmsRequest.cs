@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-
 namespace bbt.gateway.common.Models.v2
 {
     public class SmsRequest

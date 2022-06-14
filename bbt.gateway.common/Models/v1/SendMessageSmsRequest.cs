@@ -18,6 +18,9 @@ namespace bbt.gateway.common.Models
         public HeaderInfo HeaderInfo;
         public MessageContentType ContentType { get; set; }
         public SmsTypes SmsType { get; set; }
+        /// <summary>
+        /// Consumer can set sender direclty.  If sender is set to Burgan(1) or On(2) by consumer do not load header informattion and user selected sender and related prefix/suffix.  
+        /// </summary>
         public string ContactId { get; set; }
 
     }

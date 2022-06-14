@@ -9,6 +9,9 @@
     <Company>Burgan Bank</Company>
     <Product>CoreExtensions</Product>
     <Description>Extensions for webapi and console projects</Description>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+	 <NoWarn>$(NoWarn);1591</NoWarn>
+	 <DocumentationFile>C:\WorkFile\bbt.gateway.messaging\bbt.gateway.messaging\wwwroot\bbt.gateway.common.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
