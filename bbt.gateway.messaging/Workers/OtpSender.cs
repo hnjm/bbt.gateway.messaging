@@ -84,7 +84,6 @@ namespace bbt.gateway.messaging.Workers
                         blackListRecord.Status = BlacklistStatus.Resolved;
                         blackListRecord.ResolvedAt = oldBlacklistRecord.VerifyDate;
                         blackListRecord.ResolvedBy = new Process { Name = oldBlacklistRecord.VerifiedBy };
-                        _repositoryManager.SaveChanges();
                     }
                     if (blackListRecord.Status == BlacklistStatus.NotResolved && !oldBlacklistRecord.IsVerified)
                     {
@@ -180,7 +179,6 @@ namespace bbt.gateway.messaging.Workers
             _requestLog.PhoneConfiguration = phoneConfiguration;
 
             _repositoryManager.OtpRequestLogs.Add(_requestLog);
-            _repositoryManager.SaveChanges();
             _transactionManager.Transaction.OtpRequestLog = _requestLog;
 
             sendSmsOtpResponse.Status = returnValue;

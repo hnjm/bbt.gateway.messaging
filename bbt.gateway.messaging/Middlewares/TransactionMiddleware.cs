@@ -49,9 +49,6 @@ namespace bbt.gateway.messaging.Middlewares
                 _transactionManager.Transaction.Request = body;
                 _transactionManager.Transaction.IpAdress = ipAdress;
 
-                //Add Transaction To Db
-                _transactionManager.AddTransaction();
-
                 //Deserialize Request Body 
                 _middlewareRequest = JsonConvert.DeserializeObject<MiddlewareRequest>(body);
 
@@ -61,7 +58,6 @@ namespace bbt.gateway.messaging.Middlewares
                 _transactionManager.Transaction.CustomerNo = _middlewareRequest.CustomerNo;
                 _transactionManager.Transaction.CitizenshipNo = _middlewareRequest.ContactId;
                 _transactionManager.HeaderInfo = _middlewareRequest.HeaderInfo;
-                _transactionManager.SaveTransaction();
 
                 SetTransaction(context);
 
@@ -90,7 +86,6 @@ namespace bbt.gateway.messaging.Middlewares
                         _transactionManager.Transaction.Response = response.MaskFields();
                     }
 
-                    _transactionManager.SaveTransaction();
                 }
                 catch (WorkflowException ex)
                 {
@@ -107,17 +102,15 @@ namespace bbt.gateway.messaging.Middlewares
                     await stream.CopyToAsync(originalStream);
 
                     _transactionManager.Transaction.Response = "An Error Occured | Detail :" + ex.ToString();
-                    _transactionManager.SaveTransaction();
 
                     _transactionManager.LogState();
                     _transactionManager.LogError("An Error Occured | Detail :" + ex.ToString());
 
-                    
+
                 }
                 catch (Exception ex)
                 {
                     _transactionManager.Transaction.Response = "An Error Occured | Detail :" + ex.ToString();
-                    _transactionManager.SaveTransaction();
 
                     _transactionManager.LogState();
                     _transactionManager.LogError("An Error Occured | Detail :" + ex.ToString());
@@ -128,12 +121,16 @@ namespace bbt.gateway.messaging.Middlewares
             catch (Exception ex)
             {
                 _transactionManager.Transaction.Response = "An Error Occured | Detail :" + ex.ToString();
-                _transactionManager.SaveTransaction();
+                
 
                 _transactionManager.LogState();
                 _transactionManager.LogError("An Error Occured | Detail :" + ex.ToString());
 
                 context.Response.StatusCode = 500;
+            }
+            finally
+            {
+                _transactionManager.AddTransaction();
             }
         }
 

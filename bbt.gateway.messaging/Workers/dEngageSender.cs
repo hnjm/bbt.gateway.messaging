@@ -137,16 +137,16 @@ namespace bbt.gateway.messaging.Workers
                 SmsType = sendMessageSmsRequest.SmsType,
                 CreatedBy = sendMessageSmsRequest.Process
             };
-
-            var response = await _operatordEngage.SendSms(sendMessageSmsRequest.Phone, sendMessageSmsRequest.SmsType, header.BuildContentForSms(sendMessageSmsRequest.Content), null, null);
-            
-            smsRequest.ResponseLogs.Add(response);
             smsRequest.PhoneConfiguration = _transactionManager.SmsRequestInfo.PhoneConfiguration;
 
             _repositoryManager.SmsRequestLogs.Add(smsRequest);
 
-            _repositoryManager.SaveChanges();
             _transactionManager.Transaction.SmsRequestLog = smsRequest;
+
+            var response = await _operatordEngage.SendSms(sendMessageSmsRequest.Phone, sendMessageSmsRequest.SmsType, header.BuildContentForSms(sendMessageSmsRequest.Content), null, null);
+            
+            smsRequest.ResponseLogs.Add(response);
+            
             sendSmsResponse.Status = response.GetdEngageStatus();
 
             return sendSmsResponse;
@@ -204,16 +204,15 @@ namespace bbt.gateway.messaging.Workers
                 CreatedBy = sendTemplatedSmsRequest.Process
             };
 
+            _repositoryManager.SmsRequestLogs.Add(smsRequest);
+            smsRequest.PhoneConfiguration = _transactionManager.SmsRequestInfo.PhoneConfiguration;
+            _transactionManager.Transaction.SmsRequestLog = smsRequest;
 
             var response = await _operatordEngage.SendSms(sendTemplatedSmsRequest.Phone, SmsTypes.Fast,null,templateInfo.publicId, sendTemplatedSmsRequest.TemplateParams);
 
             smsRequest.ResponseLogs.Add(response);
-            smsRequest.PhoneConfiguration = _transactionManager.SmsRequestInfo.PhoneConfiguration;
-
-            _repositoryManager.SmsRequestLogs.Add(smsRequest);
-
-            _repositoryManager.SaveChanges();
-            _transactionManager.Transaction.SmsRequestLog = smsRequest;
+                        
+            
             sendSmsResponse.Status = response.GetdEngageStatus();
 
             return sendSmsResponse;
@@ -237,16 +236,16 @@ namespace bbt.gateway.messaging.Workers
                 CreatedBy = sendMessageEmailRequest.Process
             };
 
-
-            var response = await _operatordEngage.SendMail(sendMessageEmailRequest.Email, sendMessageEmailRequest.From, sendMessageEmailRequest.Subject, sendMessageEmailRequest.Content, null, null, sendMessageEmailRequest.Attachments);
-
-            mailRequest.ResponseLogs.Add(response);
             mailRequest.MailConfiguration = _transactionManager.MailRequestInfo.MailConfiguration;
 
             _repositoryManager.MailRequestLogs.Add(mailRequest);
 
-            _repositoryManager.SaveChanges();
             _transactionManager.Transaction.MailRequestLog = mailRequest;
+
+            var response = await _operatordEngage.SendMail(sendMessageEmailRequest.Email, sendMessageEmailRequest.From, sendMessageEmailRequest.Subject, sendMessageEmailRequest.Content, null, null, sendMessageEmailRequest.Attachments);
+
+            mailRequest.ResponseLogs.Add(response);
+            
             sendEmailResponse.Status = response.GetdEngageStatus();
 
             return sendEmailResponse;
@@ -301,16 +300,16 @@ namespace bbt.gateway.messaging.Workers
                 CreatedBy = sendTemplatedEmailRequest.Process
             };
 
-         
-            var response = await _operatordEngage.SendMail(sendTemplatedEmailRequest.Email, null, null, null,templateInfo.publicId, sendTemplatedEmailRequest.TemplateParams,sendTemplatedEmailRequest.Attachments);
-
-            mailRequest.ResponseLogs.Add(response);
             mailRequest.MailConfiguration = _transactionManager.MailRequestInfo.MailConfiguration;
 
             _repositoryManager.MailRequestLogs.Add(mailRequest);
 
-            _repositoryManager.SaveChanges();
             _transactionManager.Transaction.MailRequestLog = mailRequest;
+
+            var response = await _operatordEngage.SendMail(sendTemplatedEmailRequest.Email, null, null, null,templateInfo.publicId, sendTemplatedEmailRequest.TemplateParams,sendTemplatedEmailRequest.Attachments);
+
+            mailRequest.ResponseLogs.Add(response);
+            
             sendEmailResponse.Status = response.GetdEngageStatus();
 
             return sendEmailResponse;
@@ -366,15 +365,14 @@ namespace bbt.gateway.messaging.Workers
                 CreatedBy = sendTemplatedPushNotificationRequest.Process
             };
 
+            _repositoryManager.PushNotificationRequestLogs.Add(pushRequest);
+            _transactionManager.Transaction.PushNotificationRequestLog = pushRequest;
 
             var response = await _operatordEngage.SendPush(sendTemplatedPushNotificationRequest.ContactId, templateInfo.id, sendTemplatedPushNotificationRequest.TemplateParams, sendTemplatedPushNotificationRequest.CustomParameters);
 
             pushRequest.ResponseLogs.Add(response);
 
-            _repositoryManager.PushNotificationRequestLogs.Add(pushRequest);
-            _transactionManager.Transaction.PushNotificationRequestLog = pushRequest;
-            _repositoryManager.SaveChanges();
-            _transactionManager.Transaction.PushNotificationRequestLog = pushRequest;
+            
             sendPushNotificationResponse.Status = response.GetdEngageStatus();
 
             return sendPushNotificationResponse;

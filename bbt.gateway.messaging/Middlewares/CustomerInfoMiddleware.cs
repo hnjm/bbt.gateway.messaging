@@ -103,14 +103,12 @@ namespace bbt.gateway.messaging.Middlewares
                                 };
 
                 _repositoryManager.PhoneConfigurations.Add(phoneConfiguration);
-                _repositoryManager.SaveChanges();
             }
             else
             {
                 if (_transactionManager.Transaction.CustomerNo > 0)
                 {
                     phoneConfiguration.CustomerNo = _transactionManager.Transaction.CustomerNo;
-                    _repositoryManager.SaveChanges();
                 }
                 else
                 {
@@ -160,14 +158,12 @@ namespace bbt.gateway.messaging.Middlewares
                 mailConfiguration.Logs.Add(mailConfigurationLog);
 
                 _repositoryManager.MailConfigurations.Add(mailConfiguration);
-                _repositoryManager.SaveChanges();
             }
             else
             {
                 if (_transactionManager.Transaction.CustomerNo > 0)
                 {
                     mailConfiguration.CustomerNo = _transactionManager.Transaction.CustomerNo;
-                    _repositoryManager.SaveChanges();
                 }
                 else
                 {

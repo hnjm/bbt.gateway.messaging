@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using bbt.gateway.messaging.Api.dEngage.Model.Contents;
 using Microsoft.Extensions.Caching.Distributed;
 using Newtonsoft.Json;
+using bbt.gateway.messaging.Exceptions;
 
 namespace bbt.gateway.messaging.Workers.OperatorGateway
 {
