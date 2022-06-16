@@ -79,8 +79,8 @@ namespace bbt.gateway.messaging
                 c.CustomSchemaIds(type => type.FullName);
                 c.OrderActionsBy((apiDesc) => $"{apiDesc.ActionDescriptor.RouteValues["controller"]}_{apiDesc.RelativePath}");
                 c.ExampleFilters();
-                c.SchemaFilter<AddSchemaExamples>();
-
+             
+                
                 c.IncludeXmlComments("wwwroot/bbt.gateway.messaging.xml");
                 c.IncludeXmlComments("wwwroot/bbt.gateway.common.xml");
 
@@ -203,7 +203,7 @@ namespace bbt.gateway.messaging
                 app.UseCustomerInfoMiddleware();
                 app.UseWhitelistMiddleware();
             }
-            app.UseDeveloperExceptionPage();
+
             app.UseSwagger();
             app.UseStaticFiles();
             app.UseSwaggerUI(options =>

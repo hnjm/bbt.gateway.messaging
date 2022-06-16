@@ -1,8 +1,5 @@
 ﻿using bbt.gateway.common.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using System;
-using System.IO;
 
 namespace bbt.gateway.common
 {
@@ -66,8 +63,8 @@ namespace bbt.gateway.common
             builder.Entity<Operator>().HasData(new Operator { Id = 7, Type = OperatorType.dEngageOn, ControlDaysForOtp = 0, Status = OperatorStatus.Active });
 
 
-            builder.Entity<Header>().HasData(new Header { Id = Guid.NewGuid(), SmsSender = SenderType.Burgan, SmsPrefix = "", SmsSuffix = "",ContentType = MessageContentType.Otp});
-            builder.Entity<Header>().HasData(new Header { Id = Guid.NewGuid(), Branch = 2000, SmsSender = SenderType.On, SmsPrefix = "", ContentType = MessageContentType.Private});
+            builder.Entity<Header>().HasData(new Header { Id = Guid.NewGuid(), SmsSender = SenderType.Burgan, SmsPrefix = "", SmsSuffix = "", ContentType = MessageContentType.Otp });
+            builder.Entity<Header>().HasData(new Header { Id = Guid.NewGuid(), Branch = 2000, SmsSender = SenderType.On, SmsPrefix = "", ContentType = MessageContentType.Private });
         }
 
     }

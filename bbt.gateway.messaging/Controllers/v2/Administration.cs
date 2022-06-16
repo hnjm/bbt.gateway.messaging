@@ -1,8 +1,12 @@
-﻿using bbt.gateway.common.Models;
+﻿using bbt.gateway.common.Extensions;
+using bbt.gateway.common.Models;
+using bbt.gateway.common.Models.v2;
 using bbt.gateway.common.Repositories;
+using bbt.gateway.messaging.Exceptions;
 using bbt.gateway.messaging.Workers;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
+using Swashbuckle.AspNetCore.Filters;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -40,6 +44,7 @@ namespace bbt.gateway.messaging.Controllers.v2
         [SwaggerOperation(Summary = "Save or update header configuration",
             Tags = new[] { "Header Management" })]
         [HttpPost("headers")]
+        [SwaggerRequestExample(typeof(HeaderRequest), typeof(AddHeaderRequestExampleFilter))]
         [SwaggerResponse(200, "Header is saved successfully", typeof(Header[]))]
         public IActionResult SaveHeader([FromBody] Header data)
         {
@@ -50,8 +55,8 @@ namespace bbt.gateway.messaging.Controllers.v2
         [SwaggerOperation(Summary = "Deletes header configuration",
             Tags = new[] { "Header Management" })]
         [HttpDelete("headers/{id}")]
-        [SwaggerResponse(200, "Header is deleted successfully", typeof(Header[]))]
-        public IActionResult DeleteHeader([FromQuery] Guid id)
+        [SwaggerResponse(200, "Header is deleted successfully", typeof(void))]
+        public IActionResult DeleteHeader(Guid id)
         {
             _headerManager.Delete(id);
             return Ok();
@@ -182,37 +187,117 @@ namespace bbt.gateway.messaging.Controllers.v2
             return StatusCode(201);
         }
 
-        [SwaggerOperation(Summary = "Adds phone or mail to whitelist records",
+        [SwaggerOperation(Summary = "Adds phone to whitelist",
+            Description = "<div>Phone Number Has To Be Added To Whitelist To Receives Sms On Test Environment</div>",
             Tags = new[] { "Whitelist Management" })]
-        [HttpPost("whitelist")]
+        [HttpPost("whitelist/phone")]
         [SwaggerResponse(201, "Record was created successfully", typeof(void))]
-        public IActionResult AddPhoneToWhitelist([FromBody] AddWhitelistRequest data)
+        [SwaggerResponse(400, "Phone Number Field Is Mandatory", typeof(void))]
+        [SwaggerResponse(409, "Phone Number Is Already Exists In Whitelist", typeof(void))]
+        public IActionResult AddPhoneToWhitelist([FromBody] AddPhoneToWhitelistRequest data)
         {
-            if (string.IsNullOrEmpty(data.Email) && data.Phone == null)
+            if (data.Phone == null)
             {
-                return NotFound();
+                throw new WorkflowException("Phone Number Field Is Mandatory",System.Net.HttpStatusCode.BadRequest);
             }
+
+            if (_repositoryManager.Whitelist.Find(w => (w.Phone.CountryCode == data.Phone.CountryCode)
+             && (w.Phone.Prefix == data.Phone.Prefix)
+             && (w.Phone.Number == data.Phone.Number)).FirstOrDefault() != null)
+                throw new WorkflowException("Phone Number Field Is Mandatory", System.Net.HttpStatusCode.Conflict);
 
             var whitelistRecord = new WhiteList()
             {
-                CreatedBy = data.CreatedBy,
+                CreatedBy = data.CreatedBy.MapTo<common.Models.Process>(),
                 IpAddress = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault()
-                    ?? HttpContext.Connection.RemoteIpAddress.ToString()
+                    ?? HttpContext.Connection.RemoteIpAddress.ToString(),
+                Phone = data.Phone.MapTo<common.Models.Phone>()
             };
-
-            if (data.Phone != null)
-            {
-                whitelistRecord.Phone = data.Phone;
-            }
-            if (!string.IsNullOrEmpty(data.Email))
-            {
-                whitelistRecord.Mail = data.Email;
-            }
 
             _repositoryManager.Whitelist.Add(whitelistRecord);
             _repositoryManager.SaveChanges();
 
             return Created("", whitelistRecord.Id);
+        }
+
+        [SwaggerOperation(Summary = "Adds phone to whitelist",
+            Description = "<div>Phone Number Has To Be Added To Whitelist To Receives Sms On Test Environment</div>",
+            Tags = new[] { "Whitelist Management" })]
+        [HttpPost("whitelist/email")]
+        [SwaggerResponse(201, "Record was created successfully", typeof(void))]
+        [SwaggerResponse(400, "Phone Number Field Is Mandatory", typeof(void))]
+        [SwaggerResponse(409, "Phone Number Is Already Exists In Whitelist", typeof(void))]
+        public IActionResult AddMailToWhitelist([FromBody] AddMailToWhitelistRequest data)
+        {
+            if (data.Email == null)
+            {
+                throw new WorkflowException("Email Field Is Mandatory", System.Net.HttpStatusCode.BadRequest);
+            }
+
+            if (_repositoryManager.Whitelist.Find(w => w.Mail == data.Email).FirstOrDefault() != null)
+                throw new WorkflowException("Phone Number Field Is Mandatory", System.Net.HttpStatusCode.Conflict);
+
+            var whitelistRecord = new WhiteList()
+            {
+                CreatedBy = data.CreatedBy.MapTo<common.Models.Process>(),
+                IpAddress = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault()
+                    ?? HttpContext.Connection.RemoteIpAddress.ToString(),
+                Mail = data.Email
+            };
+
+            _repositoryManager.Whitelist.Add(whitelistRecord);
+            _repositoryManager.SaveChanges();
+
+            return Created("", whitelistRecord.Id);
+        }
+
+        [SwaggerOperation(Summary = "Deletes whitelist configuration",
+            Tags = new[] { "Whitelist Management" })]
+        [HttpDelete("headers/{id}")]
+        [SwaggerResponse(200, "Whitelist record is deleted successfully", typeof(void))]
+        public IActionResult DeleteFromWhitelist(common.Models.v2.Phone phone)
+        {
+            var recordsToDelete = _repositoryManager.Whitelist.Find(w => (w.Phone.CountryCode == phone.CountryCode)
+              && (w.Phone.Prefix == phone.Prefix)
+              && (w.Phone.Number == phone.Number));
+
+            if(recordsToDelete.Count() == 0)
+                throw new WorkflowException("There is no record for given phone number",System.Net.HttpStatusCode.NotFound);
+
+            foreach (WhiteList whitelist in recordsToDelete)
+            {
+                _repositoryManager.Whitelist.Remove(whitelist);
+            }
+
+            return Ok();
+        }
+
+        [SwaggerOperation(Summary = "Returns phone's whitelist status",
+            Tags = new[] { "Whitelist Management" })]
+        [HttpGet("whitelist/check/phone/{phone}")]
+        [SwaggerResponse(200, "Phone is in whitelist", typeof(void))]
+        [SwaggerResponse(404, "Phone is not in whitelist", typeof(void))]
+        public IActionResult CheckPhone(common.Models.v2.Phone phone)
+        {
+            if (_repositoryManager.Whitelist.Find(w => (w.Phone.CountryCode == phone.CountryCode)
+               && (w.Phone.Prefix == phone.Prefix)
+               && (w.Phone.Number == phone.Number)).FirstOrDefault() != null)
+                return Ok();
+            else
+                throw new WorkflowException("", System.Net.HttpStatusCode.NotFound);
+        }
+
+        [SwaggerOperation(Summary = "Returns E-mail's whitelist status",
+            Tags = new[] { "Whitelist Management" })]
+        [HttpGet("whitelist/check/email/{phone}")]
+        [SwaggerResponse(200, "E-Mail is in whitelist", typeof(void))]
+        [SwaggerResponse(404, "E-Mail is not in whitelist", typeof(void))]
+        public IActionResult CheckMail(string email)
+        {
+            if (_repositoryManager.Whitelist.Find(w => w.Mail == email).FirstOrDefault() != null)
+                return Ok();
+            else
+                throw new WorkflowException("", System.Net.HttpStatusCode.NotFound);
         }
 
         [SwaggerOperation(Summary = "Returns phones otp sending logs",

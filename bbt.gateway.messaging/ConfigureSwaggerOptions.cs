@@ -5,8 +5,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 using Swashbuckle.AspNetCore.SwaggerGen;
-using Swashbuckle.Swagger;
-using System;
 using System.Linq;
 
 namespace bbt.gateway.messaging
@@ -93,6 +91,24 @@ namespace bbt.gateway.messaging
 
         }
     }
+
+    public class AddHeaderRequestExampleFilter : IExamplesProvider<object>
+    {
+        public object GetExamples()
+        {
+            return new HeaderRequest
+            {
+                Sender = SenderType.AutoDetect,
+                Branch = null,
+                BusinessLine = "X",
+                SmsType = SmsTypes.Otp,
+                SmsPrefix = "Prefix",
+                SmsSuffix = "Suffix"
+            };
+
+        }
+    }
+
 
     public class AddSchemaExamples : Swashbuckle.AspNetCore.SwaggerGen.ISchemaFilter
     {
