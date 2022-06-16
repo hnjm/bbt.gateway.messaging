@@ -86,9 +86,7 @@ namespace bbt.gateway.common
 
         public void Dispose()
         {
-            _databaseContext.Dispose();
-            //_dodgeDatabaseContext.Dispose();
-            _smsBankingDatabaseContext.Dispose();
+            
         }
     }
 }

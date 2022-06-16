@@ -96,7 +96,6 @@ namespace bbt.gateway.messaging.Controllers.v2
         [SwaggerResponse(466, "Server Error", typeof(OtpResponse))]
         [SwaggerResponse(467, "Maximum Characters Count Exceed", typeof(OtpResponse))]
         [SwaggerResponse(500, "Internal Server Error. Get Contact With Integration", typeof(void))]
-
         public async Task<IActionResult> SendMessageSms([FromBody] SmsRequest data)
         {
             await Task.CompletedTask;
