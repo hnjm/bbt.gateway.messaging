@@ -12,5 +12,7 @@ namespace bbt.gateway.common.Models
         public long? CustomerNo { get; set; }
         public string ContactId { get; set; }
         public string Template { get; set; }
+        public string Cc { get; set; }
+        public string Bcc { get; set; }
     }
 }

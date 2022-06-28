@@ -22,6 +22,8 @@ namespace bbt.gateway.messaging.Api.dEngage.Model.Transactional
     public class SendMail
     {
         public string to { get; set; }
+        public string cc { get; set; }
+        public string bcc { get; set; }
     }
 
     public class Attachment

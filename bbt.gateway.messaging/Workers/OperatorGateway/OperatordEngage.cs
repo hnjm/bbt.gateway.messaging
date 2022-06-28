@@ -9,12 +9,10 @@ using bbt.gateway.messaging.Api.dEngage.Model.Settings;
 using bbt.gateway.messaging.Api.dEngage.Model.Transactional;
 using bbt.gateway.common.Models;
 using Refit;
-using SendSmsResponse = bbt.gateway.messaging.Api.dEngage.Model.Transactional.SendSmsResponse;
 using System.Collections.Generic;
 using bbt.gateway.messaging.Api.dEngage.Model.Contents;
 using Microsoft.Extensions.Caching.Distributed;
 using Newtonsoft.Json;
-using bbt.gateway.messaging.Exceptions;
 
 namespace bbt.gateway.messaging.Workers.OperatorGateway
 {
@@ -170,7 +168,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             return pushContentsResponse;
         }
 
-        public async Task<MailResponseLog> SendMail(string to, string? from, string? subject, string? html, string? templateId, string? templateParams,List<common.Models.Attachment> attachments)
+        public async Task<MailResponseLog> SendMail(string to, string? from, string? subject, string? html, string? templateId, string? templateParams,List<common.Models.Attachment> attachments,string? cc,string? bcc)
         {
             var mailResponseLog = new MailResponseLog() { 
                 Topic = "dEngage Mail Sending",
@@ -216,7 +214,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                
                 try
                 {
-                    var req = CreateMailRequest(to, from, subject, html, templateId, templateParams,attachments);
+                    var req = CreateMailRequest(to, from, subject, html, templateId, templateParams,attachments,cc,bcc);
                     try
                     {
                         var tt = JsonConvert.SerializeObject(req, new JsonSerializerSettings()
@@ -239,7 +237,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                                 _authTryCount++;
                                 if (_authTryCount < 3)
                                 {
-                                    return await SendMail(to,from,subject,html,templateId,templateParams,attachments);
+                                    return await SendMail(to,from,subject,html,templateId,templateParams,attachments,cc,bcc);
                                 }
                                 else
                                 {
@@ -461,10 +459,14 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             }
         }
 
-        private SendMailRequest CreateMailRequest(string to,string from,string subject, string html, string templateId, string templateParams,List<common.Models.Attachment> attachments)
+        private SendMailRequest CreateMailRequest(string to,string from,string subject, string html, string templateId, string templateParams,List<common.Models.Attachment> attachments,string cc,string bcc)
         {
             SendMailRequest sendMailRequest = new();
             sendMailRequest.send.to = to;
+
+            sendMailRequest.send.cc = string.IsNullOrEmpty(cc) ? null : cc;
+            sendMailRequest.send.bcc = string.IsNullOrEmpty(bcc) ? null : bcc;
+
             if (attachments != null)
             {
                 sendMailRequest.attachments = new();

@@ -10,6 +10,7 @@ using bbt.gateway.messaging.Helpers;
 using bbt.gateway.messaging.Middlewares;
 using bbt.gateway.messaging.Workers;
 using bbt.gateway.messaging.Workers.OperatorGateway;
+using Elastic.Apm.NetCoreAll;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
@@ -238,6 +239,7 @@ namespace bbt.gateway.messaging
                 endpoints.MapControllers();
             });
 
+            app.UseAllElasticApm();
         }
     }
 

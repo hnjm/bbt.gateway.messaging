@@ -242,7 +242,7 @@ namespace bbt.gateway.messaging.Workers
 
             _transactionManager.Transaction.MailRequestLog = mailRequest;
 
-            var response = await _operatordEngage.SendMail(sendMessageEmailRequest.Email, sendMessageEmailRequest.From, sendMessageEmailRequest.Subject, sendMessageEmailRequest.Content, null, null, sendMessageEmailRequest.Attachments);
+            var response = await _operatordEngage.SendMail(sendMessageEmailRequest.Email, sendMessageEmailRequest.From, sendMessageEmailRequest.Subject, sendMessageEmailRequest.Content, null, null, sendMessageEmailRequest.Attachments,sendMessageEmailRequest.Cc,sendMessageEmailRequest.Bcc);
 
             mailRequest.ResponseLogs.Add(response);
             
@@ -306,7 +306,7 @@ namespace bbt.gateway.messaging.Workers
 
             _transactionManager.Transaction.MailRequestLog = mailRequest;
 
-            var response = await _operatordEngage.SendMail(sendTemplatedEmailRequest.Email, null, null, null,templateInfo.publicId, sendTemplatedEmailRequest.TemplateParams,sendTemplatedEmailRequest.Attachments);
+            var response = await _operatordEngage.SendMail(sendTemplatedEmailRequest.Email, null, null, null,templateInfo.publicId, sendTemplatedEmailRequest.TemplateParams,sendTemplatedEmailRequest.Attachments, sendTemplatedEmailRequest.Cc, sendTemplatedEmailRequest.Bcc);
 
             mailRequest.ResponseLogs.Add(response);
             
