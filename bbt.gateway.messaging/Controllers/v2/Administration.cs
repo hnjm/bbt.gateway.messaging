@@ -253,7 +253,7 @@ namespace bbt.gateway.messaging.Controllers.v2
 
         [SwaggerOperation(Summary = "Deletes whitelist configuration",
             Tags = new[] { "Whitelist Management" })]
-        [HttpDelete("headers/{id}")]
+        [HttpDelete("whitelist/{id}")]
         [SwaggerResponse(200, "Whitelist record is deleted successfully", typeof(void))]
         public IActionResult DeleteFromWhitelist(common.Models.v2.Phone phone)
         {
