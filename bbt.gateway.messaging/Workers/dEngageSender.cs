@@ -331,6 +331,16 @@ namespace bbt.gateway.messaging.Workers
                 TxnId = _transactionManager.TxnId,
             };
 
+            if (sendTemplatedPushNotificationRequest.HeaderInfo?.Sender != null)
+            {
+                if (sendTemplatedPushNotificationRequest.HeaderInfo.Sender != SenderType.AutoDetect)
+                    _transactionManager.CustomerRequestInfo.BusinessLine = sendTemplatedPushNotificationRequest.HeaderInfo.Sender == SenderType.On ? "X" : "B";
+            }
+            if (_transactionManager.CustomerRequestInfo.BusinessLine == "X")
+                _operatordEngage.Type = OperatorType.dEngageOn;
+            else
+                _operatordEngage.Type = OperatorType.dEngageBurgan;
+
             var contentListByteArray = await _distributedCache.GetAsync(_operatordEngage.Type.ToString() + "_PushContents");
             List<PushContentInfo> contentList = null;
             if (contentListByteArray == null)
