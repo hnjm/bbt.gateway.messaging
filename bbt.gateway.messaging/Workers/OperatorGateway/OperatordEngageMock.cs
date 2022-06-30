@@ -86,7 +86,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             var authResponse = await Auth();
             if (authResponse.ResponseCode == "0")
             {
-                mailContentsResponse = await _dEngageClient.GetMailContents(_authToken);
+                mailContentsResponse = await _dEngageClient.GetMailContents(_authToken,500);
             }
             else
             {
@@ -102,7 +102,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             var authResponse = await Auth();
             if (authResponse.ResponseCode == "0")
             {
-                smsContentsResponse = await _dEngageClient.GetSmsContents(_authToken);
+                smsContentsResponse = await _dEngageClient.GetSmsContents(_authToken,500);
             }
             else
             {
@@ -120,7 +120,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             {
                 try
                 {
-                    pushContentsResponse = await _dEngageClient.GetPushContents(_authToken);
+                    pushContentsResponse = await _dEngageClient.GetPushContents(_authToken,500);
                 }
                 catch (Exception ex)
                 { 

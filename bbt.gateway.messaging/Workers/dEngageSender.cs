@@ -1,4 +1,5 @@
-﻿using bbt.gateway.common.Models;
+﻿using bbt.gateway.common.Extensions;
+using bbt.gateway.common.Models;
 using bbt.gateway.common.Repositories;
 using bbt.gateway.messaging.Api.dEngage.Model.Contents;
 using bbt.gateway.messaging.Exceptions;
@@ -388,5 +389,69 @@ namespace bbt.gateway.messaging.Workers
             return sendPushNotificationResponse;
         }
 
+        public async Task<common.Models.v2.TemplatedSmsResponse> SendTemplatedSmsV2(common.Models.v2.TemplatedSmsRequest templatedSmsRequest)
+        {
+            common.Models.v2.TemplatedSmsResponse sendSmsResponse = new common.Models.v2.TemplatedSmsResponse()
+            {
+                TxnId = _transactionManager.TxnId,
+            };
+
+            if (templatedSmsRequest.Sender != common.Models.v2.SenderType.AutoDetect)
+                _transactionManager.CustomerRequestInfo.BusinessLine = templatedSmsRequest.Sender == common.Models.v2.SenderType.On ? "X" : "B";
+            
+
+            if (_transactionManager.CustomerRequestInfo.BusinessLine == "X")
+                _operatordEngage.Type = OperatorType.dEngageOn;
+            else
+                _operatordEngage.Type = OperatorType.dEngageBurgan;
+
+            var contentListByteArray = await _distributedCache.GetAsync(_operatordEngage.Type.ToString() + "_SmsContents");
+            List<SmsContentInfo> contentList = null;
+            if (contentListByteArray == null)
+            {
+                contentList = await SetSmsContents();
+            }
+            else
+            {
+                contentList = JsonConvert.DeserializeObject<List<SmsContentInfo>>(
+                        Encoding.UTF8.GetString(contentListByteArray)
+                    );
+            }
+
+            var templateInfo = contentList.Where(c => c.contentName.Trim() == templatedSmsRequest.Template.Trim()).FirstOrDefault();
+            if (templateInfo == null)
+            {
+                await SetSmsContents();
+                templateInfo = contentList.Where(c => c.contentName.Trim() == templatedSmsRequest.Template.Trim()).FirstOrDefault();
+                if (templateInfo == null)
+                {
+                    throw new WorkflowException("Template Not Found", System.Net.HttpStatusCode.NotFound);
+                }
+            }
+
+            var smsRequest = new SmsRequestLog()
+            {
+                Operator = _operatordEngage.Type,
+                Phone = new(){ CountryCode = templatedSmsRequest.Phone.CountryCode, Prefix = templatedSmsRequest.Phone.Prefix, Number = templatedSmsRequest.Phone.Number },
+                content = "",
+                TemplateId = templateInfo.publicId,
+                TemplateParams = templatedSmsRequest.TemplateParams?.MaskFields(),
+                CreatedBy = templatedSmsRequest.Process.MapTo<Process>()
+            };
+
+            _repositoryManager.SmsRequestLogs.Add(smsRequest);
+            smsRequest.PhoneConfiguration = _transactionManager.SmsRequestInfo.PhoneConfiguration;
+            _transactionManager.Transaction.SmsRequestLog = smsRequest;
+
+            var response = await _operatordEngage.SendSms(templatedSmsRequest.MapTo<Phone>(), SmsTypes.Fast, null, templateInfo.publicId, templatedSmsRequest.TemplateParams);
+
+            smsRequest.ResponseLogs.Add(response);
+
+
+            sendSmsResponse.Status = (common.Models.v2.dEngageResponseCodes)response.GetdEngageStatus();
+
+            return sendSmsResponse;
+        }
     }
+    
 }

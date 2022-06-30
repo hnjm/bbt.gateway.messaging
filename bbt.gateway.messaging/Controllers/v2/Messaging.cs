@@ -54,8 +54,22 @@ namespace bbt.gateway.messaging.Controllers.v2
         [SwaggerResponse(500, "Internal Server Error. Get Contact With Integration", typeof(void))]
         public async Task<IActionResult> SendTemplatedSms([FromBody] TemplatedSmsRequest data)
         {
-            await Task.CompletedTask;
-            return Ok();
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Mock")
+            {
+                return Ok(new TemplatedSmsResponse()
+                {
+                    Status = dEngageResponseCodes.Success,
+                    TxnId = Guid.NewGuid(),
+                });
+            }
+            if (data.Phone == null)
+            {
+                data.Phone.CountryCode = _transactionManager.CustomerRequestInfo.MainPhone.CountryCode;
+                data.Phone.Prefix = _transactionManager.CustomerRequestInfo.MainPhone.Prefix;
+                data.Phone.Number = _transactionManager.CustomerRequestInfo.MainPhone.Number;
+            }
+
+            return Ok(await _dEngageSender.SendTemplatedSmsV2(data));
         }
 
         [SwaggerOperation(

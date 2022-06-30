@@ -198,6 +198,7 @@ namespace bbt.gateway.messaging
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IApiVersionDescriptionProvider provider)
         {
+            app.UseAllElasticApm(Configuration);
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "Mock")
             {
                 app.UseTransactionMiddleware();
@@ -239,7 +240,8 @@ namespace bbt.gateway.messaging
                 endpoints.MapControllers();
             });
 
-            app.UseAllElasticApm();
+            
+            
         }
     }
 

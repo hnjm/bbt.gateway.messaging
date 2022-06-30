@@ -8,9 +8,9 @@ namespace bbt.gateway.common.Models
 {
     public class MiddlewareRequest
     {
-        public ulong CustomerNo { get; set; }
+        public ulong? CustomerNo { get; set; }
         public string ContactId { get; set; }
-        public HeaderInfo HeaderInfo { get; set; }
+        public HeaderInfo? HeaderInfo { get; set; }
         public Phone Phone { get; set; }
         public string Email { get; set; }
         public string Template { get; set; }
@@ -19,5 +19,6 @@ namespace bbt.gateway.common.Models
         public string Content { get; set; }
         public MessageContentType ContentType { get; set; }
         public Process Process { get; set; }
+        public v2.SenderType Sender { get; set; }
     }
 }

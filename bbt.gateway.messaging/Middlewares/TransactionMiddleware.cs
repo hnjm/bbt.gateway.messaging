@@ -55,9 +55,10 @@ namespace bbt.gateway.messaging.Middlewares
                 _transactionManager.Transaction.CreatedBy = _middlewareRequest.Process;
                 _transactionManager.Transaction.Mail = _middlewareRequest.Email;
                 _transactionManager.Transaction.Phone = _middlewareRequest.Phone;
-                _transactionManager.Transaction.CustomerNo = _middlewareRequest.CustomerNo;
+                _transactionManager.Transaction.CustomerNo = _middlewareRequest.CustomerNo.GetValueOrDefault();
                 _transactionManager.Transaction.CitizenshipNo = _middlewareRequest.ContactId;
                 _transactionManager.HeaderInfo = _middlewareRequest.HeaderInfo;
+                _transactionManager.Sender = _middlewareRequest.Sender;
 
                 SetTransaction(context);
 

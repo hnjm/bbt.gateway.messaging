@@ -29,6 +29,7 @@ namespace bbt.gateway.messaging.Workers
 
         public CustomerRequestInfo CustomerRequestInfo { get; set; } = new();
         public HeaderInfo HeaderInfo{ get; set; }
+        public common.Models.v2.SenderType Sender { get; set; }
         public bool UseFakeSmtp { get; set; }
         public TransactionManager(PusulaClient pusulaClient,IRepositoryManager repositoryManager)
         {

@@ -1,5 +1,4 @@
 ﻿using bbt.gateway.common.Models;
-using bbt.gateway.common.Repositories;
 using System;
 using System.Threading.Tasks;
 
@@ -15,6 +14,7 @@ namespace bbt.gateway.messaging.Workers
         public PushRequestInfo PushRequestInfo { get; set; }
         public CustomerRequestInfo CustomerRequestInfo { get; set; }
         public HeaderInfo HeaderInfo { get; set; }
+        public common.Models.v2.SenderType Sender { get; set; }
         public bool UseFakeSmtp { get; set; }
         public void AddTransaction();
         public void SaveTransaction();

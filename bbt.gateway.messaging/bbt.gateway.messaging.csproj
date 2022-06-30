@@ -28,7 +28,7 @@
   <ItemGroup>
 
 
-  <PackageReference Include="Elastic.Apm.NetCoreAll" Version="1.14.0" />
+  <PackageReference Include="Elastic.Apm.NetCoreAll" Version="1.16.1" />
 
 
   <PackageReference Include="MediatR" Version="10.0.1" />

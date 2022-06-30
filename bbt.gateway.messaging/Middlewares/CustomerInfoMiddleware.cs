@@ -63,7 +63,8 @@ namespace bbt.gateway.messaging.Middlewares
                 }
                 else
                 {
-                    throw new WorkflowException("Request should have at least one of those : (CustomerNo,Phone,Email,ContactId)",System.Net.HttpStatusCode.NotFound);
+                    if(_transactionManager.Transaction.CustomerNo <= 0 && string.IsNullOrEmpty(_transactionManager.Transaction.CitizenshipNo))
+                        throw new WorkflowException("Request should have at least one of those : (CustomerNo,Phone,Email,ContactId)",System.Net.HttpStatusCode.NotFound);
                 }
             }
         }
