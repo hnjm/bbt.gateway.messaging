@@ -79,6 +79,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\bbt.gateway.common\bbt.gateway.common.csproj" />
+    <InternalsVisibleTo Include="bbt.gateway.messaging.test" />
   </ItemGroup>
 
 

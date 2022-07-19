@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "bbt.gateway.common", "bbt.g
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "bbt.gateway.messaging.ui", "bbt.gateway.messaging.ui\bbt.gateway.messaging.ui.csproj", "{E31A92F8-BD12-4A34-8FB2-359C49728599}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "bbt.gateway.messaging.test", "bbt.gateway.messaging.test\bbt.gateway.messaging.test.csproj", "{BFFE7AF4-0B8C-44FD-8313-0A81BE83E33A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{E31A92F8-BD12-4A34-8FB2-359C49728599}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E31A92F8-BD12-4A34-8FB2-359C49728599}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E31A92F8-BD12-4A34-8FB2-359C49728599}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BFFE7AF4-0B8C-44FD-8313-0A81BE83E33A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BFFE7AF4-0B8C-44FD-8313-0A81BE83E33A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BFFE7AF4-0B8C-44FD-8313-0A81BE83E33A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BFFE7AF4-0B8C-44FD-8313-0A81BE83E33A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

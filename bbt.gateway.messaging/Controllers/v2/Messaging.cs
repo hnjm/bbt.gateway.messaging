@@ -82,7 +82,7 @@ namespace bbt.gateway.messaging.Controllers.v2
             + "<div>You can use advantages of headers by creating header from Header Management Services"
             + "<br /> When message services are called, we get customer info(BusinessLine,BranchCode)"
             + "<br /> Then try to find header matches with (BusinessLine[BL],BranchCode[BC],SmsType[ST])"
-            + "<br /> Match Order by priority is (BL-BC-ST)-(BC-ST)-(BL-ST)-(ST)"
+            + "<br /> Match Order by priority is (BL-BC-ST)-(BL-ST)-(BL-SC)-(BL)"
             + "<br /> If any header is matches, we add matched header prefix and suffix to beginning of message and end of the message</div>"
             + "<div>Content Field Will Be Logged After This Method Called. If You Need To Masking Critical Information You Should Surround"
             + " Critical Information with &lt;Mask&gt;&lt;/Mask&gt; . "
@@ -91,7 +91,7 @@ namespace bbt.gateway.messaging.Controllers.v2
            Tags = new[] { "Sms" }
            )]
         [HttpPost("sms/message")]
-        //[SwaggerRequestExample(typeof(TemplatedSmsRequest), typeof(TemplatedSmsRequestExampleFilter))]
+        [SwaggerRequestExample(typeof(SmsRequest), typeof(SmsRequestExampleFilter))]
         [SwaggerResponse(200, "Sms was sent successfully", typeof(SmsResponse))]
         [SwaggerResponse(200, "Sms was sent successfully", typeof(OtpResponse))]
         [SwaggerResponse(400, "Bad Request", typeof(SmsResponse))]
@@ -112,8 +112,6 @@ namespace bbt.gateway.messaging.Controllers.v2
         [SwaggerResponse(500, "Internal Server Error. Get Contact With Integration", typeof(void))]
         public async Task<IActionResult> SendMessageSms([FromBody] SmsRequest data)
         {
-            await Task.CompletedTask;
-            return null;
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Mock")
             {
                 return Ok(new SmsResponse()
@@ -137,11 +135,11 @@ namespace bbt.gateway.messaging.Controllers.v2
             {
                 if (data.SmsType == SmsTypes.Otp)
                 {
-                    //return Ok(await _otpSender.SendMessage(data));
+                    return Ok(await _otpSender.SendMessageV2(data));
                 }
                 else
                 {
-                    //return Ok(await _dEngageSender.SendSms(data));
+                    return Ok(await _dEngageSender.SendSmsV2(data));
                 }
             }
             else
@@ -150,7 +148,6 @@ namespace bbt.gateway.messaging.Controllers.v2
                     string.Join("|", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)));
                 return BadRequest(ModelState);
             }
-
 
         }
 
@@ -185,13 +182,13 @@ namespace bbt.gateway.messaging.Controllers.v2
         [SwaggerResponse(500, "Internal Server Error. Get Contact With Integration", typeof(void))]
         public async Task<IActionResult> SendTemplatedEmail([FromBody] TemplatedMailRequest data)
         {
-            await Task.CompletedTask;
             if (data.Email == null)
             {
                 data.Email = _transactionManager.CustomerRequestInfo.MainEmail;
             }
-            //var response = await _dEngageSender.SendTemplatedMail(data);
-            return Ok();
+
+            var response = await _dEngageSender.SendTemplatedMailV2(data);
+            return Ok(response);
         }
 
 
@@ -222,14 +219,12 @@ namespace bbt.gateway.messaging.Controllers.v2
         [SwaggerResponse(500, "Internal Server Error. Get Contact With Integration", typeof(void))]
         public async Task<IActionResult> SendMessageEmail([FromBody] MailRequest data)
         {
-            await Task.CompletedTask;
-            return null;
             if (data.Email == null)
             {
                 data.Email = _transactionManager.CustomerRequestInfo.MainEmail;
             }
-            //var response = await _dEngageSender.SendMail(data);
-            //return Ok(response);
+            var response = await _dEngageSender.SendMailV2(data);
+            return Ok(response);
         }
 
         [SwaggerOperation(
@@ -256,10 +251,8 @@ namespace bbt.gateway.messaging.Controllers.v2
         [SwaggerResponse(500, "Internal Server Error. Get Contact With Integration", typeof(void))]
         public async Task<IActionResult> SendPushNotification([FromBody] PushRequest data)
         {
-            await Task.CompletedTask;
-            return null;
-            //var response = await _dEngageSender.SendPushNotification(data);
-            //return Ok(response);
+            var response = await _dEngageSender.SendPushNotificationV2(data);
+            return Ok(response);
         }
 
         [SwaggerOperation(
@@ -292,10 +285,8 @@ namespace bbt.gateway.messaging.Controllers.v2
 
         public async Task<IActionResult> SendTemplatedPushNotification([FromBody] TemplatedPushRequest data)
         {
-            await Task.CompletedTask;
-            return null;
-            //var response = await _dEngageSender.SendTemplatedPushNotification(data);
-            //return Ok(response);
+            var response = await _dEngageSender.SendTemplatedPushNotificationV2(data);
+            return Ok(response);
         }
 
     }

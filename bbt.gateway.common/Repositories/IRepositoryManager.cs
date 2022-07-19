@@ -22,8 +22,8 @@ namespace bbt.gateway.common.Repositories
         //IUserRepository Users { get; }
         IDirectBlacklistRepository DirectBlacklists { get; }
         IWhitelistRepository Whitelist { get; }
-        int SaveChanges();
+        Task<int> SaveChangesAsync();
         //int SaveDodgeChanges();
-        int SaveSmsBankingChanges();
+        Task<int> SaveSmsBankingChangesAsync();
     }
 }

@@ -6,7 +6,7 @@ namespace bbt.gateway.common.Repositories
 {
     public interface IPhoneConfigurationRepository : IRepository<PhoneConfiguration>
     {
-        IEnumerable<PhoneConfiguration> GetWithRelatedLogsAndBlacklistEntries(int countryCode, int prefix, int number, int count);
-        PhoneConfiguration GetWithBlacklistEntires(int countryCode, int prefix, int number,DateTime blackListValidDate);
+        Task<IEnumerable<PhoneConfiguration>> GetWithRelatedLogsAndBlacklistEntriesAsync(int countryCode, int prefix, int number, int count);
+        Task<PhoneConfiguration> GetWithBlacklistEntriesAsync(int countryCode, int prefix, int number,DateTime blackListValidDate);
     }
 }

@@ -1,4 +1,5 @@
-﻿using bbt.gateway.common.Models;
+﻿using bbt.gateway.common.Extensions;
+using bbt.gateway.common.Models;
 using bbt.gateway.common.Repositories;
 using bbt.gateway.messaging.Workers.OperatorGateway;
 using System;
@@ -17,6 +18,7 @@ namespace bbt.gateway.messaging.Workers
         private readonly ITransactionManager _transactionManager;
 
         SendMessageSmsRequest _data;
+        common.Models.v2.SmsRequest _dataV2;
         SendSmsResponseStatus returnValue;
         OtpRequestLog _requestLog;
         PhoneConfiguration phoneConfiguration;
@@ -67,11 +69,11 @@ namespace bbt.gateway.messaging.Workers
             };
 
             // Load Phone configuration and related active blacklist entiries.
-            phoneConfiguration = _repositoryManager.PhoneConfigurations.GetWithBlacklistEntires(
+            phoneConfiguration = await _repositoryManager.PhoneConfigurations.GetWithBlacklistEntriesAsync(
                 _data.Phone.CountryCode, _data.Phone.Prefix, _data.Phone.Number, DateTime.Now);
 
             //Get blacklist records from current Otp System
-            var oldBlacklistRecord = _repositoryManager.DirectBlacklists.Find(b => b.GsmNumber == _data.Phone.ToString()).OrderByDescending(b => b.RecordDate).FirstOrDefault();
+            var oldBlacklistRecord = (await _repositoryManager.DirectBlacklists.FindAsync(b => b.GsmNumber == _data.Phone.ToString())).OrderByDescending(b => b.RecordDate).FirstOrDefault();
 
             if (oldBlacklistRecord != null)
             {
@@ -88,7 +90,7 @@ namespace bbt.gateway.messaging.Workers
                     if (blackListRecord.Status == BlacklistStatus.NotResolved && !oldBlacklistRecord.IsVerified)
                     {
                         oldBlacklistRecord.TryCount++;
-                        _repositoryManager.SaveSmsBankingChanges();
+                        await _repositoryManager.SaveSmsBankingChangesAsync();
                     }
                 }
                 else
@@ -98,12 +100,12 @@ namespace bbt.gateway.messaging.Workers
 
                         //Increase Try Count
                         oldBlacklistRecord.TryCount++;
-                        _repositoryManager.SaveSmsBankingChanges();
+                        await _repositoryManager.SaveSmsBankingChangesAsync();
 
                         //Insert Blacklist entry
                         var blacklistEntry = createBlackListEntry(phoneConfiguration, returnValue.ToString(), "SendMessageToKnownProcess", oldBlacklistRecord.SmsId);
                         phoneConfiguration.BlacklistEntries.Add(blacklistEntry);
-                        _repositoryManager.BlackListEntries.Add(blacklistEntry);
+                        await _repositoryManager.BlackListEntries.AddAsync(blacklistEntry);
                     }
                 }
             }
@@ -129,11 +131,10 @@ namespace bbt.gateway.messaging.Workers
                     {
                         _transactionManager.LogError("Phone has a blacklist record");
                         var oldBlackListEntry = createOldBlackListEntry((long)_transactionManager.CustomerRequestInfo.CustomerNo, phoneConfiguration.Phone.ToString());
-                        _repositoryManager.DirectBlacklists.Add(oldBlackListEntry);
-                        _repositoryManager.SaveSmsBankingChanges();
+                        await _repositoryManager.DirectBlacklists.AddAsync(oldBlackListEntry);
 
                         var blackListEntry = createBlackListEntry(phoneConfiguration, returnValue.ToString(), "SendMessageToKnownProcess",oldBlackListEntry.SmsId);
-                        _repositoryManager.BlackListEntries.Add(blackListEntry);
+                        await _repositoryManager.BlackListEntries.AddAsync(blackListEntry);
                     }
                 }
                 returnValue = responseLog.ResponseCode;
@@ -168,7 +169,7 @@ namespace bbt.gateway.messaging.Workers
                     if (phoneConfiguration == null)
                     {
                         phoneConfiguration = createNewPhoneConfiguration();
-                        _repositoryManager.PhoneConfigurations.Add(phoneConfiguration);
+                        await _repositoryManager.PhoneConfigurations.AddAsync(phoneConfiguration);
                     }
 
                     await SendMessageToUnknownProcess(false);
@@ -178,7 +179,7 @@ namespace bbt.gateway.messaging.Workers
 
             _requestLog.PhoneConfiguration = phoneConfiguration;
 
-            _repositoryManager.OtpRequestLogs.Add(_requestLog);
+            await _repositoryManager.OtpRequestLogs.AddAsync(_requestLog);
             _transactionManager.Transaction.OtpRequestLog = _requestLog;
 
             sendSmsOtpResponse.Status = returnValue;
@@ -201,11 +202,10 @@ namespace bbt.gateway.messaging.Workers
                 if (phoneConfiguration.BlacklistEntries.All(b => b.Status == BlacklistStatus.Resolved))
                 {
                     var oldBlackListEntry = createOldBlackListEntry((long)_transactionManager.CustomerRequestInfo.CustomerNo, phoneConfiguration.Phone.ToString());
-                    _repositoryManager.DirectBlacklists.Add(oldBlackListEntry);
-                    _repositoryManager.SaveSmsBankingChanges();
+                    await _repositoryManager.DirectBlacklists.AddAsync(oldBlackListEntry);
 
                     var blackListEntry = createBlackListEntry(phoneConfiguration, returnValue.ToString(), "SendMessageToUnknownProcess", oldBlackListEntry.SmsId);
-                    _repositoryManager.BlackListEntries.Add(blackListEntry);
+                    await _repositoryManager.BlackListEntries.AddAsync(blackListEntry);
                 }
             }
 
@@ -229,7 +229,7 @@ namespace bbt.gateway.messaging.Workers
 
         private async Task<List<OtpResponseLog>> SendMessageToUnknown(PhoneConfiguration phoneConfiguration,bool useControlDays,bool discardCurrentOperator = false)
         {
-            var header =  _headerManager.Get(_data.ContentType,_data.HeaderInfo);
+            var header =  await _headerManager.Get(_data.ContentType,_data.HeaderInfo);
             _requestLog.Content = header.BuildContentForLog(_data.Content);
 
             ConcurrentBag<OtpResponseLog> responses = new ConcurrentBag<OtpResponseLog>();
@@ -268,7 +268,7 @@ namespace bbt.gateway.messaging.Workers
             _transactionManager.OtpRequestInfo.Operator = phoneConfiguration.Operator.Value;
 
             IOperatorGateway gateway = null;
-            var header =  _headerManager.Get(_data.ContentType, _data.HeaderInfo);
+            var header =  await _headerManager.Get(_data.ContentType, _data.HeaderInfo);
             _requestLog.Content = header.BuildContentForLog(_data.Content);
 
             switch (phoneConfiguration.Operator)
@@ -323,6 +323,262 @@ namespace bbt.gateway.messaging.Workers
             return result;
         }
 
+        public async Task<SendSmsOtpResponse> SendMessageV2(common.Models.v2.SmsRequest smsRequest)
+        {
+            SendSmsOtpResponse sendSmsOtpResponse = new()
+            {
+                TxnId = _transactionManager.TxnId
+            };
+            //Set returnValue ClientError for Unexpected Errors
+            returnValue = SendSmsResponseStatus.ClientError;
+
+            //Set Request Body To Class Variable
+            _dataV2 = smsRequest;
+
+            //Turkish Character Conversion And Length Validation
+            _dataV2.Content = _dataV2.Content.ConvertToTurkish();
+            if (_dataV2.Content.Length > 160)
+            {
+                _transactionManager.LogError("Otp Maximum Characters Count Exceed");
+                returnValue = SendSmsResponseStatus.MaximumCharactersCountExceed;
+                sendSmsOtpResponse.Status = returnValue;
+                return sendSmsOtpResponse;
+            }
+
+            _requestLog = new OtpRequestLog
+            {
+                CreatedBy = _dataV2.Process.MapTo<Process>(),
+                Phone = _dataV2.Phone.MapTo<Phone>()
+            };
+
+            // Load Phone configuration and related active blacklist entiries.
+            phoneConfiguration = await _repositoryManager.PhoneConfigurations.GetWithBlacklistEntriesAsync(
+                _dataV2.Phone.CountryCode, _dataV2.Phone.Prefix, _dataV2.Phone.Number, DateTime.Now);
+
+            //Get blacklist records from current Otp System
+            var oldBlacklistRecord = (await _repositoryManager.DirectBlacklists.FindAsync(b => b.GsmNumber == _dataV2.Phone.ToString())).OrderByDescending(b => b.RecordDate).FirstOrDefault();
+
+            if (oldBlacklistRecord != null)
+            {
+                var blackListRecord = phoneConfiguration.BlacklistEntries.FirstOrDefault(b => b.SmsId == oldBlacklistRecord.SmsId);
+                if (blackListRecord != null)
+                {
+                    if (blackListRecord.Status == BlacklistStatus.NotResolved && oldBlacklistRecord.IsVerified)
+                    {
+                        //Resolve Blacklist entry
+                        blackListRecord.Status = BlacklistStatus.Resolved;
+                        blackListRecord.ResolvedAt = oldBlacklistRecord.VerifyDate;
+                        blackListRecord.ResolvedBy = new Process { Name = oldBlacklistRecord.VerifiedBy };
+                    }
+                    if (blackListRecord.Status == BlacklistStatus.NotResolved && !oldBlacklistRecord.IsVerified)
+                    {
+                        oldBlacklistRecord.TryCount++;
+                        await _repositoryManager.SaveSmsBankingChangesAsync();
+                    }
+                }
+                else
+                {
+                    if (!oldBlacklistRecord.IsVerified)
+                    {
+
+                        //Increase Try Count
+                        oldBlacklistRecord.TryCount++;
+                        await _repositoryManager.SaveSmsBankingChangesAsync();
+
+                        //Insert Blacklist entry
+                        var blacklistEntry = createBlackListEntryV2(phoneConfiguration, returnValue.ToString(), "SendMessageToKnownProcess", oldBlacklistRecord.SmsId);
+                        phoneConfiguration.BlacklistEntries.Add(blacklistEntry);
+                        await _repositoryManager.BlackListEntries.AddAsync(blacklistEntry);
+                    }
+                }
+            }
+
+            // if known number without any blacklist entry 
+            if (
+            phoneConfiguration != null &&
+            phoneConfiguration.Operator != null &&
+            !phoneConfiguration.BlacklistEntries.Any(b => b.Status == BlacklistStatus.NotResolved)
+            )
+            {
+
+                var responseLog = await SendMessageToKnownV2(phoneConfiguration, true);
+                _requestLog.ResponseLogs.Add(responseLog);
+
+                if (responseLog.ResponseCode == SendSmsResponseStatus.OperatorChange
+                    || responseLog.ResponseCode == SendSmsResponseStatus.SimChange)
+                {
+                    _transactionManager.LogError("OperatorChange or SimChange Has Occured");
+
+                    //Add to Blacklist If Not Exists
+                    if (!phoneConfiguration.BlacklistEntries.Any(b => b.Status == BlacklistStatus.NotResolved && b.ValidTo > DateTime.Today))
+                    {
+                        _transactionManager.LogError("Phone has a blacklist record");
+                        var oldBlackListEntry = createOldBlackListEntry((long)_transactionManager.CustomerRequestInfo.CustomerNo, phoneConfiguration.Phone.ToString());
+                        await _repositoryManager.DirectBlacklists.AddAsync(oldBlackListEntry);
+
+                        var blackListEntry = createBlackListEntryV2(phoneConfiguration, returnValue.ToString(), "SendMessageToKnownProcess", oldBlackListEntry.SmsId);
+                        await _repositoryManager.BlackListEntries.AddAsync(blackListEntry);
+                    }
+                }
+                returnValue = responseLog.ResponseCode;
+
+                //Operator Change | Sim Change | Not Subscriber handle edilmeli
+                if (responseLog.ResponseCode == SendSmsResponseStatus.NotSubscriber)
+                {
+                    _transactionManager.LogError("Known Number Changed Operator");
+
+                    //Known Number Returns Not Subscriber For Related Operator
+                    //Try to Send Sms With Another Operators
+                    //Should pass true for discarding current operator
+                    await SendMessageToUnknownProcessV2(true);
+                }
+            }
+            else
+            {
+                //Known Number With Active Blacklist Entry
+                if (phoneConfiguration != null &&
+                    phoneConfiguration.BlacklistEntries.Any(b => b.Status == BlacklistStatus.NotResolved && b.ValidTo > DateTime.Today))
+                {
+                    _transactionManager.LogError("Phone has a blacklist record");
+                    returnValue = SendSmsResponseStatus.HasBlacklistRecord;
+                    _requestLog.ResponseLogs.Add(new OtpResponseLog
+                    {
+                        Operator = (OperatorType)phoneConfiguration.Operator,
+                        ResponseCode = SendSmsResponseStatus.HasBlacklistRecord
+                    });
+                }
+                else
+                {
+                    //If configuration is not available then create clean phone configuration to phone number   
+                    if (phoneConfiguration == null)
+                    {
+                        phoneConfiguration = createNewPhoneConfigurationV2();
+                        await _repositoryManager.PhoneConfigurations.AddAsync(phoneConfiguration);
+                    }
+
+                    await SendMessageToUnknownProcessV2(false);
+                }
+
+            }
+
+            _requestLog.PhoneConfiguration = phoneConfiguration;
+
+            await _repositoryManager.OtpRequestLogs.AddAsync(_requestLog);
+            _transactionManager.Transaction.OtpRequestLog = _requestLog;
+
+            sendSmsOtpResponse.Status = returnValue;
+            return sendSmsOtpResponse;
+        }
+
+        private async Task SendMessageToUnknownProcessV2(bool discardCurrentOperator)
+        {
+
+            //if discardCurrentOperator is true,phone is known number
+            var responseLogs = await SendMessageToUnknownV2(phoneConfiguration, discardCurrentOperator, discardCurrentOperator);
+
+            // Decide which response code will be returned
+            returnValue = responseLogs.UnifyResponse();
+
+            //Blackliste eklenmesi gerekiyorsa ekle.
+            if (returnValue == SendSmsResponseStatus.OperatorChange || returnValue == SendSmsResponseStatus.SimChange)
+            {
+                _transactionManager.LogError("OperatorChange or SimChange Has Occured");
+                if (phoneConfiguration.BlacklistEntries.All(b => b.Status == BlacklistStatus.Resolved))
+                {
+                    var oldBlackListEntry = createOldBlackListEntry((long)_transactionManager.CustomerRequestInfo.CustomerNo, phoneConfiguration.Phone.ToString());
+                    await _repositoryManager.DirectBlacklists.AddAsync(oldBlackListEntry);
+
+                    var blackListEntry = createBlackListEntryV2(phoneConfiguration, returnValue.ToString(), "SendMessageToUnknownProcess", oldBlackListEntry.SmsId);
+                    await _repositoryManager.BlackListEntries.AddAsync(blackListEntry);
+                }
+            }
+
+
+            // Update with valid operator if any otp sending 
+            var successAttempt = responseLogs.FirstOrDefault(l => (l.ResponseCode == SendSmsResponseStatus.Success
+            || l.ResponseCode == SendSmsResponseStatus.OperatorChange
+            || l.ResponseCode == SendSmsResponseStatus.SimChange));
+
+            if (successAttempt != null)
+            {
+                _transactionManager.OtpRequestInfo.Operator = successAttempt.Operator;
+                phoneConfiguration.Operator = successAttempt.Operator;
+                _transactionManager.OtpRequestInfo.PhoneConfiguration = phoneConfiguration;
+            }
+
+            // Add all response logs to request log
+            responseLogs.ForEach(l => _requestLog.ResponseLogs.Add(l));
+
+        }
+
+        private async Task<List<OtpResponseLog>> SendMessageToUnknownV2(PhoneConfiguration phoneConfiguration, bool useControlDays, bool discardCurrentOperator = false)
+        {
+            var header = _headerManager.Get(_dataV2.SmsType);
+            _requestLog.Content = header.BuildContentForLog(_dataV2.Content);
+
+            ConcurrentBag<OtpResponseLog> responses = new ConcurrentBag<OtpResponseLog>();
+            List<Task> tasks = new List<Task>();
+            if (_dataV2.Phone.CountryCode == 90)
+            {
+                foreach (var currentElement in operators)
+                {
+                    if (discardCurrentOperator)
+                    {
+                        if (phoneConfiguration.Operator != currentElement.Value)
+                        {
+                            IOperatorGateway gateway = _operatorRepository(currentElement.Value);
+                            tasks.Add(gateway.SendOtp(_dataV2.Phone.MapTo<Phone>(), header.BuildContentForSms(_dataV2.Content), responses, header, useControlDays));
+                        }
+                    }
+                    else
+                    {
+                        IOperatorGateway gateway = _operatorRepository(currentElement.Value);
+                        tasks.Add(gateway.SendOtp(_dataV2.Phone.MapTo<Phone>(),header.BuildContentForSms(_dataV2.Content), responses, header, useControlDays));
+                    }
+                }
+            }
+            else
+            {
+                IOperatorGateway gateway = _operatorRepository(OperatorType.Turkcell);
+                tasks.Add(gateway.SendOtp(_dataV2.Phone.MapTo<Phone>(), header.BuildContentForSms(_dataV2.Content), responses, header, useControlDays));
+            }
+
+            await Task.WhenAll(tasks);
+            return responses.ToList();
+        }
+
+        private async Task<OtpResponseLog> SendMessageToKnownV2(PhoneConfiguration phoneConfiguration, bool useControlDays)
+        {
+            _transactionManager.OtpRequestInfo.Operator = phoneConfiguration.Operator.Value;
+
+            IOperatorGateway gateway = null;
+            var header = _headerManager.Get(_dataV2.SmsType);
+            _requestLog.Content = header.BuildContentForLog(_dataV2.Content);
+
+            switch (phoneConfiguration.Operator)
+            {
+                case OperatorType.Turkcell:
+                    gateway = _operatorRepository(OperatorType.Turkcell);
+                    break;
+                case OperatorType.Vodafone:
+                    gateway = _operatorRepository(OperatorType.Vodafone);
+                    break;
+                case OperatorType.TurkTelekom:
+                    gateway = _operatorRepository(OperatorType.TurkTelekom);
+                    break;
+                case OperatorType.IVN:
+                    gateway = _operatorRepository(OperatorType.IVN);
+                    break;
+                default:
+                    // Serious Exception
+                    break;
+            }
+
+            var result = await gateway.SendOtp(_dataV2.Phone.MapTo<Phone>(), header.BuildContentForSms(_dataV2.Content), header, useControlDays);
+
+            return result;
+        }
+
         private PhoneConfiguration createNewPhoneConfiguration()
         {
             var newConfig = new PhoneConfiguration
@@ -335,6 +591,24 @@ namespace bbt.gateway.messaging.Workers
                         Action = "Send Otp Request",
                         RelatedId = _requestLog.Id,
                         CreatedBy = _data.Process
+                    }}
+            };
+
+            return newConfig;
+        }
+
+        private PhoneConfiguration createNewPhoneConfigurationV2()
+        {
+            var newConfig = new PhoneConfiguration
+            {
+                Phone = _dataV2.Phone.MapTo<Phone>(),
+                Logs = new List<PhoneConfigurationLog>{
+                    new PhoneConfigurationLog
+                    {
+                        Type = "Initialization",
+                        Action = "Send Otp Request",
+                        RelatedId = _requestLog.Id,
+                        CreatedBy = _dataV2.Process.MapTo<Process>()
                     }}
             };
 
@@ -358,6 +632,32 @@ namespace bbt.gateway.messaging.Workers
                     Action = "Added To Blacklist",
                     BlackListEntry = newBlackListEntry,
                     CreatedBy = _data.Process,
+                    ParameterMaster = "master",
+                    ParameterSlave = "slave",
+                    Type = "type"
+                }
+            };
+
+            return newBlackListEntry;
+        }
+
+        private BlackListEntry createBlackListEntryV2(PhoneConfiguration phoneConfiguration, string reason, string source, long smsId)
+        {
+            var newBlackListEntry = new BlackListEntry();
+            newBlackListEntry.PhoneConfiguration = phoneConfiguration;
+            newBlackListEntry.PhoneConfigurationId = phoneConfiguration.Id;
+            newBlackListEntry.Reason = reason;
+            newBlackListEntry.Source = source;
+            newBlackListEntry.CreatedBy = _dataV2.Process.MapTo<Process>();
+            newBlackListEntry.ValidTo = DateTime.Now.AddMonths(1);
+            newBlackListEntry.SmsId = smsId;
+            newBlackListEntry.Logs = new List<BlackListEntryLog>
+            {
+                new BlackListEntryLog
+                {
+                    Action = "Added To Blacklist",
+                    BlackListEntry = newBlackListEntry,
+                    CreatedBy = _dataV2.Process.MapTo<Process>(),
                     ParameterMaster = "master",
                     ParameterSlave = "slave",
                     Type = "type"

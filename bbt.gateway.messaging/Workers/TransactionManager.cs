@@ -44,15 +44,14 @@ namespace bbt.gateway.messaging.Workers
             };
         }
 
-        public void AddTransaction()
+        public async Task AddTransactionAsync()
         {
-            _repositoryManager.Transactions.Add(Transaction);
-            _repositoryManager.SaveChanges();
+            await _repositoryManager.Transactions.AddAsync(Transaction);
         }
 
-        public void SaveTransaction()
+        public async Task SaveTransactionAsync()
         {
-            _repositoryManager.SaveChanges();
+            await _repositoryManager.SaveChangesAsync();
         }
 
         public void LogState()
@@ -233,7 +232,8 @@ namespace bbt.gateway.messaging.Workers
             }
             else
             {
-                throw new WorkflowException("Couldn't get customer info", System.Net.HttpStatusCode.NotFound);
+                if(Sender == common.Models.v2.SenderType.AutoDetect)
+                    throw new WorkflowException("Couldn't get customer info", System.Net.HttpStatusCode.NotFound);
             }
         }
 

@@ -30,7 +30,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             {
                 type = value;
                 using var databaseContext = new DatabaseContext(_dbOptions);
-                OperatorConfig = databaseContext.Operators.FirstOrDefault(o => o.Type == type);
+                OperatorConfig = databaseContext.Operators.AsNoTracking().FirstOrDefault(o => o.Type == type);
             }
         }
         public Operator OperatorConfig { get; set; }
@@ -39,22 +39,22 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
         public ITransactionManager TransactionManager => _transactionManager;
 
-        public void SaveOperator()
+        public async Task SaveOperator()
         {
             using var databaseContext = new DatabaseContext(_dbOptions);
             databaseContext.Operators.Update(OperatorConfig);
-            databaseContext.SaveChanges();
+            await databaseContext.SaveChangesAsync();
         }
 
-        public PhoneConfiguration GetPhoneConfiguration(Phone phone)
+        public async Task<PhoneConfiguration> GetPhoneConfiguration(Phone phone)
         {
             using var databaseContext = new DatabaseContext(_dbOptions);
-            return databaseContext.PhoneConfigurations.Where(i =>
+            return await databaseContext.PhoneConfigurations.AsNoTracking().Where(i =>
                 i.Phone.CountryCode == phone.CountryCode &&
                 i.Phone.Prefix == phone.Prefix &&
                 i.Phone.Number == phone.Number
-                )
-                .FirstOrDefault();
+                ).Include(p => p.BlacklistEntries)
+                .FirstOrDefaultAsync();
         }
 
     }

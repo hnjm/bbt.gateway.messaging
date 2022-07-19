@@ -21,7 +21,7 @@ namespace bbt.gateway.messaging.Middlewares
             _next = next;
         }
 
-        public Task Invoke(HttpContext context,ITransactionManager transactionManager,IRepositoryManager repositoryManager)
+        public async Task InvokeAsync(HttpContext context,ITransactionManager transactionManager,IRepositoryManager repositoryManager)
         {
             _transactionManager = transactionManager;
             _repositoryManager = repositoryManager;
@@ -35,13 +35,13 @@ namespace bbt.gateway.messaging.Middlewares
                 }
                 else
                 {
-                    CheckWhitelist();
+                    await CheckWhitelist();
                 }
             }
-            return _next(context);
+            await _next(context);
         }
 
-        private void CheckWhitelist()
+        private async Task CheckWhitelist()
         {
             if (_transactionManager.Transaction.TransactionType == TransactionType.Otp ||
                 _transactionManager.Transaction.TransactionType == TransactionType.TransactionalSms ||
@@ -52,11 +52,11 @@ namespace bbt.gateway.messaging.Middlewares
                 if (phone == null)
                     throw new WorkflowException("Phone number couldn't be resolved",System.Net.HttpStatusCode.NotFound);
 
-                if (_repositoryManager.Whitelist.Find(w =>
+                if ((await _repositoryManager.Whitelist.FindAsync(w =>
                 (w.Phone.CountryCode == phone.CountryCode
                 && w.Phone.Prefix == phone.Prefix
                 && w.Phone.Number == phone.Number
-                )).FirstOrDefault() == null)
+                ))).FirstOrDefault() == null)
                 {
                     _transactionManager.UseFakeSmtp = true;
                 }
@@ -69,7 +69,7 @@ namespace bbt.gateway.messaging.Middlewares
                 if (string.IsNullOrEmpty(email))
                     throw new WorkflowException("Mail address couldn't be resolved", System.Net.HttpStatusCode.NotFound);
 
-                if (_repositoryManager.Whitelist.Find(w => w.Mail == email).FirstOrDefault()
+                if ((await _repositoryManager.Whitelist.FindAsync(w => w.Mail == email)).FirstOrDefault()
                     == null)
                 {
                     _transactionManager.UseFakeSmtp = true;
@@ -81,7 +81,7 @@ namespace bbt.gateway.messaging.Middlewares
             {
                 if (string.IsNullOrEmpty(_transactionManager.Transaction.CitizenshipNo))
                     throw new WorkflowException("CitizenshipNumber couldn't be resolved", System.Net.HttpStatusCode.NotFound);
-                if (_repositoryManager.Whitelist.Find(w => w.ContactId == _transactionManager.Transaction.CitizenshipNo).FirstOrDefault()
+                if ((await _repositoryManager.Whitelist.FindAsync(w => w.ContactId == _transactionManager.Transaction.CitizenshipNo)).FirstOrDefault()
                     == null)
                 {
                     _transactionManager.UseFakeSmtp = true;

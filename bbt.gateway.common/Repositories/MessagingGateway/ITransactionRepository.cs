@@ -4,20 +4,18 @@ namespace bbt.gateway.common.Repositories
 {
     public interface ITransactionRepository : IRepository<Transaction>
     {
-        public (IEnumerable<Transaction>,int) GetOtpMessagesWithPhone(int countryCode, int prefix, int number, DateTime startDate, DateTime endDate, int page, int pageSize);
-        public (IEnumerable<Transaction>, int) GetTransactionalSmsMessagesWithPhone(int countryCode, int prefix, int number, DateTime startDate, DateTime endDate, int page, int pageSize);
-        public (IEnumerable<Transaction>, int) GetOtpMessagesWithCustomerNo(ulong customerNo, DateTime startDate, DateTime endDate, int page, int pageSize);
-        public (IEnumerable<Transaction>, int) GetTransactionalSmsMessagesWithCustomerNo(ulong customerNo, DateTime startDate, DateTime endDate, int page, int pageSize);
-        public (IEnumerable<Transaction>, int) GetOtpMessagesWithCitizenshipNo(string citizensipNo, DateTime startDate, DateTime endDate, int page, int pageSize);
-        public (IEnumerable<Transaction>, int) GetTransactionalSmsMessagesWithCitizenshipNo(string citizensipNo, DateTime startDate, DateTime endDate, int page, int pageSize);
+        public Task<(IEnumerable<Transaction>,int)> GetOtpMessagesWithPhoneAsync(int countryCode, int prefix, int number, DateTime startDate, DateTime endDate, int page, int pageSize);
+        public Task<(IEnumerable<Transaction>, int)> GetTransactionalSmsMessagesWithPhoneAsync(int countryCode, int prefix, int number, DateTime startDate, DateTime endDate, int page, int pageSize);
+        public Task<(IEnumerable<Transaction>, int)> GetOtpMessagesWithCustomerNoAsync(ulong customerNo, DateTime startDate, DateTime endDate, int page, int pageSize);
+        public Task<(IEnumerable<Transaction>, int)> GetTransactionalSmsMessagesWithCustomerNoAsync(ulong customerNo, DateTime startDate, DateTime endDate, int page, int pageSize);
+        public Task<(IEnumerable<Transaction>, int)> GetOtpMessagesWithCitizenshipNoAsync(string citizensipNo, DateTime startDate, DateTime endDate, int page, int pageSize);
+        public Task<(IEnumerable<Transaction>, int)> GetTransactionalSmsMessagesWithCitizenshipNoAsync(string citizensipNo, DateTime startDate, DateTime endDate, int page, int pageSize);
+        public Task<(IEnumerable<Transaction>, int)> GetMailMessagesWithMailAsync(string mail, DateTime startDate, DateTime endDate, int page, int pageSize);
+        public Task<(IEnumerable<Transaction>, int)> GetMailMessagesWithCustomerNoAsync(ulong customerNo, DateTime startDate, DateTime endDate, int page, int pageSize);
+        public Task<(IEnumerable<Transaction>, int)> GetMailMessagesWithCitizenshipNoAsync(string citizenshipNo, DateTime startDate, DateTime endDate, int page, int pageSize);
+        public Task<(IEnumerable<Transaction>, int)> GetPushMessagesWithCustomerNoAsync(ulong customerNo, DateTime startDate, DateTime endDate, int page, int pageSize);
+        public Task<(IEnumerable<Transaction>, int)> GetPushMessagesWithCitizenshipNoAsync(string citizenshipNo, DateTime startDate, DateTime endDate, int page, int pageSize);
 
-        public (IEnumerable<Transaction>, int) GetMailMessagesWithMail(string mail, DateTime startDate, DateTime endDate, int page, int pageSize);
-        public (IEnumerable<Transaction>, int) GetMailMessagesWithCustomerNo(ulong customerNo, DateTime startDate, DateTime endDate, int page, int pageSize);
-        public (IEnumerable<Transaction>, int) GetMailMessagesWithCitizenshipNo(string citizenshipNo, DateTime startDate, DateTime endDate, int page, int pageSize);
-
-        public (IEnumerable<Transaction>, int) GetPushMessagesWithCustomerNo(ulong customerNo, DateTime startDate, DateTime endDate, int page, int pageSize);
-        public (IEnumerable<Transaction>, int) GetPushMessagesWithCitizenshipNo(string citizenshipNo, DateTime startDate, DateTime endDate, int page, int pageSize);
-
-        public Transaction GetWithId(Guid TxnId);
+        public Task<Transaction> GetWithIdAsync(Guid TxnId);
     }
 }

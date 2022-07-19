@@ -39,7 +39,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                     OperatorConfig.TokenExpiredAt = tokenExpiredAt;
                     _authToken = OperatorConfig.AuthToken;
 
-                    SaveOperator();
+                    await SaveOperator();
                 }
                 else
                 {
@@ -66,7 +66,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 OperatorConfig.TokenCreatedAt = tokenCreatedAt;
                 OperatorConfig.TokenExpiredAt = tokenExpiredAt;
                 _authToken = OperatorConfig.AuthToken;
-                SaveOperator();
+                await SaveOperator();
             }
             else
             {
@@ -75,10 +75,10 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             return authResponse.ResponseCode == "0";
         }
 
-        private void ExtendToken()
+        private async Task ExtendToken()
         {
             OperatorConfig.TokenExpiredAt = DateTime.Now.AddMinutes(20);
-            SaveOperator();
+            await SaveOperator();
         }
 
         public async Task<bool> SendOtp(Phone phone, string content, ConcurrentBag<OtpResponseLog> responses, Header header, bool useControlDays)
@@ -87,17 +87,17 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
             if (authResponse.ResponseCode == "0")
             {
-                var turkcellResponse = await _turkcellApi.SendSms(CreateSmsRequest(phone, content, header, false));
+                var turkcellResponse = await _turkcellApi.SendSms(await CreateSmsRequest(phone, content, header, false));
                 if (turkcellResponse.ResponseCode.Trim().Equals("-2"))
                 {
                     if(await RefreshToken())
-                        turkcellResponse = await _turkcellApi.SendSms(CreateSmsRequest(phone, content, header, false));
+                        turkcellResponse = await _turkcellApi.SendSms(await CreateSmsRequest(phone, content, header, false));
                 }
 
                 var response = turkcellResponse.BuildOperatorApiResponse();
                 responses.Add(response);
 
-                ExtendToken();
+                await ExtendToken();
             }
             else
             {
@@ -121,16 +121,16 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
             if (authResponse.ResponseCode == "0")
             {
-                var turkcellResponse = await _turkcellApi.SendSms(CreateSmsRequest(phone, content, header, useControlDays));
+                var turkcellResponse = await _turkcellApi.SendSms(await CreateSmsRequest(phone, content, header, useControlDays));
                 if (turkcellResponse.ResponseCode.Trim().Equals("-2"))
                 {
                     if (await RefreshToken())
-                        turkcellResponse = await _turkcellApi.SendSms(CreateSmsRequest(phone, content, header, useControlDays));
+                        turkcellResponse = await _turkcellApi.SendSms(await CreateSmsRequest(phone, content, header, useControlDays));
                 }
 
                 var response = turkcellResponse.BuildOperatorApiResponse();
 
-                ExtendToken();
+                await ExtendToken();
 
                 return response;
             }
@@ -164,12 +164,12 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             }
         }
 
-        private TurkcellSmsRequest CreateSmsRequest(Phone phone, string content, Header header, bool useControlDays)
+        private async Task<TurkcellSmsRequest> CreateSmsRequest(Phone phone, string content, Header header, bool useControlDays)
         {
             DateTime trustedDate = DateTime.Now.AddDays(-1 * OperatorConfig.ControlDaysForOtp);
             if (useControlDays)
             {
-                var phoneConfiguration = GetPhoneConfiguration(phone);
+                var phoneConfiguration = await GetPhoneConfiguration(phone);
                 if (phoneConfiguration.BlacklistEntries != null &&
                     phoneConfiguration.BlacklistEntries.Count > 0)
                 {

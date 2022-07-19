@@ -51,7 +51,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                     OperatorConfig.TokenCreatedAt = tokenCreatedAt;
                     OperatorConfig.TokenExpiredAt = DateTime.Now.AddSeconds(loginResponse.expires_in);
                     _authToken = OperatorConfig.AuthToken;
-                    SaveOperator();
+                    await SaveOperator();
                 }
                 catch (ApiException ex)
                 {
@@ -83,7 +83,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 OperatorConfig.TokenCreatedAt = tokenCreatedAt;
                 OperatorConfig.TokenExpiredAt = DateTime.Now.AddSeconds(loginResponse.expires_in);
                 _authToken = OperatorConfig.AuthToken;
-                SaveOperator();
+                await SaveOperator();
             }
             catch (ApiException ex)
             {
@@ -120,13 +120,13 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             return null;
         }
 
-        public async Task<MailContentsResponse> GetMailContents()
+        public async Task<MailContentsResponse> GetMailContents(int limit, string offset)
         {
             MailContentsResponse mailContentsResponse = null;
             var authResponse = await Auth();
             if (authResponse.ResponseCode == "0")
             {
-                mailContentsResponse = await _dEngageClient.GetMailContents(_authToken,500);
+                mailContentsResponse = await _dEngageClient.GetMailContents(_authToken,limit,offset);
             }
             else
             {
@@ -136,13 +136,13 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             return mailContentsResponse;
         }
 
-        public async Task<SmsContentsResponse> GetSmsContents()
+        public async Task<SmsContentsResponse> GetSmsContents(int limit,string offset)
         {
             SmsContentsResponse smsContentsResponse = null;
             var authResponse = await Auth();
             if (authResponse.ResponseCode == "0")
             {
-                smsContentsResponse = await _dEngageClient.GetSmsContents(_authToken,500);
+                smsContentsResponse = await _dEngageClient.GetSmsContents(_authToken,limit,offset);
             }
             else
             {
@@ -152,13 +152,13 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             return smsContentsResponse;
         }
 
-        public async Task<PushContentsResponse> GetPushContents()
+        public async Task<PushContentsResponse> GetPushContents(int limit, string offset)
         {
             PushContentsResponse pushContentsResponse = null;
             var authResponse = await Auth();
             if (authResponse.ResponseCode == "0")
             {
-                pushContentsResponse = await _dEngageClient.GetPushContents(_authToken,500);
+                pushContentsResponse = await _dEngageClient.GetPushContents(_authToken,limit,offset);
             }
             else
             {
@@ -168,63 +168,86 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             return pushContentsResponse;
         }
 
+        public async Task<(string, string)> SetMailFromsToCache()
+        {
+            try
+            {                
+                var res = await _dEngageClient.GetMailFroms(_authToken);
+                await _distrubitedCache.SetAsync(OperatorConfig.Type.ToString() + "_mailFroms",
+                    System.Text.Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(res)),
+                    new DistributedCacheEntryOptions
+                    {
+                        AbsoluteExpiration = DateTimeOffset.UtcNow.AddHours(1)
+                    }
+                    );
+                _mailIds = res;   
+            }
+            catch (ApiException ex)
+            {
+                return ("99999", $"dEngage | Http Status Code : {(int)ex.StatusCode} | Cannot Retrieve Sms Froms");
+            }
+
+            return ("0", "");
+        }
+
         public async Task<MailResponseLog> SendMail(string to, string? from, string? subject, string? html, string? templateId, string? templateParams,List<common.Models.Attachment> attachments,string? cc,string? bcc)
         {
             var mailResponseLog = new MailResponseLog() { 
                 Topic = "dEngage Mail Sending",
             };
-           
+
+            MailFrom mailFrom = new MailFrom();
             var authResponse = await Auth();
             if (authResponse.ResponseCode == "0")
             {
                 if (html != null)
                 {
-                    try
+                    var mailFromsByteArray = await _distrubitedCache.GetAsync(OperatorConfig.Type.ToString() + "_mailFroms");
+                    if (mailFromsByteArray != null)
                     {
-                        var mailFromsByteArray = await _distrubitedCache.GetAsync(OperatorConfig.Type.ToString() + "_mailFroms");
-                        if (mailFromsByteArray != null)
+                        _mailIds = JsonConvert.DeserializeObject<GetMailFromsResponse>(System.Text.Encoding.UTF8.GetString(mailFromsByteArray));
+                    }
+                    else
+                    {
+                        var res = await SetMailFromsToCache();
+                        if (res.Item1 != "0")
                         {
-                            _mailIds = JsonConvert.DeserializeObject<GetMailFromsResponse>(System.Text.Encoding.UTF8.GetString(mailFromsByteArray));
-                        }
-                        else
-                        {
-                            var res = await _dEngageClient.GetMailFroms(_authToken);
-                            await _distrubitedCache.SetAsync(OperatorConfig.Type.ToString() + "_mailFroms",
-                                System.Text.Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(res)),
-                                new DistributedCacheEntryOptions
-                                {
-                                    AbsoluteExpiration = DateTimeOffset.UtcNow.AddHours(1)
-                                }
-                                );
-                            _mailIds = res;
+                            mailResponseLog.ResponseCode = res.Item1;
+                            mailResponseLog.ResponseMessage = res.Item2;
                         }
                     }
-                    catch (ApiException ex)
+
+                    mailFrom = _mailIds.data.emailFroms.Where(m => m.fromAddress == from).FirstOrDefault();
+                    if (mailFrom == null) 
                     {
-                        mailResponseLog.ResponseCode = "99999";
-                        mailResponseLog.ResponseMessage = $"dEngage | Http Status Code : {(int)ex.StatusCode} | Cannot Retrieve Sms Froms";
-                        return mailResponseLog;
+                        var res = await SetMailFromsToCache();
+                        if (res.Item1 != "0")
+                        {
+                            mailResponseLog.ResponseCode = res.Item1;
+                            mailResponseLog.ResponseMessage = res.Item2;
+                        }
+
+                        mailFrom = _mailIds.data.emailFroms.Where(m => m.fromAddress == from).FirstOrDefault();
+                        if (mailFrom == null)
+                        {
+                            mailResponseLog.ResponseCode = "99999";
+                            mailResponseLog.ResponseMessage = "Mail From is Not Found";
+                        }
                     }
-                    if (_mailIds.data.emailFroms.Where(m => m.fromAddress == from).FirstOrDefault() == null) 
-                    {
-                        mailResponseLog.ResponseCode = "99999";
-                        mailResponseLog.ResponseMessage = "Mail From is Not Found";
-                    }
+                    
                 }
                
                 try
                 {
-                    var req = CreateMailRequest(to, from, subject, html, templateId, templateParams,attachments,cc,bcc);
+                    var req = CreateMailRequest(to,mailFrom.fromName,from, subject, html, templateId, templateParams,attachments,cc,bcc);
                     try
                     {
-                        var tt = JsonConvert.SerializeObject(req, new JsonSerializerSettings()
-                        {
-                            NullValueHandling = NullValueHandling.Ignore,
-                        });
+                        
                         var sendMailResponse = await _dEngageClient.SendMail(req, _authToken);
                         mailResponseLog.ResponseCode = sendMailResponse.code.ToString();
                         mailResponseLog.ResponseMessage = sendMailResponse.message;
                         mailResponseLog.StatusQueryId = sendMailResponse.data.to.trackingId;
+                        mailResponseLog.Status = MailTrackingStatus.Pending;
 
                     }
                     catch (ApiException ex)
@@ -299,7 +322,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                         var sendPushResponse = await _dEngageClient.SendPush(req, _authToken);
                         pushNotificationResponseLog.ResponseCode = sendPushResponse.code.ToString();
                         pushNotificationResponseLog.ResponseMessage = sendPushResponse.message;
-
+                        pushNotificationResponseLog.Status = PushTrackingStatus.Pending;
                     }
                     catch (ApiException ex)
                     {
@@ -318,7 +341,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                                     pushNotificationResponseLog.ResponseCode = "99999";
                                     pushNotificationResponseLog.ResponseMessage = "dEngage Auth Failed For 3 Times";
                                     return pushNotificationResponseLog;
-                                }
+                                }   
                             }
                             else
                             {
@@ -406,6 +429,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                         smsLog.OperatorResponseCode = sendSmsResponse.code;
                         smsLog.OperatorResponseMessage = sendSmsResponse.message;
                         smsLog.StatusQueryId = sendSmsResponse.data.to.trackingId;
+                        smsLog.Status = dEngageSmsTrackingStatus.Pending;
 
                     }
                     catch (ApiException ex)
@@ -434,7 +458,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                                 return smsLog;
                             }
                         }
-                        var error = await ex.GetContentAsAsync<bbt.gateway.messaging.Api.dEngage.Model.Transactional.SendSmsResponse>();
+                        var error = await ex.GetContentAsAsync<Api.dEngage.Model.Transactional.SendSmsResponse>();
                         smsLog.OperatorResponseCode = error.code;
                         smsLog.OperatorResponseMessage = error.message;
                     }
@@ -459,7 +483,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             }
         }
 
-        private SendMailRequest CreateMailRequest(string to,string from,string subject, string html, string templateId, string templateParams,List<common.Models.Attachment> attachments,string cc,string bcc)
+        private SendMailRequest CreateMailRequest(string to,string fromName,string from,string subject, string html, string templateId, string templateParams,List<common.Models.Attachment> attachments,string cc,string bcc)
         {
             SendMailRequest sendMailRequest = new();
             sendMailRequest.send.to = to;
@@ -491,7 +515,8 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             {
                 if (!string.IsNullOrEmpty(html))
                 {
-                    sendMailRequest.content.fromNameId = _mailIds.data.emailFroms.Where(m => m.fromAddress == from).FirstOrDefault().id;
+                    sendMailRequest.content.FromAddress = from;
+                    sendMailRequest.content.FromName = fromName;
                     sendMailRequest.content.html = html.ClearMaskingFields();
                     sendMailRequest.content.subject = subject.ClearMaskingFields();
                 }

@@ -12,13 +12,14 @@ namespace bbt.gateway.common.Repositories
         
         }
 
-        public IEnumerable<OtpRequestLog> GetWithResponseLogs(int countryCode, int prefix, int number, int page, int pageSize)
+        public async Task<IEnumerable<OtpRequestLog>> GetWithResponseLogsAsync(int countryCode, int prefix, int number, int page, int pageSize)
         {
-            return Context.OtpRequestLogs
+            return await Context.OtpRequestLogs.AsNoTracking()
                 .Where(c => c.Phone.CountryCode == countryCode && c.Phone.Prefix == prefix && c.Phone.Number == number)
                 .Include(c => c.ResponseLogs).ThenInclude(r => r.TrackingLogs)
                 .Skip(page * pageSize)
-                .Take(pageSize);
+                .Take(pageSize)
+                .ToListAsync();
         }
 
 

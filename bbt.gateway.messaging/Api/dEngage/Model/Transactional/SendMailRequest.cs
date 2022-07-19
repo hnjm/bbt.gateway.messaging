@@ -17,6 +17,8 @@ namespace bbt.gateway.messaging.Api.dEngage.Model.Transactional
         public string subject { get;set; }
         public string html { get; set; }
         public string templateId { get; set; }
+        public string FromAddress { get; set; }
+        public string FromName { get; set; }
     }
 
     public class SendMail

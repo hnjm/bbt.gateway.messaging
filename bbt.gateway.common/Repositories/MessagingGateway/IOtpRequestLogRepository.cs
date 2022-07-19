@@ -5,6 +5,6 @@ namespace bbt.gateway.common.Repositories
 {
     public interface IOtpRequestLogRepository : IRepository<OtpRequestLog>
     {
-        IEnumerable<OtpRequestLog> GetWithResponseLogs(int countryCode, int prefix, int number, int page, int pageSize);
+        Task<IEnumerable<OtpRequestLog>> GetWithResponseLogsAsync(int countryCode, int prefix, int number, int page, int pageSize);
     }
 }

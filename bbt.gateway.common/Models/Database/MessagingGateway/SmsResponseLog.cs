@@ -13,8 +13,8 @@ namespace bbt.gateway.common.Models
         public int OperatorResponseCode { get; set; }
         public string OperatorResponseMessage { get; set; }
         public string StatusQueryId { get; set; }
-        public string Status { get; set; }
-        public ICollection<TransactionalTrackingLog> TrackingLogs { get; set; } = new List<TransactionalTrackingLog>();
+        public dEngageSmsTrackingStatus Status { get; set; }
+        public ICollection<SmsTrackingLog> TrackingLogs { get; set; } = new List<SmsTrackingLog>();
         public DateTime CreatedAt { get; set; }
 
         public override string GetResponseCode()

@@ -39,7 +39,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                     OperatorConfig.TokenCreatedAt = tokenCreatedAt;
                     OperatorConfig.TokenExpiredAt = tokenExpiredAt;
                     _authToken = OperatorConfig.AuthToken;
-                    SaveOperator();
+                    await SaveOperator();
                 }
                 //Logging
             }
@@ -63,18 +63,18 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 OperatorConfig.TokenCreatedAt = tokenCreatedAt;
                 OperatorConfig.TokenExpiredAt = tokenExpiredAt;
                 _authToken = OperatorConfig.AuthToken;
-                SaveOperator();
+                await SaveOperator();
             }
             //Login
             return authResponse.ResponseCode == "0";
         }
 
-        private void ExtendToken()
+        private async Task ExtendToken()
         {
             if (DateTime.Now < OperatorConfig.TokenCreatedAt.AddHours(24))
             {
                 OperatorConfig.TokenExpiredAt = DateTime.Now.AddMinutes(60);
-                SaveOperator();
+                await SaveOperator();
             }
         }
 
@@ -83,18 +83,18 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             var authResponse = await Auth();
             if (authResponse.ResponseCode == "0")
             {
-                var vodafoneResponse = await _vodafoneApi.SendSms(CreateSmsRequest(phone, content, header, useControlDays));
+                var vodafoneResponse = await _vodafoneApi.SendSms(await CreateSmsRequest(phone, content, header, useControlDays));
                 if (vodafoneResponse.ResponseCode.Trim().Equals("1008") ||
                     vodafoneResponse.ResponseCode.Trim().Equals("1011") ||
                     vodafoneResponse.ResponseCode.Trim().Equals("1016"))
                 {
                     if (await RefreshToken())
-                        vodafoneResponse = await _vodafoneApi.SendSms(CreateSmsRequest(phone, content, header, false));
+                        vodafoneResponse = await _vodafoneApi.SendSms(await CreateSmsRequest(phone, content, header, false));
                 }
 
                 var response = vodafoneResponse.BuildOperatorApiResponse();
                 responses.Add(response);
-                ExtendToken();
+                await ExtendToken();
                 
             }
             else
@@ -118,18 +118,18 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             var authResponse = await Auth();
             if (authResponse.ResponseCode == "0")
             {
-                var vodafoneResponse = await _vodafoneApi.SendSms(CreateSmsRequest(phone, content, header, useControlDays));
+                var vodafoneResponse = await _vodafoneApi.SendSms(await CreateSmsRequest(phone, content, header, useControlDays));
                 if (vodafoneResponse.ResponseCode.Trim().Equals("1008") ||
                     vodafoneResponse.ResponseCode.Trim().Equals("1011") ||
                     vodafoneResponse.ResponseCode.Trim().Equals("1016"))
                 {
                     if (await RefreshToken())
-                        vodafoneResponse = await _vodafoneApi.SendSms(CreateSmsRequest(phone, content, header, useControlDays));
+                        vodafoneResponse = await _vodafoneApi.SendSms(await CreateSmsRequest(phone, content, header, useControlDays));
                 }
 
                 var response = vodafoneResponse.BuildOperatorApiResponse();
 
-                ExtendToken();
+                await ExtendToken();
 
                 return response;
             }
@@ -162,12 +162,12 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             }
         }
 
-        private VodafoneSmsRequest CreateSmsRequest(Phone phone, string content, Header header, bool useControlDays)
+        private async Task<VodafoneSmsRequest> CreateSmsRequest(Phone phone, string content, Header header, bool useControlDays)
         {
             double controlHour = (OperatorConfig.ControlDaysForOtp * 24);
             if (useControlDays)
             {
-                var phoneConfiguration = GetPhoneConfiguration(phone);
+                var phoneConfiguration = await GetPhoneConfiguration(phone);
                 if (phoneConfiguration.BlacklistEntries != null &&
                     phoneConfiguration.BlacklistEntries.Count > 0)
                 {

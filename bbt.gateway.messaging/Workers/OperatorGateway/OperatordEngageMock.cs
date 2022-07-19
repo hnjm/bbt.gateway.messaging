@@ -50,7 +50,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                     OperatorConfig.TokenCreatedAt = tokenCreatedAt;
                     OperatorConfig.TokenExpiredAt = DateTime.Now.AddSeconds(loginResponse.expires_in);
                     _authToken = OperatorConfig.AuthToken;
-                    SaveOperator();
+                    await SaveOperator();
                 }
                 catch (ApiException ex)
                 {
@@ -80,13 +80,13 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             };
         }
 
-        public async Task<MailContentsResponse> GetMailContents()
+        public async Task<MailContentsResponse> GetMailContents(int limit, string offset)
         {
             MailContentsResponse mailContentsResponse = null;
             var authResponse = await Auth();
             if (authResponse.ResponseCode == "0")
             {
-                mailContentsResponse = await _dEngageClient.GetMailContents(_authToken,500);
+                mailContentsResponse = await _dEngageClient.GetMailContents(_authToken,limit,offset);
             }
             else
             {
@@ -96,13 +96,13 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             return mailContentsResponse;
         }
 
-        public async Task<SmsContentsResponse> GetSmsContents()
+        public async Task<SmsContentsResponse> GetSmsContents(int limit, string offset)
         {
             SmsContentsResponse smsContentsResponse = null;
             var authResponse = await Auth();
             if (authResponse.ResponseCode == "0")
             {
-                smsContentsResponse = await _dEngageClient.GetSmsContents(_authToken,500);
+                smsContentsResponse = await _dEngageClient.GetSmsContents(_authToken,limit,offset);
             }
             else
             {
@@ -112,7 +112,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             return smsContentsResponse;
         }
 
-        public async Task<PushContentsResponse> GetPushContents()
+        public async Task<PushContentsResponse> GetPushContents(int limit, string offset)
         {
             PushContentsResponse pushContentsResponse = null;
             var authResponse = await Auth();
@@ -120,7 +120,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             {
                 try
                 {
-                    pushContentsResponse = await _dEngageClient.GetPushContents(_authToken,500);
+                    pushContentsResponse = await _dEngageClient.GetPushContents(_authToken,limit,offset);
                 }
                 catch (Exception ex)
                 { 
@@ -232,7 +232,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 StatusQueryId = Guid.NewGuid().ToString(),
                 OperatorResponseCode = 0,
                 OperatorResponseMessage = "Mock Sms Successfull",
-                Status = "Delivered",
+                Status = dEngageSmsTrackingStatus.Waiting,
             };
 
             if (templateId != null)

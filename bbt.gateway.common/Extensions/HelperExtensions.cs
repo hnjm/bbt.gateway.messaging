@@ -48,6 +48,26 @@ namespace bbt.gateway.common.Extensions
             return destination;
         }
 
+        public static List<TDestination> ListMapTo<TSource,TDestination>(this List<TSource> source)
+            where TDestination : class, new()
+            where TSource : class,new()
+        {
+            if (source == null)
+                return null;
+
+            var returnList = Activator.CreateInstance<List<TDestination>>();
+            
+            var destination = Activator.CreateInstance<TDestination>();
+            foreach (var item in source)
+            {
+                MatchAndMap(item, destination);
+                returnList.Add(destination);
+            }
+            
+
+            return returnList;
+        }
+
 
     }
 }

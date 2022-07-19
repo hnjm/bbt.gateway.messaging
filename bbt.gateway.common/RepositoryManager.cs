@@ -69,9 +69,9 @@ namespace bbt.gateway.common
 
         public IWhitelistRepository Whitelist => _whitelistRepository ??= new WhitelistRepository(_databaseContext);
 
-        public int SaveChanges()
+        public async Task<int> SaveChangesAsync()
         {
-            return _databaseContext.SaveChanges();
+            return await _databaseContext.SaveChangesAsync();
         }
 
         //public int SaveDodgeChanges()
@@ -79,9 +79,9 @@ namespace bbt.gateway.common
         //    return _dodgeDatabaseContext.SaveChanges();
         //}
 
-        public int SaveSmsBankingChanges()
+        public async Task<int> SaveSmsBankingChangesAsync()
         {
-            return _smsBankingDatabaseContext.SaveChanges();
+            return await _smsBankingDatabaseContext.SaveChangesAsync();
         }
 
         public void Dispose()

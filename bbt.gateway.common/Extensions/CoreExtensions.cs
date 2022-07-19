@@ -24,7 +24,7 @@ namespace bbt.gateway.common
             return host.ConfigureAppConfiguration((context, builder) =>
             {
                 string applicationName = context.HostingEnvironment.ApplicationName;
-                string environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+                string environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
 
                 builder.AddJsonFile($"appsettings.{environmentName}.json", false, true)
                 .AddUserSecrets(type.Assembly).AddEnvironmentVariables();

@@ -7,6 +7,6 @@ namespace bbt.gateway.common.Repositories
 {
     public interface IOtpResponseLogRepository : IRepository<OtpResponseLog>
     {
-        IEnumerable<OtpResponseLog> GetOtpResponseLogsWithTrackingLog(Expression<Func<OtpResponseLog, bool>> predicate);
+        Task<IEnumerable<OtpResponseLog>> GetOtpResponseLogsWithTrackingLogAsync(Expression<Func<OtpResponseLog, bool>> predicate);
     }
 }

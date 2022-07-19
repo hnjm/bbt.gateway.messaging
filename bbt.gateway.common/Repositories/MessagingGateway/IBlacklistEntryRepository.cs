@@ -5,6 +5,6 @@ namespace bbt.gateway.common.Repositories
 {
     public interface IBlacklistEntryRepository : IRepository<BlackListEntry>
     {
-        IEnumerable<BlackListEntry> getWithLogs(int countryCode, int prefix, int number, int page, int pageSize);
+        Task<IEnumerable<BlackListEntry>> GetWithLogsAsync(int countryCode, int prefix, int number, int page, int pageSize);
     }
 }

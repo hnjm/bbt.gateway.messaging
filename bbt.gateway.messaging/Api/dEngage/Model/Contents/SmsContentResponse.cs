@@ -7,6 +7,7 @@ namespace bbt.gateway.messaging.Api.dEngage.Model.Contents
         public int code { get; set; }
         public string message { get; set; }
         public SmsContentData data { get; set; }
+        
     }
 
     public class SmsContentData

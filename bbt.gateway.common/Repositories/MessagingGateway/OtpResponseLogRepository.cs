@@ -14,10 +14,12 @@ namespace bbt.gateway.common.Repositories
         
         }
 
-        public IEnumerable<OtpResponseLog> GetOtpResponseLogsWithTrackingLog(Expression<Func<OtpResponseLog, bool>> predicate)
+        public async Task<IEnumerable<OtpResponseLog>> GetOtpResponseLogsWithTrackingLogAsync(Expression<Func<OtpResponseLog, bool>> predicate)
         {
-            return Context.OtpResponseLog.Where(predicate)
-                .Include("TrackingLogs");
+            return await Context.OtpResponseLog.AsNoTracking()
+                .Where(predicate)
+                .Include("TrackingLogs")
+                .ToListAsync();
         }
     }
 }

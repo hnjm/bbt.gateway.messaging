@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace bbt.gateway.common.Repositories
 {
-    public class UserRepository : DodgeRepository<User>, IUserRepository
+    public class UserRepository : DodgeRepository<User>
     {
         public UserRepository(DodgeDatabaseContext context) : base(context)
         { 

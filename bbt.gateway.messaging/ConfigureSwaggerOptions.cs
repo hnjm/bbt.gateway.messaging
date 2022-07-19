@@ -1,10 +1,12 @@
 ﻿using bbt.gateway.common.Models.v2;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace bbt.gateway.messaging
@@ -12,10 +14,12 @@ namespace bbt.gateway.messaging
     public class ConfigureSwaggerOptions : IConfigureNamedOptions<SwaggerGenOptions>
     {
         private readonly IApiVersionDescriptionProvider provider;
+        private readonly IConfiguration _configuration;
 
-        public ConfigureSwaggerOptions(IApiVersionDescriptionProvider provider)
+        public ConfigureSwaggerOptions(IApiVersionDescriptionProvider provider, IConfiguration configuration)
         {
             this.provider = provider;
+            this._configuration = configuration;
         }
 
         public void Configure(SwaggerGenOptions options)
@@ -50,7 +54,7 @@ namespace bbt.gateway.messaging
         }
     }
 
-    public class OrderTagsDocumentFilter : Swashbuckle.AspNetCore.SwaggerGen.IDocumentFilter
+    public class OrderTagsDocumentFilter : IDocumentFilter
     {
         public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
         {
@@ -61,15 +65,33 @@ namespace bbt.gateway.messaging
 
     public class TemplatedSmsRequestExampleFilter : IExamplesProvider<object>
     {
+        private readonly IConfiguration _configuration;
+        public TemplatedSmsRequestExampleFilter(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
+
         public object GetExamples()
         {
             return new TemplatedSmsRequest
             {
                 Sender = SenderType.AutoDetect,
-                Phone = new Phone() { CountryCode = 90, Prefix = 553, Number = 9495258 },
-                Template = "Test",
-                TemplateParams = "{\"test\":\"Sercan\"}",
-                Process = new Process() { Name = "Integration", Identity = "U05587" }
+                Phone = new Phone() 
+                { 
+                    CountryCode = _configuration.GetValue<int>("Swagger:Examples:Sms:CountryCode"),
+                    Prefix = _configuration.GetValue<int>("Swagger:Examples:Sms:Prefix"), 
+                    Number = _configuration.GetValue<int>("Swagger:Examples:Sms:Number")
+                },
+                Template = _configuration["Swagger:Examples:Sms:Template"],
+                TemplateParams = _configuration["Swagger:Examples:Sms:TemplateParams"],
+                Tags = _configuration.GetValue<string[]>("Swagger:Examples:Tags"),
+                CitizenshipNo = "",
+                CustomerNo = 0,
+                Process = new Process() 
+                { 
+                    Name = _configuration["Swagger:Examples:Process:Name"], 
+                    Identity = _configuration["Swagger:Examples:Process:Identity"] 
+                }
             };
 
         }
@@ -77,16 +99,154 @@ namespace bbt.gateway.messaging
 
     public class SmsRequestExampleFilter : IExamplesProvider<object>
     {
+        private readonly IConfiguration _configuration;
+        public SmsRequestExampleFilter(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
+
         public object GetExamples()
         {
             return new SmsRequest
             {
                 Sender = SenderType.AutoDetect,
-                Phone = new Phone() { CountryCode = 90, Prefix = 553, Number = 9495258 },
-                Content = "Test",
+                Phone = new Phone()
+                {
+                    CountryCode = _configuration.GetValue<int>("Swagger:Examples:Sms:CountryCode"),
+                    Prefix = _configuration.GetValue<int>("Swagger:Examples:Sms:Prefix"),
+                    Number = _configuration.GetValue<int>("Swagger:Examples:Sms:Number")
+                },
+                Content = _configuration["Swagger:Examples:Sms:Content"],
                 SmsType = SmsTypes.Fast,
+                CitizenshipNo = "",
+                CustomerNo = 0,
+                Tags = _configuration.GetValue<string[]>("Swagger:Examples:Tags"),
+                Process = new Process()
+                {
+                    Name = _configuration["Swagger:Examples:Process:Name"],
+                    Identity = _configuration["Swagger:Examples:Process:Identity"]
+                }
+            };
 
-                Process = new Process() { Name = "Integration", Identity = "U05587" }
+        }
+    }
+
+    public class TemplatedMailRequestExampleFilter : IExamplesProvider<object>
+    {
+        private readonly IConfiguration _configuration;
+        public TemplatedMailRequestExampleFilter(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
+
+        public object GetExamples()
+        {
+            return new TemplatedMailRequest
+            {
+                Sender = SenderType.AutoDetect,
+                Email = _configuration["Swagger:Examples:Mail:To"],
+                Attachments = new List<Attachment>(),
+                Bcc = "",
+                Cc = "",
+                CitizenshipNo = "",
+                CustomerNo = 0,
+                Template = _configuration["Swagger:Examples:Mail:Template"],
+                TemplateParams = _configuration["Swagger:Examples:Mail:TemplateParams"],
+                Tags = _configuration.GetValue<string[]>("Swagger:Examples:Tags"),
+                Process = new Process()
+                {
+                    Name = _configuration["Swagger:Examples:Process:Name"],
+                    Identity = _configuration["Swagger:Examples:Process:Identity"]
+                }
+            };
+
+        }
+    }
+
+    public class MailRequestExampleFilter : IExamplesProvider<object>
+    {
+        private readonly IConfiguration _configuration;
+        public MailRequestExampleFilter(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
+
+        public object GetExamples()
+        {
+            return new MailRequest
+            {
+                Sender = SenderType.AutoDetect,
+                Email = _configuration["Swagger:Examples:Mail:To"],
+                From = _configuration["Swagger:Examples:Mail:From"],
+                Subject = _configuration["Swagger:Examples:Mail:Subject"],
+                Content = _configuration["Swagger:Examples:Mail:Content"],
+                Attachments = new List<Attachment>(),
+                Bcc = "",
+                Cc = "",
+                CitizenshipNo = "",
+                CustomerNo = 0,
+                Tags = _configuration.GetValue<string[]>("Swagger:Examples:Tags"),
+                Process = new Process()
+                {
+                    Name = _configuration["Swagger:Examples:Process:Name"],
+                    Identity = _configuration["Swagger:Examples:Process:Identity"]
+                }
+            };
+
+        }
+    }
+
+    public class TemplatedPushRequestExampleFilter : IExamplesProvider<object>
+    {
+        private readonly IConfiguration _configuration;
+        public TemplatedPushRequestExampleFilter(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
+
+        public object GetExamples()
+        {
+            return new TemplatedPushRequest
+            {
+                Sender = SenderType.AutoDetect,
+                CitizenshipNo = "",
+                CustomerNo = 0,
+                CustomParameters = "",
+                Template = _configuration["Swagger:Examples:Push:Template"],
+                TemplateParams = _configuration["Swagger:Examples:Push:TemplateParams"],
+                Tags = _configuration.GetValue<string[]>("Swagger:Examples:Tags"),
+                Process = new Process()
+                {
+                    Name = _configuration["Swagger:Examples:Process:Name"],
+                    Identity = _configuration["Swagger:Examples:Process:Identity"]
+                }
+            };
+
+        }
+    }
+
+    public class PushRequestExampleFilter : IExamplesProvider<object>
+    {
+        private readonly IConfiguration _configuration;
+        public PushRequestExampleFilter(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
+
+        public object GetExamples()
+        {
+            return new PushRequest
+            {
+                Sender = SenderType.AutoDetect,
+                CitizenshipNo = "",
+                CustomerNo = 0,
+                Content = _configuration["Swagger:Examples:Push:Content"],
+                Tags = _configuration.GetValue<string[]>("Swagger:Examples:Tags"),
+                Process = new Process()
+                {
+                    Name = _configuration["Swagger:Examples:Process:Name"],
+                    Identity = _configuration["Swagger:Examples:Process:Identity"]
+                }
             };
 
         }

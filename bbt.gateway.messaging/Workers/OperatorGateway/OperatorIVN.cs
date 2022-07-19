@@ -34,6 +34,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
         public async Task<OtpResponseLog> SendOtp(Phone phone, string content, Header header,bool useControlDays)
         {
+           await Task.CompletedTask;
            var response = new OtpResponseLog { 
                 Operator = OperatorType.IVN,
                 Topic = "IVN otp sending",

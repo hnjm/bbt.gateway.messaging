@@ -28,11 +28,11 @@ namespace bbt.gateway.worker
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                var otpResponseLogs = _repositoryManager.OtpResponseLogs.GetOtpResponseLogsWithTrackingLog(
+                var otpResponseLogs = (await _repositoryManager.OtpResponseLogs.GetOtpResponseLogsWithTrackingLogAsync(
                     o => o.ResponseCode == SendSmsResponseStatus.Success &&
                     o.TrackingStatus == SmsTrackingStatus.Pending
-                    && o.TrackingLogs.Count <= 5)
-                    .ToList();
+                    && o.TrackingLogs.Count <= 5)).ToList();
+
                 otpResponseLogs.ForEach(async (e) =>
                 {
                     try
@@ -44,13 +44,13 @@ namespace bbt.gateway.worker
                             StatusQueryId = e.StatusQueryId
                         });
 
-                        _repositoryManager.OtpTrackingLog.Add(response);
+                        await _repositoryManager.OtpTrackingLog.AddAsync(response);
                         if (response.Status != SmsTrackingStatus.Pending)
                         {
                             e.TrackingStatus = response.Status;
                             _repositoryManager.OtpResponseLogs.Update(e);
                         }
-                        _repositoryManager.SaveChanges();
+                        await _repositoryManager.SaveChangesAsync();
                     }
                     catch (ApiException ex)
                     {

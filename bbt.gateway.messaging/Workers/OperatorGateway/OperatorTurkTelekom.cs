@@ -23,7 +23,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
         public async Task<bool> SendOtp(Phone phone, string content, ConcurrentBag<OtpResponseLog> responses, Header header, bool useControlDays)
         {
-            var turkTelekomResponse = await _turkTelekomApi.SendSms(CreateSmsRequest(phone,content,header,useControlDays));
+            var turkTelekomResponse = await _turkTelekomApi.SendSms(await CreateSmsRequest(phone,content,header,useControlDays));
 
             var response =  turkTelekomResponse.BuildOperatorApiResponse();
             responses.Add(response);
@@ -32,7 +32,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
         }
         public async Task<OtpResponseLog> SendOtp(Phone phone, string content, Header header, bool useControlDays)
         {
-            var turkTelekomResponse = await _turkTelekomApi.SendSms(CreateSmsRequest(phone, content, header, useControlDays));
+            var turkTelekomResponse = await _turkTelekomApi.SendSms(await CreateSmsRequest(phone, content, header, useControlDays));
 
             var response = turkTelekomResponse.BuildOperatorApiResponse();
 
@@ -45,12 +45,12 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             return turkTelekomResponse.BuildOperatorApiTrackingResponse(checkSmsRequest);
         }
 
-        private TurkTelekomSmsRequest CreateSmsRequest(Phone phone, string content, Header header,bool useControlDays)
+        private async Task<TurkTelekomSmsRequest> CreateSmsRequest(Phone phone, string content, Header header,bool useControlDays)
         {
             DateTime checkDate = DateTime.Now.AddDays(-1 * OperatorConfig.ControlDaysForOtp);
             if (useControlDays)
             {
-                var phoneConfiguration = GetPhoneConfiguration(phone);
+                var phoneConfiguration = await GetPhoneConfiguration(phone);
                 if (phoneConfiguration.BlacklistEntries != null &&
                     phoneConfiguration.BlacklistEntries.Count > 0)
                 {

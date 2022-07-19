@@ -30,11 +30,11 @@ namespace bbt.gateway.messaging.Api.dEngage
         [Get("/transactional/email")]
         Task<GetSmsFromsResponse> GetMailStatus([Authorize("Bearer")] string token);
         [Get("/contents/email")]
-        Task<MailContentsResponse> GetMailContents([Authorize("Bearer")] string token,int limit);
+        Task<MailContentsResponse> GetMailContents([Authorize("Bearer")] string token,int limit,string offset);
         [Get("/contents/sms")]
-        Task<SmsContentsResponse> GetSmsContents([Authorize("Bearer")] string token,int limit);
+        Task<SmsContentsResponse> GetSmsContents([Authorize("Bearer")] string token,int limit,string offset);
         [Get("/contents/push")]
-        Task<PushContentsResponse> GetPushContents([Authorize("Bearer")] string token,int limit);
+        Task<PushContentsResponse> GetPushContents([Authorize("Bearer")] string token,int limit,string offset);
 
         [Get("/contents/email/{id}")]
         Task<MailContentResponse> GetMailContent([Authorize("Bearer")] string token, [AliasAs("id")] string templateId);

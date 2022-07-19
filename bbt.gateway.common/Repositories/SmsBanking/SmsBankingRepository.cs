@@ -15,30 +15,29 @@ namespace bbt.gateway.common.Repositories
         {
             this.Context = context;
         }
-        public void Add(TEntity entity)
+        public async Task AddAsync(TEntity entity)
         {
-            Context.Set<TEntity>().Add(entity);
+            await Context.Set<TEntity>().AddAsync(entity);
         }
 
-        public void AddRange(IEnumerable<TEntity> entities)
+        public async Task AddRangeAsync(IEnumerable<TEntity> entities)
         {
-            Context.Set<TEntity>().AddRange(entities);
+            await Context.Set<TEntity>().AddRangeAsync(entities);
         }
 
-        public IEnumerable<TEntity> Find(Expression<Func<TEntity, bool>> predicate)
+        public async Task<IEnumerable<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate)
         {
-           return Context.Set<TEntity>().Where(predicate);           
+           return await Context.Set<TEntity>().AsNoTracking().Where(predicate).ToListAsync();           
         }
 
-        public IEnumerable<TEntity> GetAll()
+        public async Task<IEnumerable<TEntity>> GetAllAsync()
         { 
-            var list = Context.Set<TEntity>().AsNoTracking().ToList();
-            return list;
+            return await Context.Set<TEntity>().AsNoTracking().ToListAsync();
         }
 
-        public IEnumerable<TEntity> GetWithPagination(int page, int pageSize)
+        public async Task<IEnumerable<TEntity>> GetWithPaginationAsync(int page, int pageSize)
         {
-            return Context.Set<TEntity>().Skip(page * pageSize).Take(pageSize).ToList();
+            return await Context.Set<TEntity>().AsNoTracking().Skip(page * pageSize).Take(pageSize).ToListAsync();
         }
 
         public void Remove(TEntity entity)
@@ -51,19 +50,19 @@ namespace bbt.gateway.common.Repositories
             Context.Set<TEntity>().RemoveRange(entities);
         }
 
-        public TEntity SingleOrDefault(Expression<Func<TEntity, bool>> predicate)
+        public async Task<TEntity> SingleOrDefaultAsync(Expression<Func<TEntity, bool>> predicate)
         {
-            return Context.Set<TEntity>().SingleOrDefault(predicate);
+            return await Context.Set<TEntity>().AsNoTracking().SingleOrDefaultAsync(predicate);
         }
 
-        public TEntity FirstOrDefault(Expression<Func<TEntity, bool>> predicate)
+        public async Task<TEntity> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> predicate)
         {
-            return Context.Set<TEntity>().FirstOrDefault(predicate);
+            return await Context.Set<TEntity>().AsNoTracking().FirstOrDefaultAsync(predicate);
         }
 
-        public TEntity FirstOrDefault()
+        public async Task<TEntity> FirstOrDefaultAsync()
         {
-            return Context.Set<TEntity>().FirstOrDefault();
+            return await Context.Set<TEntity>().AsNoTracking().FirstOrDefaultAsync();
         }
 
         public void Update(TEntity entity)

@@ -16,8 +16,8 @@ namespace bbt.gateway.messaging.Workers
         public HeaderInfo HeaderInfo { get; set; }
         public common.Models.v2.SenderType Sender { get; set; }
         public bool UseFakeSmtp { get; set; }
-        public void AddTransaction();
-        public void SaveTransaction();
+        public Task AddTransactionAsync();
+        public Task SaveTransactionAsync();
         public Task GetCustomerInfoByPhone();
         public Task GetCustomerInfoByEmail();
         public Task GetCustomerInfoByCitizenshipNumber();

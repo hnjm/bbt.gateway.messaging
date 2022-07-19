@@ -26,7 +26,7 @@ namespace bbt.gateway.messaging.Middlewares
             _recyclableMemoryStreamManager = new();
         }
 
-        public async Task Invoke(HttpContext context, ITransactionManager transactionManager)
+        public async Task InvokeAsync(HttpContext context, ITransactionManager transactionManager)
         {
             _transactionManager = transactionManager;
             try
@@ -131,7 +131,7 @@ namespace bbt.gateway.messaging.Middlewares
             }
             finally
             {
-                _transactionManager.AddTransaction();
+                await _transactionManager.AddTransactionAsync();
             }
         }
 

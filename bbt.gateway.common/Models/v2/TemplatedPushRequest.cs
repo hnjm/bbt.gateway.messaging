@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using bbt.gateway.common.Attributes;
+using System.ComponentModel.DataAnnotations;
 
 namespace bbt.gateway.common.Models.v2
 {
@@ -7,12 +8,14 @@ namespace bbt.gateway.common.Models.v2
         [Required]
         public SenderType Sender { get; set; }
         [Required(AllowEmptyStrings = false)]
-        [MinLength(10),MaxLength(11)]
+        [CitizenshipNo(10, 11)]
         public string CitizenshipNo { get; set; }
         [Required]
         public string Template { get; set; }
         public string? TemplateParams { get; set; }
         public long? CustomerNo { get; set; }
+        public string CustomParameters { get; set; }
+        public string[] Tags { get; set; }
         public Process Process { get; set; }
     }
 }

@@ -7,11 +7,14 @@ namespace bbt.gateway.messaging.Api.dEngage.Model.Contents
         public int code { get; set; }
         public string message { get; set; }
         public PushResult data { get; set; }
+        
     }
 
     public class PushResult
     {
         public List<PushContentInfo> result { get; set; }
+        public bool queryForNextPage { get; set; }
+        public int totalRowCount { get; set; }
     }
 
     public class PushContentInfo

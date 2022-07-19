@@ -1336,13 +1336,13 @@
         <member name="M:Refit.Implementation.Generated.bbtgatewaymessagingApidEngageIdEngageClient.GetMailStatus(System.String)">
             <inheritdoc />
         </member>
-        <member name="M:Refit.Implementation.Generated.bbtgatewaymessagingApidEngageIdEngageClient.GetMailContents(System.String,System.Int32)">
+        <member name="M:Refit.Implementation.Generated.bbtgatewaymessagingApidEngageIdEngageClient.GetMailContents(System.String,System.Int32,System.String)">
             <inheritdoc />
         </member>
-        <member name="M:Refit.Implementation.Generated.bbtgatewaymessagingApidEngageIdEngageClient.GetSmsContents(System.String,System.Int32)">
+        <member name="M:Refit.Implementation.Generated.bbtgatewaymessagingApidEngageIdEngageClient.GetSmsContents(System.String,System.Int32,System.String)">
             <inheritdoc />
         </member>
-        <member name="M:Refit.Implementation.Generated.bbtgatewaymessagingApidEngageIdEngageClient.GetPushContents(System.String,System.Int32)">
+        <member name="M:Refit.Implementation.Generated.bbtgatewaymessagingApidEngageIdEngageClient.GetPushContents(System.String,System.Int32,System.String)">
             <inheritdoc />
         </member>
         <member name="M:Refit.Implementation.Generated.bbtgatewaymessagingApidEngageIdEngageClient.GetMailContent(System.String,System.String)">
@@ -1378,13 +1378,13 @@
         <member name="M:Refit.Implementation.Generated.bbtgatewaymessagingApidEngageIdEngageClient.bbt#gateway#messaging#Api#dEngage#IdEngageClient#GetMailStatus(System.String)">
             <inheritdoc />
         </member>
-        <member name="M:Refit.Implementation.Generated.bbtgatewaymessagingApidEngageIdEngageClient.bbt#gateway#messaging#Api#dEngage#IdEngageClient#GetMailContents(System.String,System.Int32)">
+        <member name="M:Refit.Implementation.Generated.bbtgatewaymessagingApidEngageIdEngageClient.bbt#gateway#messaging#Api#dEngage#IdEngageClient#GetMailContents(System.String,System.Int32,System.String)">
             <inheritdoc />
         </member>
-        <member name="M:Refit.Implementation.Generated.bbtgatewaymessagingApidEngageIdEngageClient.bbt#gateway#messaging#Api#dEngage#IdEngageClient#GetSmsContents(System.String,System.Int32)">
+        <member name="M:Refit.Implementation.Generated.bbtgatewaymessagingApidEngageIdEngageClient.bbt#gateway#messaging#Api#dEngage#IdEngageClient#GetSmsContents(System.String,System.Int32,System.String)">
             <inheritdoc />
         </member>
-        <member name="M:Refit.Implementation.Generated.bbtgatewaymessagingApidEngageIdEngageClient.bbt#gateway#messaging#Api#dEngage#IdEngageClient#GetPushContents(System.String,System.Int32)">
+        <member name="M:Refit.Implementation.Generated.bbtgatewaymessagingApidEngageIdEngageClient.bbt#gateway#messaging#Api#dEngage#IdEngageClient#GetPushContents(System.String,System.Int32,System.String)">
             <inheritdoc />
         </member>
         <member name="M:Refit.Implementation.Generated.bbtgatewaymessagingApidEngageIdEngageClient.bbt#gateway#messaging#Api#dEngage#IdEngageClient#GetMailContent(System.String,System.String)">

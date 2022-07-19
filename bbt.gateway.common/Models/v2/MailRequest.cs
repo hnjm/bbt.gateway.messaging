@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using bbt.gateway.common.Attributes;
+using System.ComponentModel.DataAnnotations;
 
 namespace bbt.gateway.common.Models.v2
 {
@@ -16,11 +17,12 @@ namespace bbt.gateway.common.Models.v2
         [Required(AllowEmptyStrings =false)]
         public string Content { get; set; }
         public List<Attachment>? Attachments { get; set; }
-        public List<string>? Cc { get; set; }
-        public List<string>? Bcc { get; set; }
+        public string? Cc { get; set; }
+        public string? Bcc { get; set; }
         public long? CustomerNo { get; set; }
-        [MinLength(10), MaxLength(11)]
+        [CitizenshipNo(10, 11)]
         public string? CitizenshipNo { get; set; }
+        public string[] Tags { get; set; }
         public Process Process { get; set; }
     }
 }

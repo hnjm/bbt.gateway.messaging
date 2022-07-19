@@ -7,7 +7,7 @@ using System.Reflection;
 
 namespace bbt.gateway.common.Repositories
 {
-    public class DodgeRepository<TEntity> : IRepository<TEntity> where TEntity : class
+    public class DodgeRepository<TEntity>  where TEntity : class
     {
         protected readonly DodgeDatabaseContext Context;
 

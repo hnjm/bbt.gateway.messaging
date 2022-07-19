@@ -77,7 +77,7 @@ namespace bbt.gateway.messaging.Middlewares
 
         private async Task GetCustomerInfoByPhone()
         {
-            var phoneConfiguration = _repositoryManager.PhoneConfigurations.FirstOrDefault(p =>
+            var phoneConfiguration = await _repositoryManager.PhoneConfigurations.FirstOrDefaultAsync(p =>
                             p.Phone.CountryCode == _transactionManager.Transaction.Phone.CountryCode
                             && p.Phone.Prefix == _transactionManager.Transaction.Phone.Prefix
                             && p.Phone.Number == _transactionManager.Transaction.Phone.Number);
@@ -103,7 +103,7 @@ namespace bbt.gateway.messaging.Middlewares
                                     },
                                 };
 
-                _repositoryManager.PhoneConfigurations.Add(phoneConfiguration);
+                await _repositoryManager.PhoneConfigurations.AddAsync(phoneConfiguration);
             }
             else
             {
@@ -135,7 +135,7 @@ namespace bbt.gateway.messaging.Middlewares
         private async Task GetCustomerInfoByEmail()
         {
             
-            var mailConfiguration = _repositoryManager.MailConfigurations.FirstOrDefault(m => m.Email == _transactionManager.Transaction.Mail);
+            var mailConfiguration = await _repositoryManager.MailConfigurations.FirstOrDefaultAsync(m => m.Email == _transactionManager.Transaction.Mail);
             if (mailConfiguration == null)
             {
                 if(_transactionManager.Transaction.CustomerNo == 0)
@@ -158,7 +158,7 @@ namespace bbt.gateway.messaging.Middlewares
 
                 mailConfiguration.Logs.Add(mailConfigurationLog);
 
-                _repositoryManager.MailConfigurations.Add(mailConfiguration);
+                await _repositoryManager.MailConfigurations.AddAsync(mailConfiguration);
             }
             else
             {

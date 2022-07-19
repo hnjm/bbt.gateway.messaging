@@ -12,7 +12,8 @@ namespace bbt.gateway.common.Models
         public string Topic { get; set; }
         public string ResponseCode { get; set; }
         public string ResponseMessage { get; set; }
-        public ICollection<TransactionalTrackingLog> TrackingLogs { get; set; } = new List<TransactionalTrackingLog>();
+        public PushTrackingStatus Status { get; set; }
+        public ICollection<PushTrackingLog> TrackingLogs { get; set; } = new List<PushTrackingLog>();
         public string StatusQueryId { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 

@@ -4,6 +4,7 @@ using bbt.gateway.messaging.Api.Pusula;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace bbt.gateway.messaging.Workers
 {
@@ -19,18 +20,17 @@ namespace bbt.gateway.messaging.Workers
         {
             _transactionManager = transactionManager;
             _repositoryManager = repositoryManager;
-            loadHeaders();
         }
 
-        public Header[] Get(int page, int pageSize)
+        public async Task<Header[]> Get(int page, int pageSize)
         {
             Header[] returnValue;
-            returnValue = _repositoryManager.Headers.GetWithPagination(page, pageSize).ToArray();
+            returnValue = (await _repositoryManager.Headers.GetWithPaginationAsync(page, pageSize)).ToArray();
 
             return returnValue;
         }
 
-        public Header Get(MessageContentType contentType, HeaderInfo headerInfo)
+        public async Task<Header> Get(MessageContentType contentType, HeaderInfo headerInfo)
         {
             Header header = null;
 
@@ -50,50 +50,60 @@ namespace bbt.gateway.messaging.Workers
 
 
 
-            header = get(contentType, businessLine, branch);
+            header = await get(contentType, businessLine, branch);
 
             return header;
         }
 
-        public void Save(Header header)
+        public Header Get(common.Models.v2.SmsTypes smsType)
+        {
+            Header header = null;
+
+            string businessLine = string.IsNullOrEmpty(_transactionManager.CustomerRequestInfo.BusinessLine) ? null : _transactionManager.CustomerRequestInfo.BusinessLine;
+            int? branch = _transactionManager.CustomerRequestInfo.BranchCode != 0 ? _transactionManager.CustomerRequestInfo.BranchCode : null;
+
+            header = get(smsType, businessLine, branch);
+
+            return header;
+        }
+
+        public async Task Save(Header header)
         {
 
             if (header.Id == Guid.Empty)
             {
                 header.Id = Guid.NewGuid();
-                _repositoryManager.Headers.Add(header);
+                await _repositoryManager.Headers.AddAsync(header);
             }
             else
             {
                 _repositoryManager.Headers.Update(header);
+                await _repositoryManager.SaveChangesAsync();
             }
-
-            _repositoryManager.SaveChanges();
-            loadHeaders();
+            
         }
 
-        public void Delete(Guid id)
+        public async Task Delete(Guid id)
         {
             var itemToDelete = new Header { Id = id };
             _repositoryManager.Headers.Remove(itemToDelete);
-
-            loadHeaders();
+            await _repositoryManager.SaveChangesAsync();
         }
 
-        private Header get(MessageContentType contentType, string businessLine, int? branch)
+        private async Task<Header> get(MessageContentType contentType, string businessLine, int? branch)
         {
 
-            var firstPass = _repositoryManager.Headers.Find(h => h.BusinessLine == businessLine && h.Branch == branch && h.ContentType == contentType).FirstOrDefault();
+            var firstPass = (await _repositoryManager.Headers.FindAsync(h => h.BusinessLine == businessLine && h.Branch == branch && h.ContentType == contentType)).FirstOrDefault();
             if (firstPass != null) return firstPass;
 
             // Check branch first
-            var secondPass = _repositoryManager.Headers.Find(h => h.BusinessLine == null && h.Branch == branch && h.ContentType == contentType).FirstOrDefault();
+            var secondPass = (await _repositoryManager.Headers.FindAsync(h => h.BusinessLine == null && h.Branch == branch && h.ContentType == contentType)).FirstOrDefault();
             if (secondPass != null) return secondPass;
 
-            var thirdPass = _repositoryManager.Headers.Find(h => h.BusinessLine == businessLine && h.Branch == null && h.ContentType == contentType).FirstOrDefault();
+            var thirdPass = (await _repositoryManager.Headers.FindAsync(h => h.BusinessLine == businessLine && h.Branch == null && h.ContentType == contentType)).FirstOrDefault();
             if (thirdPass != null) return thirdPass;
 
-            var lastPass = _repositoryManager.Headers.Find(h => h.BusinessLine == null && h.Branch == null && h.ContentType == contentType).FirstOrDefault();
+            var lastPass = (await _repositoryManager.Headers.FindAsync(h => h.BusinessLine == null && h.Branch == null && h.ContentType == contentType)).FirstOrDefault();
             if (lastPass != null) return lastPass;
 
 
@@ -108,9 +118,38 @@ namespace bbt.gateway.messaging.Workers
             return header;
         }
 
-        private void loadHeaders()
+        private Header get(common.Models.v2.SmsTypes smsType, string businessLine, int? branch)
         {
-            Headers = _repositoryManager.Headers.GetAll().ToList();
+
+            /*
+            var firstPass = _repositoryManager.Headers.Find(h => h.BusinessLine == businessLine && h.Branch == branch && h.ContentType == contentType).FirstOrDefault();
+            if (firstPass != null) return firstPass;
+
+            // Check branch first
+            var secondPass = _repositoryManager.Headers.Find(h => h.BusinessLine == null && h.Branch == branch && h.ContentType == contentType).FirstOrDefault();
+            if (secondPass != null) return secondPass;
+
+            var thirdPass = _repositoryManager.Headers.Find(h => h.BusinessLine == businessLine && h.Branch == null && h.ContentType == contentType).FirstOrDefault();
+            if (thirdPass != null) return thirdPass;
+
+            var lastPass = _repositoryManager.Headers.Find(h => h.BusinessLine == null && h.Branch == null && h.ContentType == contentType).FirstOrDefault();
+            if (lastPass != null) return lastPass;
+            */
+
+            var header = new Header()
+            {
+                SmsPrefix = "",
+                SmsSuffix = "",
+                SmsSender = SenderType.Burgan,
+            };
+
+
+            return header;
+        }
+
+        private async Task loadHeaders()
+        {
+            Headers = (await _repositoryManager.Headers.GetAllAsync()).ToList();
 
         }
 

@@ -4,6 +4,7 @@ using bbt.gateway.common.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace bbt.gateway.messaging.Workers
 {
@@ -14,12 +15,11 @@ namespace bbt.gateway.messaging.Workers
         public OperatorManager(IRepositoryManager repositoryManager)
         {
             _repositoryManager = repositoryManager;
-            loadOperators();
         }
 
-        public OperatorInfo[] Get()
+        public async Task<OperatorInfo[]> Get()
         {            
-            var operatorList = _repositoryManager.Operators.GetAll();
+            var operatorList = await _repositoryManager.Operators.GetAllAsync();
             var operatorInfoList = new List<OperatorInfo>();
 
             foreach (var item in operatorList)
@@ -30,16 +30,16 @@ namespace bbt.gateway.messaging.Workers
             return operatorInfoList.ToArray();
         }
 
-        public Operator Get(OperatorType type)
+        public async Task<Operator> Get(OperatorType type)
         {
-            return _repositoryManager.Operators.FirstOrDefault(o => o.Type == type);
+            return await _repositoryManager.Operators.FirstOrDefaultAsync(o => o.Type == type);
         }
 
 
-        public void Save(Operator data)
+        public async Task Save(Operator data)
         {
             
-            if (!operators.Any(o => o.Id == data.Id))
+            if (await _repositoryManager.Operators.FirstOrDefaultAsync(o => o.Id == data.Id) != null)
             {
                 throw new NotSupportedException("Adding new operator is not allowed.");
             }
@@ -47,15 +47,13 @@ namespace bbt.gateway.messaging.Workers
             {
                 _repositoryManager.Operators.Update(data);
             }
-            _repositoryManager.SaveChanges();
+            await _repositoryManager.SaveChangesAsync();
 
-            //TODO: Meanwhile, dont forget to inform other pods to invalidate headers cahce.
-            loadOperators();
         }
 
-        private void loadOperators()
+        private async Task loadOperators()
         {
-            operators = _repositoryManager.Operators.GetAll().ToList();
+            operators = (await _repositoryManager.Operators.GetAllAsync()).ToList();
         }
     }
 }

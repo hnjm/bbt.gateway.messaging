@@ -12,13 +12,15 @@ namespace bbt.gateway.common.Repositories
         
         }
 
-        public IEnumerable<BlackListEntry> getWithLogs(int countryCode, int prefix, int number, int page, int pageSize)
+        public async Task<IEnumerable<BlackListEntry>> GetWithLogsAsync(int countryCode, int prefix, int number, int page, int pageSize)
         {
-            return Context.BlackListEntries
+            return await Context.BlackListEntries
+                .AsNoTracking()
                 .Where(b => b.PhoneConfiguration.Phone.CountryCode == countryCode && b.PhoneConfiguration.Phone.Prefix == prefix && b.PhoneConfiguration.Phone.Number == number)
                 .Include(b => b.Logs)
                 .Skip(page)
-                .Take(pageSize);
+                .Take(pageSize)
+                .ToListAsync();
         }
     }
 }
