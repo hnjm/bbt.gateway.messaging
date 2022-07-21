@@ -247,7 +247,6 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                         mailResponseLog.ResponseCode = sendMailResponse.code.ToString();
                         mailResponseLog.ResponseMessage = sendMailResponse.message;
                         mailResponseLog.StatusQueryId = sendMailResponse.data.to.trackingId;
-                        mailResponseLog.Status = "";
 
                     }
                     catch (ApiException ex)
@@ -330,7 +329,6 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                         var sendPushResponse = await _dEngageClient.SendPush(req, _authToken);
                         pushNotificationResponseLog.ResponseCode = sendPushResponse.code.ToString();
                         pushNotificationResponseLog.ResponseMessage = sendPushResponse.message;
-                        pushNotificationResponseLog.Status = "";
                     }
                     catch (ApiException ex)
                     {
