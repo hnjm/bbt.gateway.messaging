@@ -42,12 +42,13 @@ namespace bbt.gateway.messaging.Workers
             
         }
 
-        public async Task<List<ContentInfo>> SetMailContents()
+        public async Task<List<ContentInfo>> SetMailContents(OperatorType type)
         {
             List<ContentInfo> mailContents = new List<ContentInfo>();
 
             int limit = 1000;
             int offsetMultiplexer = 0;
+            _operatordEngage.Type = type;
             while (true)
             {
                 var response = await _operatordEngage.GetMailContents(limit, (limit * offsetMultiplexer).ToString());
@@ -73,12 +74,13 @@ namespace bbt.gateway.messaging.Workers
             return mailContents;
         }
 
-        public async Task<List<PushContentInfo>> SetPushContents()
+        public async Task<List<PushContentInfo>> SetPushContents(OperatorType type)
         {
             List<PushContentInfo> pushContents = new List<PushContentInfo>();
 
             int limit = 1000;
             int offsetMultiplexer = 0;
+            _operatordEngage.Type = type;
             while (true)
             {
                 var response = await _operatordEngage.GetPushContents(limit, (limit * offsetMultiplexer).ToString());
@@ -105,13 +107,13 @@ namespace bbt.gateway.messaging.Workers
             return pushContents;
         }
 
-        public async Task<List<SmsContentInfo>> SetSmsContents()
+        public async Task<List<SmsContentInfo>> SetSmsContents(OperatorType type)
         {
             List<SmsContentInfo> smsContents = new List<SmsContentInfo>();
 
             int limit = 1000;
             int offsetMultiplexer = 0;
-
+            _operatordEngage.Type = type;
             while (true)
             {
                 var response = await _operatordEngage.GetSmsContents(limit,(limit*offsetMultiplexer).ToString());
@@ -428,26 +430,26 @@ namespace bbt.gateway.messaging.Workers
 
             var contentListByteArray = await _distributedCache.GetAsync(_operatordEngage.Type.ToString() + "_SmsContents");
             List<SmsContentInfo> contentList = null;
-            if (contentListByteArray == null)
-            {
-                contentList = await SetSmsContents();
-            }
-            else
-            {
-                contentList = JsonConvert.DeserializeObject<List<SmsContentInfo>>(
-                        Encoding.UTF8.GetString(contentListByteArray)
-                    );
-            }
+            //if (contentListByteArray == null)
+            //{
+            //    contentList = await SetSmsContents();
+            //}
+            //else
+            //{
+            //    contentList = JsonConvert.DeserializeObject<List<SmsContentInfo>>(
+            //            Encoding.UTF8.GetString(contentListByteArray)
+            //        );
+            //}
 
             var templateInfo = contentList.Where(c => c.contentName.Trim() == templatedSmsRequest.Template.Trim()).FirstOrDefault();
             if (templateInfo == null)
             {
-                await SetSmsContents();
-                templateInfo = contentList.Where(c => c.contentName.Trim() == templatedSmsRequest.Template.Trim()).FirstOrDefault();
-                if (templateInfo == null)
-                {
-                    throw new WorkflowException("Template Not Found", System.Net.HttpStatusCode.NotFound);
-                }
+                //await SetSmsContents();
+                //templateInfo = contentList.Where(c => c.contentName.Trim() == templatedSmsRequest.Template.Trim()).FirstOrDefault();
+                //if (templateInfo == null)
+                //{
+                //    throw new WorkflowException("Template Not Found", System.Net.HttpStatusCode.NotFound);
+                //}
             }
 
             var smsRequest = new SmsRequestLog()
@@ -583,26 +585,26 @@ namespace bbt.gateway.messaging.Workers
 
             var contentListByteArray = await _distributedCache.GetAsync(_operatordEngage.Type.ToString() + "_MailContents");
             List<ContentInfo> contentList = null;
-            if (contentListByteArray == null)
-            {
-                contentList = await SetMailContents();
-            }
-            else
-            {
-                contentList = JsonConvert.DeserializeObject<List<ContentInfo>>(
-                        Encoding.UTF8.GetString(contentListByteArray)
-                    );
-            }
+            //if (contentListByteArray == null)
+            //{
+            //    contentList = await SetMailContents();
+            //}
+            //else
+            //{
+            //    contentList = JsonConvert.DeserializeObject<List<ContentInfo>>(
+            //            Encoding.UTF8.GetString(contentListByteArray)
+            //        );
+            //}
 
             var templateInfo = contentList.Where(c => c.contentName.Trim() == templatedMailRequest.Template.Trim()).FirstOrDefault();
             if (templateInfo == null)
             {
-                await SetMailContents();
-                templateInfo = contentList.Where(c => c.contentName.Trim() == templatedMailRequest.Template.Trim()).FirstOrDefault();
-                if (templateInfo == null)
-                {
-                    throw new WorkflowException("Template Not Found", System.Net.HttpStatusCode.NotFound);
-                }
+                //await SetMailContents();
+                //templateInfo = contentList.Where(c => c.contentName.Trim() == templatedMailRequest.Template.Trim()).FirstOrDefault();
+                //if (templateInfo == null)
+                //{
+                //    throw new WorkflowException("Template Not Found", System.Net.HttpStatusCode.NotFound);
+                //}
             }
 
             var mailRequest = new MailRequestLog()
@@ -649,26 +651,26 @@ namespace bbt.gateway.messaging.Workers
 
             var contentListByteArray = await _distributedCache.GetAsync(_operatordEngage.Type.ToString() + "_PushContents");
             List<PushContentInfo> contentList = null;
-            if (contentListByteArray == null)
-            {
-                contentList = await SetPushContents();
-            }
-            else
-            {
-                contentList = JsonConvert.DeserializeObject<List<PushContentInfo>>(
-                        Encoding.UTF8.GetString(contentListByteArray)
-                    );
-            }
+            //if (contentListByteArray == null)
+            //{
+            //    contentList = await SetPushContents();
+            //}
+            //else
+            //{
+            //    contentList = JsonConvert.DeserializeObject<List<PushContentInfo>>(
+            //            Encoding.UTF8.GetString(contentListByteArray)
+            //        );
+            //}
 
             var templateInfo = contentList.Where(c => c.name.Trim() == sendTemplatedPushNotificationRequest.Template.Trim()).FirstOrDefault();
             if (templateInfo == null)
             {
-                await SetPushContents();
-                templateInfo = contentList.Where(c => c.name.Trim() == sendTemplatedPushNotificationRequest.Template.Trim()).FirstOrDefault();
-                if (templateInfo == null)
-                {
-                    throw new WorkflowException("Template Not Found", System.Net.HttpStatusCode.NotFound);
-                }
+                //await SetPushContents();
+                //templateInfo = contentList.Where(c => c.name.Trim() == sendTemplatedPushNotificationRequest.Template.Trim()).FirstOrDefault();
+                //if (templateInfo == null)
+                //{
+                //    throw new WorkflowException("Template Not Found", System.Net.HttpStatusCode.NotFound);
+                //}
             }
 
             var pushRequest = new PushNotificationRequestLog()
@@ -713,26 +715,26 @@ namespace bbt.gateway.messaging.Workers
 
             var contentListByteArray = await _distributedCache.GetAsync(_operatordEngage.Type.ToString() + "_PushContents");
             List<PushContentInfo> contentList = null;
-            if (contentListByteArray == null)
-            {
-                contentList = await SetPushContents();
-            }
-            else
-            {
-                contentList = JsonConvert.DeserializeObject<List<PushContentInfo>>(
-                        Encoding.UTF8.GetString(contentListByteArray)
-                    );
-            }
+            //if (contentListByteArray == null)
+            //{
+            //    contentList = await SetPushContents();
+            //}
+            //else
+            //{
+            //    contentList = JsonConvert.DeserializeObject<List<PushContentInfo>>(
+            //            Encoding.UTF8.GetString(contentListByteArray)
+            //        );
+            //}
 
             var templateInfo = contentList.Where(c => c.name.Trim() == DEFAULT_TEMPLATE_NAME).FirstOrDefault();
             if (templateInfo == null)
             {
-                await SetPushContents();
-                templateInfo = contentList.Where(c => c.name.Trim() == DEFAULT_TEMPLATE_NAME).FirstOrDefault();
-                if (templateInfo == null)
-                {
-                    throw new WorkflowException("Template Not Found", System.Net.HttpStatusCode.NotFound);
-                }
+                //await SetPushContents();
+                //templateInfo = contentList.Where(c => c.name.Trim() == DEFAULT_TEMPLATE_NAME).FirstOrDefault();
+                //if (templateInfo == null)
+                //{
+                //    throw new WorkflowException("Template Not Found", System.Net.HttpStatusCode.NotFound);
+                //}
             }
 
             var templateParams = JsonConvert.SerializeObject(new

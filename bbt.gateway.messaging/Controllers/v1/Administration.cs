@@ -1,12 +1,16 @@
 ﻿using bbt.gateway.common.Models;
 using bbt.gateway.common.Repositories;
+using bbt.gateway.messaging.Api.dEngage.Model.Contents;
 using bbt.gateway.messaging.Workers;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Distributed;
+using Newtonsoft.Json;
 using Swashbuckle.AspNetCore.Annotations;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace bbt.gateway.messaging.Controllers.v1
@@ -21,15 +25,17 @@ namespace bbt.gateway.messaging.Controllers.v1
         private readonly IRepositoryManager _repositoryManager;
         private readonly ITransactionManager _transactionManager;
         private readonly dEngageSender _dEngageSender;
+        private readonly IDistributedCache _distributedCache;
         public Administration(HeaderManager headerManager, OperatorManager operatorManager,
             IRepositoryManager repositoryManager, ITransactionManager transactionManager,
-            dEngageSender dEngageSender)
+            dEngageSender dEngageSender,IDistributedCache distributedCache)
         {
             _headerManager = headerManager;
             _operatorManager = operatorManager;
             _repositoryManager = repositoryManager;
             _transactionManager = transactionManager;
             _dEngageSender = dEngageSender;
+            _distributedCache = distributedCache;
         }
 
         [SwaggerOperation(Summary = "Write Templates To Cache")]
@@ -37,7 +43,8 @@ namespace bbt.gateway.messaging.Controllers.v1
         [SwaggerResponse(200, "Templates stored successfully")]
         public async Task<IActionResult> SetSmsTemplates()
         {
-            await _dEngageSender.SetSmsContents();
+            await _dEngageSender.SetSmsContents(OperatorType.dEngageBurgan);
+            await _dEngageSender.SetSmsContents(OperatorType.dEngageOn);
             return Ok();
         }
 
@@ -46,7 +53,8 @@ namespace bbt.gateway.messaging.Controllers.v1
         [SwaggerResponse(200, "Templates stored successfully")]
         public async Task<IActionResult> SetMailTemplates()
         {
-            await _dEngageSender.SetMailContents();
+            await _dEngageSender.SetMailContents(OperatorType.dEngageBurgan);
+            await _dEngageSender.SetMailContents(OperatorType.dEngageOn);
             return Ok();
         }
 
@@ -55,8 +63,75 @@ namespace bbt.gateway.messaging.Controllers.v1
         [SwaggerResponse(200, "Templates stored successfully")]
         public async Task<IActionResult> SetPushTemplates()
         {
-            await _dEngageSender.SetPushContents();
+            await _dEngageSender.SetPushContents(OperatorType.dEngageBurgan);
+            await _dEngageSender.SetPushContents(OperatorType.dEngageOn);
             return Ok();
+        }
+
+        [SwaggerOperation(Summary = "Get Templates From Cache")]
+        [HttpGet("templates/sms/burgan")]
+        [SwaggerResponse(200, "Templates returned successfully")]
+        public async Task<IActionResult> GetBurganSmsTemplates()
+        {
+            var data = await _distributedCache.GetAsync("dEngageBurgan_SmsContents");
+            return Ok(JsonConvert.DeserializeObject<List<SmsContentInfo>>(
+                        Encoding.UTF8.GetString(data)
+                    ));
+        }
+
+        [SwaggerOperation(Summary = "Get Templates From Cache")]
+        [HttpGet("templates/sms/on")]
+        [SwaggerResponse(200, "Templates returned successfully")]
+        public async Task<IActionResult> GetOnSmsTemplates()
+        {
+            var data = await _distributedCache.GetAsync("dEngageOn_SmsContents");
+            return Ok(JsonConvert.DeserializeObject<List<SmsContentInfo>>(
+                        Encoding.UTF8.GetString(data)
+                    ));
+        }
+
+        [SwaggerOperation(Summary = "Get Templates From Cache")]
+        [HttpGet("templates/mail/burgan")]
+        [SwaggerResponse(200, "Templates returned successfully")]
+        public async Task<IActionResult> GetBurganMailTemplates()
+        {
+            var data = await _distributedCache.GetAsync("dEngageBurgan_MailContents");
+            return Ok(JsonConvert.DeserializeObject<List<ContentInfo>>(
+                        Encoding.UTF8.GetString(data)
+                    ));
+        }
+
+        [SwaggerOperation(Summary = "Get Templates From Cache")]
+        [HttpGet("templates/mail/on")]
+        [SwaggerResponse(200, "Templates returned successfully")]
+        public async Task<IActionResult> GetOnMailTemplates()
+        {
+            var data = await _distributedCache.GetAsync("dEngageOn_MailContents");
+            return Ok(JsonConvert.DeserializeObject<List<ContentInfo>>(
+                        Encoding.UTF8.GetString(data)
+                    ));
+        }
+
+        [SwaggerOperation(Summary = "Get Templates From Cache")]
+        [HttpGet("templates/push/burgan")]
+        [SwaggerResponse(200, "Templates returned successfully")]
+        public async Task<IActionResult> GetBurganPushTemplates()
+        {
+            var data = await _distributedCache.GetAsync("dEngageBurgan_PushContents");
+            return Ok(JsonConvert.DeserializeObject<List<PushContentInfo>>(
+                        Encoding.UTF8.GetString(data)
+                    ));
+        }
+
+        [SwaggerOperation(Summary = "Get Templates From Cache")]
+        [HttpGet("templates/push/on")]
+        [SwaggerResponse(200, "Templates returned successfully")]
+        public async Task<IActionResult> GetOnPushTemplates()
+        {
+            var data = await _distributedCache.GetAsync("dEngageOn_PushContents");
+            return Ok(JsonConvert.DeserializeObject<List<PushContentInfo>>(
+                        Encoding.UTF8.GetString(data)
+                    ));
         }
 
         [SwaggerOperation(Summary = "Returns content headers configuration")]
