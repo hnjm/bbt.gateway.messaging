@@ -18,48 +18,44 @@ namespace bbt.gateway.messaging.Middlewares
     public class CustomerInfoMiddleware
     {
         private readonly RequestDelegate _next;
-        private ITransactionManager _transactionManager;
-        private IRepositoryManager _repositoryManager;
         
         public CustomerInfoMiddleware(RequestDelegate next)
         {
             _next = next;
         }
 
-        public async Task InvokeAsync(HttpContext context,ITransactionManager transactionManager,IRepositoryManager repositoryManager)
+        public async Task InvokeAsync(HttpContext context,ITransactionManager _transactionManager,IRepositoryManager _repositoryManager)
         {
-            _transactionManager = transactionManager;
-            _repositoryManager = repositoryManager;
             
-            await GetCustomerDetail();
+            await GetCustomerDetail(_transactionManager,_repositoryManager);
 
             // Call the next delegate/middleware in the pipeline.
             await _next(context);   
         }
        
-        private async Task GetCustomerDetail()
+        private async Task GetCustomerDetail(ITransactionManager _transactionManager,IRepositoryManager _repositoryManager)
         {
             if (_transactionManager.Transaction.CustomerNo > 0)
             {
-                await GetCustomerInfo();
+                await GetCustomerInfo(_transactionManager);
             }
             else
             {
                 if (!string.IsNullOrEmpty(_transactionManager.Transaction.CitizenshipNo))
                 {
-                    await GetCustomerInfoByCitizenshipNumber();
+                    await GetCustomerInfoByCitizenshipNumber(_transactionManager);
                 }
             }
-
+            
             if (_transactionManager.Transaction.Phone != null)
             {
-                await GetCustomerInfoByPhone();
+                await GetCustomerInfoByPhone(_transactionManager,_repositoryManager);
             }
             else
             {
                 if (!string.IsNullOrEmpty(_transactionManager.Transaction.Mail))
                 {
-                    await GetCustomerInfoByEmail();
+                    await GetCustomerInfoByEmail(_transactionManager,_repositoryManager);
                 }
                 else
                 {
@@ -69,13 +65,13 @@ namespace bbt.gateway.messaging.Middlewares
             }
         }
 
-        private async Task GetCustomerInfoByCitizenshipNumber()
+        private async Task GetCustomerInfoByCitizenshipNumber(ITransactionManager _transactionManager)
         {
             await _transactionManager.GetCustomerInfoByCitizenshipNumber();
             await _transactionManager.GetCustomerInfoByCustomerNo();
         }
 
-        private async Task GetCustomerInfoByPhone()
+        private async Task GetCustomerInfoByPhone(ITransactionManager _transactionManager,IRepositoryManager _repositoryManager)
         {
             var phoneConfiguration = await _repositoryManager.PhoneConfigurations.FirstOrDefaultAsync(p =>
                             p.Phone.CountryCode == _transactionManager.Transaction.Phone.CountryCode
@@ -84,7 +80,7 @@ namespace bbt.gateway.messaging.Middlewares
 
             if (phoneConfiguration == null)
             {
-                if(_transactionManager.Transaction.CustomerNo == 0)
+                if (_transactionManager.Transaction.CustomerNo == 0)
                     await _transactionManager.GetCustomerInfoByPhone();
 
                 phoneConfiguration = new PhoneConfiguration()
@@ -123,7 +119,7 @@ namespace bbt.gateway.messaging.Middlewares
                         await _transactionManager.GetCustomerInfoByPhone();
                         phoneConfiguration.CustomerNo = _transactionManager.CustomerRequestInfo.CustomerNo;
                     }
-                }                
+                }
             }
 
             if (_transactionManager.Transaction.TransactionType == TransactionType.Otp)
@@ -132,7 +128,7 @@ namespace bbt.gateway.messaging.Middlewares
                 _transactionManager.SmsRequestInfo.PhoneConfiguration = phoneConfiguration;
         }
 
-        private async Task GetCustomerInfoByEmail()
+        private async Task GetCustomerInfoByEmail(ITransactionManager _transactionManager,IRepositoryManager _repositoryManager)
         {
             
             var mailConfiguration = await _repositoryManager.MailConfigurations.FirstOrDefaultAsync(m => m.Email == _transactionManager.Transaction.Mail);
@@ -184,7 +180,7 @@ namespace bbt.gateway.messaging.Middlewares
             _transactionManager.MailRequestInfo.MailConfiguration = mailConfiguration;
         }
 
-        private async Task GetCustomerInfo()
+        private async Task GetCustomerInfo(ITransactionManager _transactionManager)
         {
             await _transactionManager.GetCustomerInfoByCustomerNo();
         }

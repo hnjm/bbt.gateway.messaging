@@ -32,7 +32,7 @@ namespace bbt.gateway.common.Repositories
 
         public IEnumerable<TEntity> GetAll()
         { 
-            var list = Context.Set<TEntity>().AsNoTracking().ToList();
+            var list = Context.Set<TEntity>().ToList();
             return list;
         }
 

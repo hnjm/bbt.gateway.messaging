@@ -52,7 +52,6 @@ namespace bbt.gateway.messaging
                     {
                         opts.SerializerSettings.Converters.Add(new StringEnumConverter());
                         opts.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-                        opts.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
                     });
 
             JsonSerializerSettings settings = new();

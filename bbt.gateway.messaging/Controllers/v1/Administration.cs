@@ -20,13 +20,43 @@ namespace bbt.gateway.messaging.Controllers.v1
         private readonly OperatorManager _operatorManager;
         private readonly IRepositoryManager _repositoryManager;
         private readonly ITransactionManager _transactionManager;
+        private readonly dEngageSender _dEngageSender;
         public Administration(HeaderManager headerManager, OperatorManager operatorManager,
-            IRepositoryManager repositoryManager, ITransactionManager transactionManager)
+            IRepositoryManager repositoryManager, ITransactionManager transactionManager,
+            dEngageSender dEngageSender)
         {
             _headerManager = headerManager;
             _operatorManager = operatorManager;
             _repositoryManager = repositoryManager;
             _transactionManager = transactionManager;
+            _dEngageSender = dEngageSender;
+        }
+
+        [SwaggerOperation(Summary = "Write Templates To Cache")]
+        [HttpPost("templates/sms")]
+        [SwaggerResponse(200, "Templates stored successfully")]
+        public async Task<IActionResult> SetSmsTemplates()
+        {
+            await _dEngageSender.SetSmsContents();
+            return Ok();
+        }
+
+        [SwaggerOperation(Summary = "Write Templates To Cache")]
+        [HttpPost("templates/mail")]
+        [SwaggerResponse(200, "Templates stored successfully")]
+        public async Task<IActionResult> SetMailTemplates()
+        {
+            await _dEngageSender.SetMailContents();
+            return Ok();
+        }
+
+        [SwaggerOperation(Summary = "Write Templates To Cache")]
+        [HttpPost("templates/push")]
+        [SwaggerResponse(200, "Templates stored successfully")]
+        public async Task<IActionResult> SetPushTemplates()
+        {
+            await _dEngageSender.SetPushContents();
+            return Ok();
         }
 
         [SwaggerOperation(Summary = "Returns content headers configuration")]

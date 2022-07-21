@@ -15,6 +15,9 @@ namespace bbt.gateway.common.Attributes
 
         protected override ValidationResult IsValid(object value, ValidationContext validationContext)
         {
+            if (value == null)
+                return ValidationResult.Success;
+
             string actualValue = value.ToString();
             if(string.IsNullOrEmpty(actualValue))
                 return ValidationResult.Success;

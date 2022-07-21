@@ -12,7 +12,7 @@ namespace bbt.gateway.common.Repositories
 
         public async Task<Transaction> GetWithIdAsync(Guid TxnId)
         {
-            return await Context.Transactions.AsNoTracking()
+            return await Context.Transactions
                 .Where(t => t.Id == TxnId)
                 .Include(t => t.OtpRequestLog).ThenInclude(o => o.ResponseLogs).ThenInclude(o => o.TrackingLogs)
                 .Include(t => t.SmsRequestLog).ThenInclude(s => s.ResponseLogs)
@@ -21,7 +21,7 @@ namespace bbt.gateway.common.Repositories
 
         public async Task<(IEnumerable<Transaction>,int)> GetOtpMessagesWithPhoneAsync(int countryCode, int prefix, int number, DateTime startDate, DateTime endDate, int page, int pageSize)
         {
-            IEnumerable<Transaction> list = await Context.Transactions.AsNoTracking()
+            IEnumerable<Transaction> list = await Context.Transactions
                .Where(t => t.Phone.CountryCode == countryCode && t.Phone.Prefix == prefix && t.Phone.Number == number &&
                 t.TransactionType == TransactionType.Otp && t.CreatedAt >= startDate && t.CreatedAt <= endDate)
                .Include(t => t.OtpRequestLog).ThenInclude(o => o.ResponseLogs).ThenInclude(o => o.TrackingLogs)
@@ -31,7 +31,7 @@ namespace bbt.gateway.common.Repositories
                 .Take(pageSize)
                 .ToListAsync();
 
-            int count = await Context.Transactions.AsNoTracking()
+            int count = await Context.Transactions
                .CountAsync(t => t.Phone.CountryCode == countryCode && t.Phone.Prefix == prefix && t.Phone.Number == number &&
                 t.TransactionType == TransactionType.Otp && t.CreatedAt >= startDate && t.CreatedAt <= endDate);
 
@@ -41,7 +41,7 @@ namespace bbt.gateway.common.Repositories
 
         public async Task<(IEnumerable<Transaction>,int)> GetOtpMessagesWithCustomerNoAsync(ulong customerNo, DateTime startDate, DateTime endDate, int page, int pageSize)
         {
-            IEnumerable<Transaction> list = await Context.Transactions.AsNoTracking()
+            IEnumerable<Transaction> list = await Context.Transactions
                 .Where(t => t.CustomerNo == customerNo && t.TransactionType == TransactionType.Otp
                  && t.CreatedAt >= startDate && t.CreatedAt <= endDate)
                 .Include(t => t.OtpRequestLog).ThenInclude(o => o.ResponseLogs).ThenInclude(o => o.TrackingLogs)
@@ -51,7 +51,7 @@ namespace bbt.gateway.common.Repositories
                 .Take(pageSize)
                 .ToListAsync();
 
-            int count = await Context.Transactions.AsNoTracking()
+            int count = await Context.Transactions
                 .CountAsync(t => t.CustomerNo == customerNo && t.TransactionType == TransactionType.Otp
                  && t.CreatedAt >= startDate && t.CreatedAt <= endDate);
 
@@ -61,7 +61,7 @@ namespace bbt.gateway.common.Repositories
 
         public async Task<(IEnumerable<Transaction>,int)> GetOtpMessagesWithCitizenshipNoAsync(string citizenshipNo, DateTime startDate, DateTime endDate, int page, int pageSize)
         {
-            IEnumerable<Transaction> list = await Context.Transactions.AsNoTracking()
+            IEnumerable<Transaction> list = await Context.Transactions
                 .Where(t => t.CitizenshipNo == citizenshipNo && t.TransactionType == TransactionType.Otp
                  && t.CreatedAt >= startDate && t.CreatedAt <= endDate)
                 .Include(t => t.OtpRequestLog).ThenInclude(o => o.ResponseLogs).ThenInclude(o => o.TrackingLogs)
@@ -71,7 +71,7 @@ namespace bbt.gateway.common.Repositories
                 .Take(pageSize)
                 .ToListAsync();
 
-            int count = await Context.Transactions.AsNoTracking()
+            int count = await Context.Transactions
                 .CountAsync(t => t.CitizenshipNo == citizenshipNo && t.TransactionType == TransactionType.Otp
                  && t.CreatedAt >= startDate && t.CreatedAt <= endDate);
 
@@ -80,7 +80,7 @@ namespace bbt.gateway.common.Repositories
 
         public async Task<(IEnumerable<Transaction>,int)> GetTransactionalSmsMessagesWithPhoneAsync(int countryCode, int prefix, int number, DateTime startDate, DateTime endDate, int page, int pageSize)
         {
-            IEnumerable<Transaction> list = await Context.Transactions.AsNoTracking()
+            IEnumerable<Transaction> list = await Context.Transactions
                 .Where(t => t.Phone.CountryCode == countryCode && t.Phone.Prefix == prefix && t.Phone.Number == number && (t.TransactionType == TransactionType.TransactionalSms
                 || t.TransactionType == TransactionType.TransactionalTemplatedSms)
                 && t.CreatedAt >= startDate && t.CreatedAt < endDate)
@@ -90,7 +90,7 @@ namespace bbt.gateway.common.Repositories
                 .Take(pageSize)
                 .ToListAsync();
 
-            int count = await Context.Transactions.AsNoTracking()
+            int count = await Context.Transactions
                 .CountAsync(t => t.Phone.CountryCode == countryCode && t.Phone.Prefix == prefix && t.Phone.Number == number && (t.TransactionType == TransactionType.TransactionalSms
                 || t.TransactionType == TransactionType.TransactionalTemplatedSms)
                 && t.CreatedAt >= startDate && t.CreatedAt < endDate);
@@ -100,7 +100,7 @@ namespace bbt.gateway.common.Repositories
 
         public async Task<(IEnumerable<Transaction>,int)> GetTransactionalSmsMessagesWithCustomerNoAsync(ulong customerNo, DateTime startDate, DateTime endDate, int page, int pageSize)
         {
-            IEnumerable<Transaction> list = await Context.Transactions.AsNoTracking()
+            IEnumerable<Transaction> list = await Context.Transactions
                 .Where(t => t.CustomerNo == customerNo &&
                 (t.TransactionType == TransactionType.TransactionalSms
                 || t.TransactionType == TransactionType.TransactionalTemplatedSms)
@@ -111,7 +111,7 @@ namespace bbt.gateway.common.Repositories
                 .Take(pageSize)
                 .ToListAsync();
 
-            int count = await Context.Transactions.AsNoTracking()
+            int count = await Context.Transactions
                 .CountAsync(t => t.CustomerNo == customerNo &&
                 (t.TransactionType == TransactionType.TransactionalSms
                 || t.TransactionType == TransactionType.TransactionalTemplatedSms)
@@ -122,7 +122,7 @@ namespace bbt.gateway.common.Repositories
 
         public async Task<(IEnumerable<Transaction>,int)> GetTransactionalSmsMessagesWithCitizenshipNoAsync(string citizenshipNo, DateTime startDate, DateTime endDate, int page, int pageSize)
         {
-            IEnumerable<Transaction> list = await Context.Transactions.AsNoTracking()
+            IEnumerable<Transaction> list = await Context.Transactions
                 .Where(t => t.CitizenshipNo == citizenshipNo &&
                 (t.TransactionType == TransactionType.TransactionalSms
                 || t.TransactionType == TransactionType.TransactionalTemplatedSms)
@@ -134,7 +134,7 @@ namespace bbt.gateway.common.Repositories
                 .ToListAsync();
 
 
-            int count = await Context.Transactions.AsNoTracking()
+            int count = await Context.Transactions
                 .CountAsync(t => t.CitizenshipNo == citizenshipNo &&
                 (t.TransactionType == TransactionType.TransactionalSms
                 || t.TransactionType == TransactionType.TransactionalTemplatedSms)
@@ -145,7 +145,7 @@ namespace bbt.gateway.common.Repositories
 
         public async Task<(IEnumerable<Transaction>, int)> GetMailMessagesWithMailAsync(string email, DateTime startDate, DateTime endDate, int page, int pageSize)
         {
-            IEnumerable<Transaction> list = await Context.Transactions.AsNoTracking()
+            IEnumerable<Transaction> list = await Context.Transactions
             .Where(t => t.Mail == email &&
                 (t.TransactionType == TransactionType.TransactionalMail
                 || t.TransactionType == TransactionType.TransactionalTemplatedMail) &&
@@ -156,7 +156,7 @@ namespace bbt.gateway.common.Repositories
                 .Take(pageSize)
                 .ToListAsync();
 
-            var count = await Context.Transactions.AsNoTracking()
+            var count = await Context.Transactions
             .CountAsync(t => t.Mail == email &&
                 (t.TransactionType == TransactionType.TransactionalMail
                 || t.TransactionType == TransactionType.TransactionalTemplatedMail) &&
@@ -167,7 +167,7 @@ namespace bbt.gateway.common.Repositories
 
         public async Task<(IEnumerable<Transaction>, int)> GetMailMessagesWithCustomerNoAsync(ulong customerNo, DateTime startDate, DateTime endDate, int page, int pageSize)
         {
-            IEnumerable<Transaction> list = await Context.Transactions.AsNoTracking()
+            IEnumerable<Transaction> list = await Context.Transactions
             .Where(t => t.CustomerNo == customerNo &&
             (t.TransactionType == TransactionType.TransactionalMail
                 || t.TransactionType == TransactionType.TransactionalTemplatedMail) &&
@@ -178,7 +178,7 @@ namespace bbt.gateway.common.Repositories
                 .Take(pageSize)
                 .ToListAsync();
 
-            int count = await Context.Transactions.AsNoTracking()
+            int count = await Context.Transactions
             .CountAsync(t => t.CustomerNo == customerNo &&
             (t.TransactionType == TransactionType.TransactionalMail
                 || t.TransactionType == TransactionType.TransactionalTemplatedMail) &&
@@ -188,7 +188,7 @@ namespace bbt.gateway.common.Repositories
         }
         public async Task<(IEnumerable<Transaction>, int)> GetMailMessagesWithCitizenshipNoAsync(string citizenshipNo, DateTime startDate, DateTime endDate, int page, int pageSize)
         {
-            IEnumerable<Transaction> list = await Context.Transactions.AsNoTracking()
+            IEnumerable<Transaction> list = await Context.Transactions
             .Where(t => t.CitizenshipNo == citizenshipNo &&
             (t.TransactionType == TransactionType.TransactionalMail
                 || t.TransactionType == TransactionType.TransactionalTemplatedMail) &&
@@ -199,7 +199,7 @@ namespace bbt.gateway.common.Repositories
                 .Take(pageSize)
                 .ToListAsync();
 
-            int count = await Context.Transactions.AsNoTracking()
+            int count = await Context.Transactions
             .CountAsync(t => t.CitizenshipNo == citizenshipNo &&
             (t.TransactionType == TransactionType.TransactionalMail
                 || t.TransactionType == TransactionType.TransactionalTemplatedMail) &&
@@ -210,7 +210,7 @@ namespace bbt.gateway.common.Repositories
 
         public async Task<(IEnumerable<Transaction>, int)> GetPushMessagesWithCustomerNoAsync(ulong customerNo, DateTime startDate, DateTime endDate, int page, int pageSize)
         {
-            IEnumerable<Transaction> list = await Context.Transactions.AsNoTracking()
+            IEnumerable<Transaction> list = await Context.Transactions
                 .Where(t => (t.CustomerNo == customerNo &&
                  (t.TransactionType == TransactionType.TransactionalPush || t.TransactionType == TransactionType.TransactionalTemplatedPush) &&
                  t.CreatedAt >= startDate && t.CreatedAt <= endDate
@@ -221,7 +221,7 @@ namespace bbt.gateway.common.Repositories
                 .Take(pageSize)
                 .ToListAsync();
 
-            int count = await Context.Transactions.AsNoTracking()
+            int count = await Context.Transactions
                 .CountAsync(t => (t.CustomerNo == customerNo &&
                  (t.TransactionType == TransactionType.TransactionalPush || t.TransactionType == TransactionType.TransactionalTemplatedPush) &&
                  t.CreatedAt >= startDate && t.CreatedAt <= endDate
@@ -232,7 +232,7 @@ namespace bbt.gateway.common.Repositories
 
         public async Task<(IEnumerable<Transaction>, int)> GetPushMessagesWithCitizenshipNoAsync(string citizenshipNo, DateTime startDate, DateTime endDate, int page, int pageSize)
         {
-            IEnumerable<Transaction> list = await Context.Transactions.AsNoTracking()
+            IEnumerable<Transaction> list = await Context.Transactions
                 .Where(t => (t.CitizenshipNo == citizenshipNo &&
                 (t.TransactionType == TransactionType.TransactionalPush || t.TransactionType == TransactionType.TransactionalTemplatedPush) &&
                 t.CreatedAt >= startDate && t.CreatedAt <= endDate
@@ -243,7 +243,7 @@ namespace bbt.gateway.common.Repositories
                 .Take(pageSize)
                 .ToListAsync();
 
-            int count = await Context.Transactions.AsNoTracking()
+            int count = await Context.Transactions
                 .CountAsync(t => (t.CitizenshipNo == citizenshipNo &&
                 (t.TransactionType == TransactionType.TransactionalPush || t.TransactionType == TransactionType.TransactionalTemplatedPush) &&
                 t.CreatedAt >= startDate && t.CreatedAt <= endDate

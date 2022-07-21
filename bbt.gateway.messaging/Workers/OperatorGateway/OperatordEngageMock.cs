@@ -232,7 +232,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 StatusQueryId = Guid.NewGuid().ToString(),
                 OperatorResponseCode = 0,
                 OperatorResponseMessage = "Mock Sms Successfull",
-                Status = dEngageSmsTrackingStatus.Waiting,
+                Status = "",
             };
 
             if (templateId != null)

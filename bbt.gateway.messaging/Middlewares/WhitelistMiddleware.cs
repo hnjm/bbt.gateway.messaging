@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Transactions;
 
 namespace bbt.gateway.messaging.Middlewares
 {
@@ -14,17 +15,15 @@ namespace bbt.gateway.messaging.Middlewares
     public class WhitelistMiddleware
     {
         private readonly RequestDelegate _next;
-        private ITransactionManager _transactionManager;
-        private IRepositoryManager _repositoryManager;
+        
         public WhitelistMiddleware(RequestDelegate next)
         {
             _next = next;
         }
 
-        public async Task InvokeAsync(HttpContext context,ITransactionManager transactionManager,IRepositoryManager repositoryManager)
+        public async Task InvokeAsync(HttpContext context,ITransactionManager _transactionManager,IRepositoryManager _repositoryManager)
         {
-            _transactionManager = transactionManager;
-            _repositoryManager = repositoryManager;
+            
             _transactionManager.UseFakeSmtp = false;
             var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
             if (environment != "Prod")
@@ -35,13 +34,13 @@ namespace bbt.gateway.messaging.Middlewares
                 }
                 else
                 {
-                    await CheckWhitelist();
+                    await CheckWhitelist(_transactionManager,_repositoryManager);
                 }
             }
             await _next(context);
         }
 
-        private async Task CheckWhitelist()
+        private async Task CheckWhitelist(ITransactionManager _transactionManager,IRepositoryManager _repositoryManager)
         {
             if (_transactionManager.Transaction.TransactionType == TransactionType.Otp ||
                 _transactionManager.Transaction.TransactionType == TransactionType.TransactionalSms ||
@@ -52,6 +51,7 @@ namespace bbt.gateway.messaging.Middlewares
                 if (phone == null)
                     throw new WorkflowException("Phone number couldn't be resolved",System.Net.HttpStatusCode.NotFound);
 
+                
                 if ((await _repositoryManager.Whitelist.FindAsync(w =>
                 (w.Phone.CountryCode == phone.CountryCode
                 && w.Phone.Prefix == phone.Prefix
@@ -60,6 +60,7 @@ namespace bbt.gateway.messaging.Middlewares
                 {
                     _transactionManager.UseFakeSmtp = true;
                 }
+                                      
             }
 
             if (_transactionManager.Transaction.TransactionType == TransactionType.TransactionalMail ||

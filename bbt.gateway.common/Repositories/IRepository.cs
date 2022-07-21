@@ -6,6 +6,7 @@ namespace bbt.gateway.common.Repositories
 {
     public interface IRepository<TEntity> where TEntity : class
     {
+        IEnumerable<TEntity> GetAll();
         Task<IEnumerable<TEntity>> GetAllAsync();
         Task<IEnumerable<TEntity>> GetWithPaginationAsync(int page, int pageSize);
         Task<IEnumerable<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate);

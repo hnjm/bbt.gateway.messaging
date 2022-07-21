@@ -247,7 +247,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                         mailResponseLog.ResponseCode = sendMailResponse.code.ToString();
                         mailResponseLog.ResponseMessage = sendMailResponse.message;
                         mailResponseLog.StatusQueryId = sendMailResponse.data.to.trackingId;
-                        mailResponseLog.Status = MailTrackingStatus.Pending;
+                        mailResponseLog.Status = "";
 
                     }
                     catch (ApiException ex)
@@ -276,9 +276,17 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                                 return mailResponseLog;
                             }
                         }
-                        var error = await ex.GetContentAsAsync<SendMailResponse>();
-                        mailResponseLog.ResponseCode = error.code.ToString();
-                        mailResponseLog.ResponseMessage = error.message;
+                        if ((int)ex.StatusCode >= 400 && (int)ex.StatusCode < 500)
+                        {
+                            var error = await ex.GetContentAsAsync<Api.dEngage.Model.Transactional.SendSmsResponse>();
+                            mailResponseLog.ResponseCode = error.code.ToString();
+                            mailResponseLog.ResponseMessage = error.message;
+                        }
+                        if ((int)ex.StatusCode >= 500)
+                        {
+                            mailResponseLog.ResponseCode = "-999";
+                            mailResponseLog.ResponseMessage = "dEngage Internal Server Error";
+                        }
                     }                    
 
 
@@ -322,7 +330,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                         var sendPushResponse = await _dEngageClient.SendPush(req, _authToken);
                         pushNotificationResponseLog.ResponseCode = sendPushResponse.code.ToString();
                         pushNotificationResponseLog.ResponseMessage = sendPushResponse.message;
-                        pushNotificationResponseLog.Status = PushTrackingStatus.Pending;
+                        pushNotificationResponseLog.Status = "";
                     }
                     catch (ApiException ex)
                     {
@@ -350,9 +358,17 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                                 return pushNotificationResponseLog;
                             }
                         }
-                        var error = await ex.GetContentAsAsync<SendMailResponse>();
-                        pushNotificationResponseLog.ResponseCode = error.code.ToString();
-                        pushNotificationResponseLog.ResponseMessage = error.message;
+                        if ((int)ex.StatusCode >= 400 && (int)ex.StatusCode < 500)
+                        {
+                            var error = await ex.GetContentAsAsync<Api.dEngage.Model.Transactional.SendSmsResponse>();
+                            pushNotificationResponseLog.ResponseCode = error.code.ToString();
+                            pushNotificationResponseLog.ResponseMessage = error.message;
+                        }
+                        if ((int)ex.StatusCode >= 500)
+                        {
+                            pushNotificationResponseLog.ResponseCode = "-999";
+                            pushNotificationResponseLog.ResponseMessage = "dEngage Internal Server Error";
+                        }
                     }
 
 
@@ -429,7 +445,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                         smsLog.OperatorResponseCode = sendSmsResponse.code;
                         smsLog.OperatorResponseMessage = sendSmsResponse.message;
                         smsLog.StatusQueryId = sendSmsResponse.data.to.trackingId;
-                        smsLog.Status = dEngageSmsTrackingStatus.Pending;
+                        smsLog.Status = "";
 
                     }
                     catch (ApiException ex)
@@ -458,9 +474,17 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                                 return smsLog;
                             }
                         }
-                        var error = await ex.GetContentAsAsync<Api.dEngage.Model.Transactional.SendSmsResponse>();
-                        smsLog.OperatorResponseCode = error.code;
-                        smsLog.OperatorResponseMessage = error.message;
+                        if ((int)ex.StatusCode >= 400 && (int)ex.StatusCode < 500)
+                        {
+                            var error = await ex.GetContentAsAsync<Api.dEngage.Model.Transactional.SendSmsResponse>();
+                            smsLog.OperatorResponseCode = error.code;
+                            smsLog.OperatorResponseMessage = error.message;
+                        }
+                        if ((int)ex.StatusCode >= 500)
+                        {
+                            smsLog.OperatorResponseCode = -999;
+                            smsLog.OperatorResponseMessage = "dEngage Internal Server Error";
+                        }
                     }
                     
                     return smsLog;

@@ -16,7 +16,7 @@ namespace bbt.gateway.common.Repositories
 
         public async Task<IEnumerable<OtpResponseLog>> GetOtpResponseLogsWithTrackingLogAsync(Expression<Func<OtpResponseLog, bool>> predicate)
         {
-            return await Context.OtpResponseLog.AsNoTracking()
+            return await Context.OtpResponseLog
                 .Where(predicate)
                 .Include("TrackingLogs")
                 .ToListAsync();

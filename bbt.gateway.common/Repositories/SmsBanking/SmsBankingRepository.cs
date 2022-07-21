@@ -27,17 +27,22 @@ namespace bbt.gateway.common.Repositories
 
         public async Task<IEnumerable<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate)
         {
-           return await Context.Set<TEntity>().AsNoTracking().Where(predicate).ToListAsync();           
+           return await Context.Set<TEntity>().Where(predicate).ToListAsync();           
+        }
+
+        public IEnumerable<TEntity> GetAll()
+        {
+            return Context.Set<TEntity>().ToList();
         }
 
         public async Task<IEnumerable<TEntity>> GetAllAsync()
         { 
-            return await Context.Set<TEntity>().AsNoTracking().ToListAsync();
+            return await Context.Set<TEntity>().ToListAsync();
         }
 
         public async Task<IEnumerable<TEntity>> GetWithPaginationAsync(int page, int pageSize)
         {
-            return await Context.Set<TEntity>().AsNoTracking().Skip(page * pageSize).Take(pageSize).ToListAsync();
+            return await Context.Set<TEntity>().Skip(page * pageSize).Take(pageSize).ToListAsync();
         }
 
         public void Remove(TEntity entity)
@@ -52,17 +57,17 @@ namespace bbt.gateway.common.Repositories
 
         public async Task<TEntity> SingleOrDefaultAsync(Expression<Func<TEntity, bool>> predicate)
         {
-            return await Context.Set<TEntity>().AsNoTracking().SingleOrDefaultAsync(predicate);
+            return await Context.Set<TEntity>().SingleOrDefaultAsync(predicate);
         }
 
         public async Task<TEntity> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> predicate)
         {
-            return await Context.Set<TEntity>().AsNoTracking().FirstOrDefaultAsync(predicate);
+            return await Context.Set<TEntity>().FirstOrDefaultAsync(predicate);
         }
 
         public async Task<TEntity> FirstOrDefaultAsync()
         {
-            return await Context.Set<TEntity>().AsNoTracking().FirstOrDefaultAsync();
+            return await Context.Set<TEntity>().FirstOrDefaultAsync();
         }
 
         public void Update(TEntity entity)

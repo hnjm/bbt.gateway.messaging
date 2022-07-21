@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+using System.Transactions;
 
 namespace bbt.gateway.common.Extensions
 {
@@ -48,26 +44,29 @@ namespace bbt.gateway.common.Extensions
             return destination;
         }
 
-        public static List<TDestination> ListMapTo<TSource,TDestination>(this List<TSource> source)
+        public static List<TDestination> ListMapTo<TSource, TDestination>(this List<TSource> source)
             where TDestination : class, new()
-            where TSource : class,new()
+            where TSource : class, new()
         {
             if (source == null)
                 return null;
 
             var returnList = Activator.CreateInstance<List<TDestination>>();
-            
+
             var destination = Activator.CreateInstance<TDestination>();
             foreach (var item in source)
             {
                 MatchAndMap(item, destination);
                 returnList.Add(destination);
             }
-            
+
 
             return returnList;
         }
 
+        
+
 
     }
+
 }

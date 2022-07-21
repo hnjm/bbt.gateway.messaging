@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Serilog;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace bbt.gateway.messaging.Workers
@@ -37,7 +38,7 @@ namespace bbt.gateway.messaging.Workers
             _logger = Log.ForContext<TransactionManager>();
             _pusulaClient = pusulaClient;
             _repositoryManager = repositoryManager;
-
+            
             Transaction = new()
             {
                 Id = _txnId

@@ -1,8 +1,11 @@
-﻿using bbt.gateway.common.Models;
+﻿using bbt.gateway.common;
+using bbt.gateway.common.Models;
 using bbt.gateway.messaging.Exceptions;
 using bbt.gateway.messaging.Workers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -10,6 +13,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace bbt.gateway.messaging.Middlewares
@@ -17,7 +21,6 @@ namespace bbt.gateway.messaging.Middlewares
     public class TransactionMiddleware
     {
         private readonly RequestDelegate _next;
-        private ITransactionManager _transactionManager;
         private RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
         private MiddlewareRequest _middlewareRequest;
         public TransactionMiddleware(RequestDelegate next)
@@ -26,9 +29,9 @@ namespace bbt.gateway.messaging.Middlewares
             _recyclableMemoryStreamManager = new();
         }
 
-        public async Task InvokeAsync(HttpContext context, ITransactionManager transactionManager)
+        public async Task InvokeAsync(HttpContext context, ITransactionManager _transactionManager,IConfiguration configuration)
         {
-            _transactionManager = transactionManager;
+            
             try
             {
                 context.Request.EnableBuffering();
@@ -60,7 +63,7 @@ namespace bbt.gateway.messaging.Middlewares
                 _transactionManager.HeaderInfo = _middlewareRequest.HeaderInfo;
                 _transactionManager.Sender = _middlewareRequest.Sender;
 
-                SetTransaction(context);
+                SetTransaction(context,_transactionManager);
 
                 //Save Original Stream
                 var originalStream = context.Response.Body;
@@ -131,28 +134,38 @@ namespace bbt.gateway.messaging.Middlewares
             }
             finally
             {
-                await _transactionManager.AddTransactionAsync();
+                try
+                {
+                    await _transactionManager.AddTransactionAsync();
+                    await _transactionManager.SaveTransactionAsync();
+                }
+                catch (Exception ex)
+                {
+
+                    _transactionManager.LogError("An Error Occured | Detail :" + ex.ToString());
+                }
+                
             }
         }
 
-        private void SetTransaction(HttpContext context)
+        private void SetTransaction(HttpContext context,ITransactionManager _transactionManager)
         {
             var path = context.Request.Path.ToString();
             if (path.Contains("sms") && !path.Contains("check"))
             {
                 if (_middlewareRequest.ContentType == MessageContentType.Otp)
                 {
-                    SetTransactionAsOtp();
+                    SetTransactionAsOtp(_transactionManager);
                 }
                 else
                 {
                     if (path.Contains("templated"))
                     {
-                        SetTransactionAsTemplatedSms();
+                        SetTransactionAsTemplatedSms(_transactionManager);
                     }
                     else
                     {
-                        SetTransactionAsSms();
+                        SetTransactionAsSms(_transactionManager);
                     }
                 }
             }
@@ -162,11 +175,11 @@ namespace bbt.gateway.messaging.Middlewares
 
                 if (path.Contains("templated"))
                 {
-                    SetTransactionAsTemplatedMail();
+                    SetTransactionAsTemplatedMail(_transactionManager);
                 }
                 else
                 {
-                    SetTransactionAsMail();
+                    SetTransactionAsMail(_transactionManager);
                 }
 
             }
@@ -176,17 +189,17 @@ namespace bbt.gateway.messaging.Middlewares
 
                 if (path.Contains("templated"))
                 {
-                    SetTransactionAsTemplatedPushNotification();
+                    SetTransactionAsTemplatedPushNotification(_transactionManager);
                 }
                 else
                 {
-                    SetTransactionAsPushNotification();
+                    SetTransactionAsPushNotification(_transactionManager);
                 }
 
             }
         }
 
-        private void SetTransactionAsOtp()
+        private void SetTransactionAsOtp(ITransactionManager _transactionManager)
         {
             _transactionManager.Transaction.TransactionType = TransactionType.Otp;
             _transactionManager.OtpRequestInfo.Process = _middlewareRequest.Process;
@@ -194,7 +207,7 @@ namespace bbt.gateway.messaging.Middlewares
             _transactionManager.OtpRequestInfo.Phone = _middlewareRequest.Phone;
         }
 
-        private void SetTransactionAsSms()
+        private void SetTransactionAsSms(ITransactionManager _transactionManager)
         {
             _transactionManager.Transaction.TransactionType = TransactionType.TransactionalSms;
             _transactionManager.SmsRequestInfo.Process = _middlewareRequest.Process;
@@ -202,7 +215,7 @@ namespace bbt.gateway.messaging.Middlewares
             _transactionManager.SmsRequestInfo.Phone = _middlewareRequest.Phone;
         }
 
-        private void SetTransactionAsTemplatedSms()
+        private void SetTransactionAsTemplatedSms(ITransactionManager _transactionManager)
         {
             _transactionManager.Transaction.TransactionType = TransactionType.TransactionalTemplatedSms;
             _transactionManager.SmsRequestInfo.Process = _middlewareRequest.Process;
@@ -211,7 +224,7 @@ namespace bbt.gateway.messaging.Middlewares
             _transactionManager.SmsRequestInfo.Phone = _middlewareRequest.Phone;
         }
 
-        private void SetTransactionAsMail()
+        private void SetTransactionAsMail(ITransactionManager _transactionManager)
         {
             _transactionManager.Transaction.TransactionType = TransactionType.TransactionalMail;
             _transactionManager.MailRequestInfo.Process = _middlewareRequest.Process;
@@ -219,7 +232,7 @@ namespace bbt.gateway.messaging.Middlewares
             _transactionManager.MailRequestInfo.Email = _middlewareRequest.Email;
         }
 
-        private void SetTransactionAsTemplatedMail()
+        private void SetTransactionAsTemplatedMail(ITransactionManager _transactionManager)
         {
             _transactionManager.Transaction.TransactionType = TransactionType.TransactionalTemplatedMail;
             _transactionManager.MailRequestInfo.Process = _middlewareRequest.Process;
@@ -228,7 +241,7 @@ namespace bbt.gateway.messaging.Middlewares
             _transactionManager.MailRequestInfo.Email = _middlewareRequest.Email;
         }
 
-        private void SetTransactionAsPushNotification()
+        private void SetTransactionAsPushNotification(ITransactionManager _transactionManager)
         {
             _transactionManager.Transaction.TransactionType = TransactionType.TransactionalPush;
             _transactionManager.PushRequestInfo.Process = _middlewareRequest.Process;
@@ -238,7 +251,7 @@ namespace bbt.gateway.messaging.Middlewares
             _transactionManager.PushRequestInfo.CustomParameters = _middlewareRequest.CustomParameters?.MaskFields();
         }
 
-        private void SetTransactionAsTemplatedPushNotification()
+        private void SetTransactionAsTemplatedPushNotification(ITransactionManager _transactionManager)
         {
             _transactionManager.Transaction.TransactionType = TransactionType.TransactionalTemplatedPush;
             _transactionManager.PushRequestInfo.Process = _middlewareRequest.Process;
