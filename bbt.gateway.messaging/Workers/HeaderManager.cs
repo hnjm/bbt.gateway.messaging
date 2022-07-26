@@ -140,7 +140,8 @@ namespace bbt.gateway.messaging.Workers
             {
                 SmsPrefix = "",
                 SmsSuffix = "",
-                SmsSender = SenderType.Burgan,
+                SmsSender = string.IsNullOrEmpty(_transactionManager.CustomerRequestInfo.BusinessLine) ? SenderType.Burgan : 
+                (_transactionManager.CustomerRequestInfo.BusinessLine == "X" ? SenderType.On : SenderType.Burgan),
             };
 
 

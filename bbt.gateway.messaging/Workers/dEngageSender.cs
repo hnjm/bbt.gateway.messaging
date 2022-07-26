@@ -321,7 +321,6 @@ namespace bbt.gateway.messaging.Workers
             List<ContentInfo> contentList = JsonConvert.DeserializeObject<List<ContentInfo>>(
                         Encoding.UTF8.GetString(contentListByteArray)
                     );
-          
 
             var templateInfo = contentList.Where(c => c.contentName.Trim() == sendTemplatedEmailRequest.Template.Trim()).FirstOrDefault();
             if (templateInfo == null)
