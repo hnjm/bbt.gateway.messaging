@@ -197,6 +197,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 PhoneNo = phone.CountryCode.ToString() + phone.Prefix.ToString() + phone.Number.ToString(),
                 ControlHour = controlHour.ToString()
             };
+
         }
 
         private VodafoneSmsStatusRequest CreateSmsStatusRequest(string messageId)
