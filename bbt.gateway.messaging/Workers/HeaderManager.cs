@@ -57,14 +57,12 @@ namespace bbt.gateway.messaging.Workers
 
         public Header Get(common.Models.v2.SmsTypes smsType)
         {
-            Header header = null;
 
             string businessLine = string.IsNullOrEmpty(_transactionManager.CustomerRequestInfo.BusinessLine) ? null : _transactionManager.CustomerRequestInfo.BusinessLine;
             int? branch = _transactionManager.CustomerRequestInfo.BranchCode != 0 ? _transactionManager.CustomerRequestInfo.BranchCode : null;
 
-            header = get(smsType, businessLine, branch);
+            return get(smsType, businessLine, branch);
 
-            return header;
         }
 
         public async Task Save(Header header)
