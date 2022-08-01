@@ -168,19 +168,27 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             if (useControlDays)
             {
                 var phoneConfiguration = await GetPhoneConfiguration(phone);
-                if (phoneConfiguration.BlacklistEntries != null &&
-                    phoneConfiguration.BlacklistEntries.Count > 0)
+                if (phoneConfiguration != null)
                 {
-                    var blackListEntry = phoneConfiguration.BlacklistEntries
-                    .Where(b => b.Status == BlacklistStatus.Resolved).OrderByDescending(b => b.CreatedAt)
-                    .FirstOrDefault();
-
-                    if (blackListEntry != null)
+                    if (phoneConfiguration.BlacklistEntries != null &&
+                        phoneConfiguration.BlacklistEntries.Count > 0)
                     {
-                        if (blackListEntry.ResolvedAt != null)
+                        var blackListEntry = phoneConfiguration.BlacklistEntries
+                        .Where(b => b.Status == BlacklistStatus.Resolved).OrderByDescending(b => b.CreatedAt)
+                        .FirstOrDefault();
+
+                        if (blackListEntry != null)
                         {
-                            double resolvedDateTotalHour = (DateTime.Now - blackListEntry.ResolvedAt.Value).TotalHours;
-                            controlHour = resolvedDateTotalHour > controlHour ? controlHour : resolvedDateTotalHour;
+                            if (blackListEntry.ResolvedAt != null)
+                            {
+                                double resolvedDateTotalHour = (DateTime.Now - blackListEntry.ResolvedAt.Value).TotalHours;
+                                controlHour = resolvedDateTotalHour > controlHour ? controlHour : resolvedDateTotalHour;
+                            }
+                        }
+                        else
+                        {
+                            double oldResolvedDateTotalHour = (DateTime.Now - TransactionManager.OldBlacklistVerifiedAt).TotalHours;
+                            controlHour = oldResolvedDateTotalHour > controlHour ? controlHour : oldResolvedDateTotalHour;
                         }
                     }
                     else
@@ -194,7 +202,6 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                     double oldResolvedDateTotalHour = (DateTime.Now - TransactionManager.OldBlacklistVerifiedAt).TotalHours;
                     controlHour = oldResolvedDateTotalHour > controlHour ? controlHour : oldResolvedDateTotalHour;
                 }
-
             }
 
             return new VodafoneSmsRequest()

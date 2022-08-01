@@ -170,19 +170,26 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             if (useControlDays)
             {
                 var phoneConfiguration = await GetPhoneConfiguration(phone);
-                if (phoneConfiguration.BlacklistEntries != null &&
-                    phoneConfiguration.BlacklistEntries.Count > 0)
+                if (phoneConfiguration != null)
                 {
-                    var blackListEntry = phoneConfiguration.BlacklistEntries
-                        .Where(b => b.Status == BlacklistStatus.Resolved).OrderByDescending(b => b.CreatedAt)
-                        .FirstOrDefault();
-
-                    if (blackListEntry != null)
+                    if (phoneConfiguration.BlacklistEntries != null &&
+                        phoneConfiguration.BlacklistEntries.Count > 0)
                     {
-                        if (blackListEntry.ResolvedAt != null)
+                        var blackListEntry = phoneConfiguration.BlacklistEntries
+                            .Where(b => b.Status == BlacklistStatus.Resolved).OrderByDescending(b => b.CreatedAt)
+                            .FirstOrDefault();
+
+                        if (blackListEntry != null)
                         {
-                            DateTime resolvedDate = blackListEntry.ResolvedAt.Value;
-                            trustedDate = trustedDate > resolvedDate ? trustedDate : resolvedDate;
+                            if (blackListEntry.ResolvedAt != null)
+                            {
+                                DateTime resolvedDate = blackListEntry.ResolvedAt.Value;
+                                trustedDate = trustedDate > resolvedDate ? trustedDate : resolvedDate;
+                            }
+                        }
+                        else
+                        {
+                            trustedDate = trustedDate > TransactionManager.OldBlacklistVerifiedAt ? trustedDate : TransactionManager.OldBlacklistVerifiedAt;
                         }
                     }
                     else

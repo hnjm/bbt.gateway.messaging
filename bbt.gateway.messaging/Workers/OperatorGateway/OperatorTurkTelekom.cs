@@ -51,19 +51,27 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             if (useControlDays)
             {
                 var phoneConfiguration = await GetPhoneConfiguration(phone);
-                if (phoneConfiguration.BlacklistEntries != null &&
-                    phoneConfiguration.BlacklistEntries.Count > 0)
-                {
-                    var blackListEntry = phoneConfiguration.BlacklistEntries
-                    .Where(b => b.Status == BlacklistStatus.Resolved).OrderByDescending(b => b.CreatedAt)
-                    .FirstOrDefault();
 
-                    if (blackListEntry != null)
+                if (phoneConfiguration != null)
+                {
+                    if (phoneConfiguration.BlacklistEntries != null &&
+                        phoneConfiguration.BlacklistEntries.Count > 0)
                     {
-                        if (blackListEntry.ResolvedAt != null)
+                        var blackListEntry = phoneConfiguration.BlacklistEntries
+                        .Where(b => b.Status == BlacklistStatus.Resolved).OrderByDescending(b => b.CreatedAt)
+                        .FirstOrDefault();
+
+                        if (blackListEntry != null)
                         {
-                            DateTime resolvedDate = blackListEntry.ResolvedAt.Value;
-                            checkDate = checkDate > resolvedDate ? checkDate : resolvedDate;
+                            if (blackListEntry.ResolvedAt != null)
+                            {
+                                DateTime resolvedDate = blackListEntry.ResolvedAt.Value;
+                                checkDate = checkDate > resolvedDate ? checkDate : resolvedDate;
+                            }
+                        }
+                        else
+                        {
+                            checkDate = checkDate > TransactionManager.OldBlacklistVerifiedAt ? checkDate : TransactionManager.OldBlacklistVerifiedAt;
                         }
                     }
                     else
