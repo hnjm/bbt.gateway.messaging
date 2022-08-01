@@ -126,15 +126,29 @@ namespace bbt.gateway.messaging.Workers
                 {
                     _transactionManager.LogError("OperatorChange or SimChange Has Occured");
 
-                    //Add to Blacklist If Not Exists
-                    if (!phoneConfiguration.BlacklistEntries.Any(b => b.Status == BlacklistStatus.NotResolved && b.ValidTo > DateTime.Today))
+                    if (phoneConfiguration.BlacklistEntries != null)
                     {
-                        _transactionManager.LogError("Phone has a blacklist record");
-                        var oldBlackListEntry = createOldBlackListEntry((long)_transactionManager.CustomerRequestInfo.CustomerNo, phoneConfiguration.Phone.ToString());
-                        await _repositoryManager.DirectBlacklists.AddAsync(oldBlackListEntry);
+                        //Add to Blacklist If Not Exists
+                        if (!phoneConfiguration.BlacklistEntries.Any(b => b.Status == BlacklistStatus.NotResolved && b.ValidTo > DateTime.Today))
+                        {
+                            _transactionManager.LogError("Phone has a blacklist record");
+                            var oldBlackListEntry = createOldBlackListEntry((long)_transactionManager.CustomerRequestInfo.CustomerNo, phoneConfiguration.Phone.ToString());
+                            await _repositoryManager.DirectBlacklists.AddAsync(oldBlackListEntry);
+                            await _repositoryManager.SaveSmsBankingChangesAsync();
 
-                        var blackListEntry = createBlackListEntry(phoneConfiguration, returnValue.ToString(), "SendMessageToKnownProcess",oldBlackListEntry.SmsId);
-                        await _repositoryManager.BlackListEntries.AddAsync(blackListEntry);
+                            var blackListEntry = createBlackListEntry(phoneConfiguration, returnValue.ToString(), "SendMessageToKnownProcess", oldBlackListEntry.SmsId);
+                            await _repositoryManager.BlackListEntries.AddAsync(blackListEntry);
+                        }
+                    }
+                    else
+                    {
+                            _transactionManager.LogError("Phone has a blacklist record");
+                            var oldBlackListEntry = createOldBlackListEntry((long)_transactionManager.CustomerRequestInfo.CustomerNo, phoneConfiguration.Phone.ToString());
+                            await _repositoryManager.DirectBlacklists.AddAsync(oldBlackListEntry);
+                            await _repositoryManager.SaveSmsBankingChangesAsync();
+
+                            var blackListEntry = createBlackListEntry(phoneConfiguration, returnValue.ToString(), "SendMessageToKnownProcess", oldBlackListEntry.SmsId);
+                            await _repositoryManager.BlackListEntries.AddAsync(blackListEntry);
                     }
                 }
                 returnValue = responseLog.ResponseCode;
@@ -199,13 +213,26 @@ namespace bbt.gateway.messaging.Workers
             if (returnValue == SendSmsResponseStatus.OperatorChange || returnValue == SendSmsResponseStatus.SimChange)
             {
                 _transactionManager.LogError("OperatorChange or SimChange Has Occured");
-                if (phoneConfiguration.BlacklistEntries.All(b => b.Status == BlacklistStatus.Resolved))
+                if (phoneConfiguration.BlacklistEntries != null)
                 {
-                    var oldBlackListEntry = createOldBlackListEntry((long)_transactionManager.CustomerRequestInfo.CustomerNo, phoneConfiguration.Phone.ToString());
-                    await _repositoryManager.DirectBlacklists.AddAsync(oldBlackListEntry);
+                    if (phoneConfiguration.BlacklistEntries.All(b => b.Status == BlacklistStatus.Resolved))
+                    {
+                        var oldBlackListEntry = createOldBlackListEntry((long)_transactionManager.CustomerRequestInfo.CustomerNo, phoneConfiguration.Phone.ToString());
+                        await _repositoryManager.DirectBlacklists.AddAsync(oldBlackListEntry);
+                        await _repositoryManager.SaveSmsBankingChangesAsync();
 
-                    var blackListEntry = createBlackListEntry(phoneConfiguration, returnValue.ToString(), "SendMessageToUnknownProcess", oldBlackListEntry.SmsId);
-                    await _repositoryManager.BlackListEntries.AddAsync(blackListEntry);
+                        var blackListEntry = createBlackListEntry(phoneConfiguration, returnValue.ToString(), "SendMessageToUnknownProcess", oldBlackListEntry.SmsId);
+                        await _repositoryManager.BlackListEntries.AddAsync(blackListEntry);
+                    }
+                }
+                else
+                {
+                        var oldBlackListEntry = createOldBlackListEntry((long)_transactionManager.CustomerRequestInfo.CustomerNo, phoneConfiguration.Phone.ToString());
+                        await _repositoryManager.DirectBlacklists.AddAsync(oldBlackListEntry);
+                        await _repositoryManager.SaveSmsBankingChangesAsync();
+
+                        var blackListEntry = createBlackListEntry(phoneConfiguration, returnValue.ToString(), "SendMessageToUnknownProcess", oldBlackListEntry.SmsId);
+                        await _repositoryManager.BlackListEntries.AddAsync(blackListEntry);
                 }
             }
 
@@ -390,6 +417,10 @@ namespace bbt.gateway.messaging.Workers
                         phoneConfiguration.BlacklistEntries.Add(blacklistEntry);
                         await _repositoryManager.BlackListEntries.AddAsync(blacklistEntry);
                     }
+                    else
+                    {
+                        _transactionManager.OldBlacklistVerifiedAt = oldBlacklistRecord.VerifyDate ?? DateTime.MinValue;
+                    }
                 }
             }
 
@@ -410,14 +441,27 @@ namespace bbt.gateway.messaging.Workers
                     _transactionManager.LogError("OperatorChange or SimChange Has Occured");
 
                     //Add to Blacklist If Not Exists
-                    if (!phoneConfiguration.BlacklistEntries.Any(b => b.Status == BlacklistStatus.NotResolved && b.ValidTo > DateTime.Today))
+                    if (phoneConfiguration.BlacklistEntries != null)
                     {
-                        _transactionManager.LogError("Phone has a blacklist record");
-                        var oldBlackListEntry = createOldBlackListEntry((long)_transactionManager.CustomerRequestInfo.CustomerNo, phoneConfiguration.Phone.ToString());
-                        await _repositoryManager.DirectBlacklists.AddAsync(oldBlackListEntry);
+                        if (!phoneConfiguration.BlacklistEntries.Any(b => b.Status == BlacklistStatus.NotResolved && b.ValidTo > DateTime.Today))
+                        {
+                            _transactionManager.LogError("Phone has a blacklist record");
+                            var oldBlackListEntry = createOldBlackListEntry((long)_transactionManager.CustomerRequestInfo.CustomerNo, phoneConfiguration.Phone.ToString());
+                            await _repositoryManager.DirectBlacklists.AddAsync(oldBlackListEntry);
+                            await _repositoryManager.SaveSmsBankingChangesAsync();
 
-                        var blackListEntry = createBlackListEntryV2(phoneConfiguration, returnValue.ToString(), "SendMessageToKnownProcess", oldBlackListEntry.SmsId);
-                        await _repositoryManager.BlackListEntries.AddAsync(blackListEntry);
+                            var blackListEntry = createBlackListEntryV2(phoneConfiguration, returnValue.ToString(), "SendMessageToKnownProcess", oldBlackListEntry.SmsId);
+                            await _repositoryManager.BlackListEntries.AddAsync(blackListEntry);
+                        }
+                    }
+                    else
+                    {
+                            var oldBlackListEntry = createOldBlackListEntry((long)_transactionManager.CustomerRequestInfo.CustomerNo, phoneConfiguration.Phone.ToString());
+                            await _repositoryManager.DirectBlacklists.AddAsync(oldBlackListEntry);
+                            await _repositoryManager.SaveSmsBankingChangesAsync();
+
+                            var blackListEntry = createBlackListEntryV2(phoneConfiguration, returnValue.ToString(), "SendMessageToKnownProcess", oldBlackListEntry.SmsId);
+                            await _repositoryManager.BlackListEntries.AddAsync(blackListEntry);
                     }
                 }
                 returnValue = responseLog.ResponseCode;
@@ -483,10 +527,23 @@ namespace bbt.gateway.messaging.Workers
             if (returnValue == SendSmsResponseStatus.OperatorChange || returnValue == SendSmsResponseStatus.SimChange)
             {
                 _transactionManager.LogError("OperatorChange or SimChange Has Occured");
-                if (phoneConfiguration.BlacklistEntries.All(b => b.Status == BlacklistStatus.Resolved))
+                if (phoneConfiguration.BlacklistEntries != null)
+                {
+                    if (phoneConfiguration.BlacklistEntries.All(b => b.Status == BlacklistStatus.Resolved))
+                    {
+                        var oldBlackListEntry = createOldBlackListEntry((long)_transactionManager.CustomerRequestInfo.CustomerNo, phoneConfiguration.Phone.ToString());
+                        await _repositoryManager.DirectBlacklists.AddAsync(oldBlackListEntry);
+                        await _repositoryManager.SaveSmsBankingChangesAsync();
+
+                        var blackListEntry = createBlackListEntryV2(phoneConfiguration, returnValue.ToString(), "SendMessageToUnknownProcess", oldBlackListEntry.SmsId);
+                        await _repositoryManager.BlackListEntries.AddAsync(blackListEntry);
+                    }
+                }
+                else
                 {
                     var oldBlackListEntry = createOldBlackListEntry((long)_transactionManager.CustomerRequestInfo.CustomerNo, phoneConfiguration.Phone.ToString());
                     await _repositoryManager.DirectBlacklists.AddAsync(oldBlackListEntry);
+                    await _repositoryManager.SaveSmsBankingChangesAsync();
 
                     var blackListEntry = createBlackListEntryV2(phoneConfiguration, returnValue.ToString(), "SendMessageToUnknownProcess", oldBlackListEntry.SmsId);
                     await _repositoryManager.BlackListEntries.AddAsync(blackListEntry);

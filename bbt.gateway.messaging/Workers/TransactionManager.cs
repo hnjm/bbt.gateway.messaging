@@ -32,6 +32,8 @@ namespace bbt.gateway.messaging.Workers
         public HeaderInfo HeaderInfo{ get; set; }
         public common.Models.v2.SenderType Sender { get; set; }
         public bool UseFakeSmtp { get; set; }
+        public DateTime OldBlacklistVerifiedAt { get; set; }
+
         public TransactionManager(PusulaClient pusulaClient,IRepositoryManager repositoryManager)
         {
             _txnId = Guid.NewGuid();

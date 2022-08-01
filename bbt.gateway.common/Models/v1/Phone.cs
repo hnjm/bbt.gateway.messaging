@@ -23,12 +23,12 @@ namespace bbt.gateway.common.Models
 
         public override string ToString()
         {
-            return $"+{CountryCode}{Prefix}{Number}";
+            return $"+{CountryCode}{Prefix}{Number.ToString().PadLeft(7, '0')}";
         }
 
         public string Concatenate()
         {
-            return $"{CountryCode}{Prefix}{Number}";
+            return $"{CountryCode}{Prefix}{Number.ToString().PadLeft(7,'0')}";
         }
     }
 }

@@ -183,6 +183,11 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                             controlHour = resolvedDateTotalHour > controlHour ? controlHour : resolvedDateTotalHour;
                         }
                     }
+                    else
+                    {
+                        double oldResolvedDateTotalHour = (DateTime.Now - TransactionManager.OldBlacklistVerifiedAt).TotalHours;
+                        controlHour = oldResolvedDateTotalHour > controlHour ? controlHour : oldResolvedDateTotalHour;
+                    }
                 }
 
             }

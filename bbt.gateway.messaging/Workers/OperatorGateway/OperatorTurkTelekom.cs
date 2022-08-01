@@ -66,6 +66,10 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                             checkDate = checkDate > resolvedDate ? checkDate : resolvedDate;
                         }
                     }
+                    else
+                    {
+                        checkDate = checkDate > TransactionManager.OldBlacklistVerifiedAt ? checkDate : TransactionManager.OldBlacklistVerifiedAt;
+                    }
                 }
             }
             return new TurkTelekomSmsRequest()

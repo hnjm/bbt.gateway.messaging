@@ -185,6 +185,10 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                             trustedDate = trustedDate > resolvedDate ? trustedDate : resolvedDate;
                         }
                     }
+                    else
+                    {
+                        trustedDate = trustedDate > TransactionManager.OldBlacklistVerifiedAt ? trustedDate : TransactionManager.OldBlacklistVerifiedAt;
+                    }
                 }
             }
 
