@@ -62,6 +62,7 @@ namespace bbt.gateway.messaging.Middlewares
                 _transactionManager.Transaction.CitizenshipNo = _middlewareRequest.ContactId;
                 _transactionManager.HeaderInfo = _middlewareRequest.HeaderInfo;
                 _transactionManager.Sender = _middlewareRequest.Sender;
+                _transactionManager.SmsType = _middlewareRequest.SmsType;
 
                 SetTransaction(context,_transactionManager);
 
@@ -153,7 +154,8 @@ namespace bbt.gateway.messaging.Middlewares
             var path = context.Request.Path.ToString();
             if (path.Contains("sms") && !path.Contains("check"))
             {
-                if (_middlewareRequest.ContentType == MessageContentType.Otp)
+                if (_middlewareRequest.ContentType == MessageContentType.Otp
+                    || _middlewareRequest.SmsType == SmsTypes.Otp)
                 {
                     SetTransactionAsOtp(_transactionManager);
                 }

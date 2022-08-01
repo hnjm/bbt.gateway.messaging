@@ -23,7 +23,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
         public async Task<bool> SendOtp(Phone phone, string content, ConcurrentBag<OtpResponseLog> responses, Header header, bool useControlDays)
         {
-            var turkTelekomResponse = await _turkTelekomApi.SendSms(await CreateSmsRequest(phone,content,header,useControlDays));
+            var turkTelekomResponse = await _turkTelekomApi.SendSms(await CreateSmsRequest(phone,content,header,true));
 
             var response =  turkTelekomResponse.BuildOperatorApiResponse();
             responses.Add(response);
@@ -32,7 +32,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
         }
         public async Task<OtpResponseLog> SendOtp(Phone phone, string content, Header header, bool useControlDays)
         {
-            var turkTelekomResponse = await _turkTelekomApi.SendSms(await CreateSmsRequest(phone, content, header, useControlDays));
+            var turkTelekomResponse = await _turkTelekomApi.SendSms(await CreateSmsRequest(phone, content, header, true));
 
             var response = turkTelekomResponse.BuildOperatorApiResponse();
 
@@ -71,6 +71,10 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                         checkDate = checkDate > TransactionManager.OldBlacklistVerifiedAt ? checkDate : TransactionManager.OldBlacklistVerifiedAt;
                     }
                 }
+                else
+                {
+                    checkDate = checkDate > TransactionManager.OldBlacklistVerifiedAt ? checkDate : TransactionManager.OldBlacklistVerifiedAt;
+                }
             }
             return new TurkTelekomSmsRequest()
             {
@@ -78,7 +82,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 Password = OperatorConfig.Password,
                 CheckDate = checkDate.ToString("yyyyMMddHHmmss"),
                 Duration = "300",
-                GsmNo = phone.CountryCode.ToString()+phone.Prefix.ToString() + phone.Number.ToString(),
+                GsmNo = phone.CountryCode.ToString()+phone.Prefix.ToString() + phone.Number.ToString().PadLeft(7,'0'),
                 IsEncrypted = "False",
                 IsNotification = "True",
                 Header = Constant.OperatorSenders[header.SmsSender][OperatorType.TurkTelekom],

@@ -73,10 +73,8 @@ namespace bbt.gateway.messaging.Middlewares
 
         private async Task GetCustomerInfoByPhone(ITransactionManager _transactionManager,IRepositoryManager _repositoryManager)
         {
-            var phoneConfiguration = await _repositoryManager.PhoneConfigurations.FirstOrDefaultAsync(p =>
-                            p.Phone.CountryCode == _transactionManager.Transaction.Phone.CountryCode
-                            && p.Phone.Prefix == _transactionManager.Transaction.Phone.Prefix
-                            && p.Phone.Number == _transactionManager.Transaction.Phone.Number);
+            var phoneConfiguration = await _repositoryManager.PhoneConfigurations.GetWithBlacklistEntriesAsync(
+                _transactionManager.Transaction.Phone.CountryCode, _transactionManager.Transaction.Phone.Prefix, _transactionManager.Transaction.Phone.Number, DateTime.Now);
 
             if (phoneConfiguration == null)
             {
@@ -88,7 +86,7 @@ namespace bbt.gateway.messaging.Middlewares
                     CustomerNo = _transactionManager.Transaction.CustomerNo,
                     Phone = _transactionManager.Transaction.Phone,
                 };
-
+                phoneConfiguration.BlacklistEntries = new List<BlackListEntry>();
                 phoneConfiguration.Logs = new List<PhoneConfigurationLog>() {
                                     new PhoneConfigurationLog()
                                     {

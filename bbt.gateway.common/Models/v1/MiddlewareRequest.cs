@@ -20,5 +20,6 @@ namespace bbt.gateway.common.Models
         public MessageContentType ContentType { get; set; }
         public Process Process { get; set; }
         public v2.SenderType Sender { get; set; }
+        public SmsTypes SmsType { get; set; }
     }
 }

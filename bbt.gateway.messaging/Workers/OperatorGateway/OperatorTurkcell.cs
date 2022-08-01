@@ -87,11 +87,11 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
             if (authResponse.ResponseCode == "0")
             {
-                var turkcellResponse = await _turkcellApi.SendSms(await CreateSmsRequest(phone, content, header, false));
+                var turkcellResponse = await _turkcellApi.SendSms(await CreateSmsRequest(phone, content, header, true));
                 if (turkcellResponse.ResponseCode.Trim().Equals("-2"))
                 {
                     if(await RefreshToken())
-                        turkcellResponse = await _turkcellApi.SendSms(await CreateSmsRequest(phone, content, header, false));
+                        turkcellResponse = await _turkcellApi.SendSms(await CreateSmsRequest(phone, content, header, true));
                 }
 
                 var response = turkcellResponse.BuildOperatorApiResponse();
@@ -190,6 +190,10 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                         trustedDate = trustedDate > TransactionManager.OldBlacklistVerifiedAt ? trustedDate : TransactionManager.OldBlacklistVerifiedAt;
                     }
                 }
+                else
+                {
+                    trustedDate = trustedDate > TransactionManager.OldBlacklistVerifiedAt ? trustedDate : TransactionManager.OldBlacklistVerifiedAt;
+                }
             }
 
             var request = new TurkcellSmsRequest();
@@ -203,7 +207,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 request.IsAbroad ?
                 this.Configuration.GetSection("Operators:Turkcell:SrcMsIsdn").Get<string>() :
                 Constant.OperatorSenders[header.SmsSender][OperatorType.Turkcell];
-            request.PhoneNo = "00" + phone.CountryCode + phone.Prefix + phone.Number;
+            request.PhoneNo = "00" + phone.CountryCode + phone.Prefix + phone.Number.ToString().PadLeft(7,'0');
             request.SessionId = _authToken;
             request.Content = content;
             request.TrustedDate = trustedDate.ToString("ddMMyyHHmmss");

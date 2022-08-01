@@ -83,13 +83,13 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             var authResponse = await Auth();
             if (authResponse.ResponseCode == "0")
             {
-                var vodafoneResponse = await _vodafoneApi.SendSms(await CreateSmsRequest(phone, content, header, useControlDays));
+                var vodafoneResponse = await _vodafoneApi.SendSms(await CreateSmsRequest(phone, content, header, true));
                 if (vodafoneResponse.ResponseCode.Trim().Equals("1008") ||
                     vodafoneResponse.ResponseCode.Trim().Equals("1011") ||
                     vodafoneResponse.ResponseCode.Trim().Equals("1016"))
                 {
                     if (await RefreshToken())
-                        vodafoneResponse = await _vodafoneApi.SendSms(await CreateSmsRequest(phone, content, header, false));
+                        vodafoneResponse = await _vodafoneApi.SendSms(await CreateSmsRequest(phone, content, header, true));
                 }
 
                 var response = vodafoneResponse.BuildOperatorApiResponse();
@@ -118,13 +118,13 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             var authResponse = await Auth();
             if (authResponse.ResponseCode == "0")
             {
-                var vodafoneResponse = await _vodafoneApi.SendSms(await CreateSmsRequest(phone, content, header, useControlDays));
+                var vodafoneResponse = await _vodafoneApi.SendSms(await CreateSmsRequest(phone, content, header, true));
                 if (vodafoneResponse.ResponseCode.Trim().Equals("1008") ||
                     vodafoneResponse.ResponseCode.Trim().Equals("1011") ||
                     vodafoneResponse.ResponseCode.Trim().Equals("1016"))
                 {
                     if (await RefreshToken())
-                        vodafoneResponse = await _vodafoneApi.SendSms(await CreateSmsRequest(phone, content, header, useControlDays));
+                        vodafoneResponse = await _vodafoneApi.SendSms(await CreateSmsRequest(phone, content, header, true));
                 }
 
                 var response = vodafoneResponse.BuildOperatorApiResponse();
@@ -189,6 +189,11 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                         controlHour = oldResolvedDateTotalHour > controlHour ? controlHour : oldResolvedDateTotalHour;
                     }
                 }
+                else
+                {
+                    double oldResolvedDateTotalHour = (DateTime.Now - TransactionManager.OldBlacklistVerifiedAt).TotalHours;
+                    controlHour = oldResolvedDateTotalHour > controlHour ? controlHour : oldResolvedDateTotalHour;
+                }
 
             }
 
@@ -199,7 +204,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 ExpiryPeriod = "60",
                 Header = Constant.OperatorSenders[header.SmsSender][OperatorType.Vodafone],
                 Message = content,
-                PhoneNo = phone.CountryCode.ToString() + phone.Prefix.ToString() + phone.Number.ToString(),
+                PhoneNo = phone.CountryCode.ToString() + phone.Prefix.ToString() + phone.Number.ToString().PadLeft(7,'0'),
                 ControlHour = controlHour.ToString()
             };
 

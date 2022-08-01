@@ -379,8 +379,7 @@ namespace bbt.gateway.messaging.Workers
             };
 
             // Load Phone configuration and related active blacklist entiries.
-            phoneConfiguration = await _repositoryManager.PhoneConfigurations.GetWithBlacklistEntriesAsync(
-                _dataV2.Phone.CountryCode, _dataV2.Phone.Prefix, _dataV2.Phone.Number, DateTime.Now);
+            phoneConfiguration = _transactionManager.OtpRequestInfo.PhoneConfiguration;
 
             //Get blacklist records from current Otp System
             var oldBlacklistRecord = (await _repositoryManager.DirectBlacklists.FindAsync(b => b.GsmNumber == _dataV2.Phone.ToString())).OrderByDescending(b => b.RecordDate).FirstOrDefault();
@@ -518,7 +517,7 @@ namespace bbt.gateway.messaging.Workers
         {
 
             //if discardCurrentOperator is true,phone is known number
-            var responseLogs = await SendMessageToUnknownV2(phoneConfiguration, discardCurrentOperator, discardCurrentOperator);
+            var responseLogs = await SendMessageToUnknownV2(phoneConfiguration, discardCurrentOperator, true);
 
             // Decide which response code will be returned
             returnValue = responseLogs.UnifyResponse();

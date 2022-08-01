@@ -14,5 +14,10 @@ namespace bbt.gateway.common.Models.v2
         [Range(1, 9999999, ErrorMessage = "CountryCode field is in between 1 and 9999999")]
         public int Number { get; set; }
 
+        public override string ToString()
+        {
+            return $"+{CountryCode}{Prefix}{Number.ToString().PadLeft(7, '0')}";
+        }
+
     }
 }

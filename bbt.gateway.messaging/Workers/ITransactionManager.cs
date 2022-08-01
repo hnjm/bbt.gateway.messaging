@@ -16,7 +16,7 @@ namespace bbt.gateway.messaging.Workers
         public HeaderInfo HeaderInfo { get; set; }
         public common.Models.v2.SenderType Sender { get; set; }
         public bool UseFakeSmtp { get; set; }
-
+        public SmsTypes SmsType { get; set; }
         public DateTime OldBlacklistVerifiedAt { get; set; }
         public Task AddTransactionAsync();
         public Task SaveTransactionAsync();
