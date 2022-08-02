@@ -181,25 +181,25 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                         {
                             if (blackListEntry.ResolvedAt != null)
                             {
-                                double resolvedDateTotalHour = (DateTime.Now - blackListEntry.ResolvedAt.Value).TotalHours;
+                                double resolvedDateTotalHour = Math.Truncate((DateTime.Now - blackListEntry.ResolvedAt.Value).TotalHours);
                                 controlHour = resolvedDateTotalHour > controlHour ? controlHour : resolvedDateTotalHour;
                             }
                         }
                         else
                         {
-                            double oldResolvedDateTotalHour = (DateTime.Now - TransactionManager.OldBlacklistVerifiedAt).TotalHours;
+                            double oldResolvedDateTotalHour = Math.Truncate((DateTime.Now - TransactionManager.OldBlacklistVerifiedAt).TotalHours);
                             controlHour = oldResolvedDateTotalHour > controlHour ? controlHour : oldResolvedDateTotalHour;
                         }
                     }
                     else
                     {
-                        double oldResolvedDateTotalHour = (DateTime.Now - TransactionManager.OldBlacklistVerifiedAt).TotalHours;
+                        double oldResolvedDateTotalHour = Math.Truncate((DateTime.Now - TransactionManager.OldBlacklistVerifiedAt).TotalHours);
                         controlHour = oldResolvedDateTotalHour > controlHour ? controlHour : oldResolvedDateTotalHour;
                     }
                 }
                 else
                 {
-                    double oldResolvedDateTotalHour = (DateTime.Now - TransactionManager.OldBlacklistVerifiedAt).TotalHours;
+                    double oldResolvedDateTotalHour = Math.Truncate((DateTime.Now - TransactionManager.OldBlacklistVerifiedAt).TotalHours);
                     controlHour = oldResolvedDateTotalHour > controlHour ? controlHour : oldResolvedDateTotalHour;
                 }
             }
