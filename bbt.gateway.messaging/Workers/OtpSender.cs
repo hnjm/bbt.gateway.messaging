@@ -172,10 +172,7 @@ namespace bbt.gateway.messaging.Workers
                 {
                     _transactionManager.LogError("Phone has a blacklist record");
                     returnValue = SendSmsResponseStatus.HasBlacklistRecord;
-                    _requestLog.ResponseLogs.Add(new OtpResponseLog { 
-                        Operator = (OperatorType)phoneConfiguration.Operator,
-                        ResponseCode = SendSmsResponseStatus.HasBlacklistRecord                      
-                    });
+                    
                 }
                 else
                 {
