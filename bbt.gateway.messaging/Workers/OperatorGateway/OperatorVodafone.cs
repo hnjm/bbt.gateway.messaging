@@ -164,7 +164,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
         private async Task<VodafoneSmsRequest> CreateSmsRequest(Phone phone, string content, Header header, bool useControlDays)
         {
-            double controlHour = (OperatorConfig.ControlDaysForOtp * 24);
+            double controlHour = (OperatorConfig.ControlDaysForOtp * 24 * 60);
             if (useControlDays)
             {
                 var phoneConfiguration = await GetPhoneConfiguration(phone);
@@ -181,28 +181,31 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                         {
                             if (blackListEntry.ResolvedAt != null)
                             {
-                                double resolvedDateTotalHour = Math.Truncate((DateTime.Now - blackListEntry.ResolvedAt.Value).TotalHours);
+                                double resolvedDateTotalHour = Math.Truncate((DateTime.Now - blackListEntry.ResolvedAt.Value).TotalMinutes);
                                 controlHour = resolvedDateTotalHour > controlHour ? controlHour : resolvedDateTotalHour;
                             }
                         }
                         else
                         {
-                            double oldResolvedDateTotalHour = Math.Truncate((DateTime.Now - TransactionManager.OldBlacklistVerifiedAt).TotalHours);
+                            double oldResolvedDateTotalHour = Math.Truncate((DateTime.Now - TransactionManager.OldBlacklistVerifiedAt).TotalMinutes);
                             controlHour = oldResolvedDateTotalHour > controlHour ? controlHour : oldResolvedDateTotalHour;
                         }
                     }
                     else
                     {
-                        double oldResolvedDateTotalHour = Math.Truncate((DateTime.Now - TransactionManager.OldBlacklistVerifiedAt).TotalHours);
+                        double oldResolvedDateTotalHour = Math.Truncate((DateTime.Now - TransactionManager.OldBlacklistVerifiedAt).TotalMinutes);
                         controlHour = oldResolvedDateTotalHour > controlHour ? controlHour : oldResolvedDateTotalHour;
                     }
                 }
                 else
                 {
-                    double oldResolvedDateTotalHour = Math.Truncate((DateTime.Now - TransactionManager.OldBlacklistVerifiedAt).TotalHours);
+                    double oldResolvedDateTotalHour = Math.Truncate((DateTime.Now - TransactionManager.OldBlacklistVerifiedAt).TotalMinutes);
                     controlHour = oldResolvedDateTotalHour > controlHour ? controlHour : oldResolvedDateTotalHour;
                 }
             }
+
+            if (controlHour == 0)
+                controlHour = 1;
 
             return new VodafoneSmsRequest()
             {
@@ -212,7 +215,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 Header = Constant.OperatorSenders[header.SmsSender][OperatorType.Vodafone],
                 Message = content,
                 PhoneNo = phone.CountryCode.ToString() + phone.Prefix.ToString() + phone.Number.ToString().PadLeft(7,'0'),
-                ControlHour = controlHour.ToString()
+                ControlHour = controlHour.ToString()+"M"
             };
 
         }
