@@ -82,14 +82,9 @@ namespace bbt.gateway.messaging.Middlewares
                     context.Response.Body.Seek(0, SeekOrigin.Begin);
                     await responseBody.CopyToAsync(originalStream);
 
-                    if (_transactionManager.Transaction.TransactionType == TransactionType.Otp)
-                    {
-                        _transactionManager.Transaction.Response = response.MaskOtpContent();
-                    }
-                    else
-                    {
-                        _transactionManager.Transaction.Response = response.MaskFields();
-                    }
+
+                    _transactionManager.Transaction.Response = response;
+                    
 
                 }
                 catch (WorkflowException ex)

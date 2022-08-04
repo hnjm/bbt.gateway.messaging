@@ -271,14 +271,14 @@ namespace bbt.gateway.messaging.Controllers.v2
 
         [SwaggerOperation(Summary = "Returns phone's whitelist status",
             Tags = new[] { "Whitelist Management" })]
-        [HttpGet("whitelist/check/phone/{phone}")]
+        [HttpGet("whitelist/check/phone")]
         [SwaggerResponse(200, "Phone is in whitelist", typeof(void))]
         [SwaggerResponse(404, "Phone is not in whitelist", typeof(void))]
-        public async Task<IActionResult> CheckPhone(common.Models.v2.Phone phone)
+        public async Task<IActionResult> CheckPhone(int CountryCode,int Prefix,int Number)
         {
-            if ((await _repositoryManager.Whitelist.FindAsync(w => (w.Phone.CountryCode == phone.CountryCode)
-               && (w.Phone.Prefix == phone.Prefix)
-               && (w.Phone.Number == phone.Number))).FirstOrDefault() != null)
+            if ((await _repositoryManager.Whitelist.FindAsync(w => (w.Phone.CountryCode == CountryCode)
+               && (w.Phone.Prefix == Prefix)
+               && (w.Phone.Number == Number))).FirstOrDefault() != null)
                 return Ok();
             else
                 throw new WorkflowException("", System.Net.HttpStatusCode.NotFound);
@@ -286,7 +286,7 @@ namespace bbt.gateway.messaging.Controllers.v2
 
         [SwaggerOperation(Summary = "Returns E-mail's whitelist status",
             Tags = new[] { "Whitelist Management" })]
-        [HttpGet("whitelist/check/email/{phone}")]
+        [HttpGet("whitelist/check/email")]
         [SwaggerResponse(200, "E-Mail is in whitelist", typeof(void))]
         [SwaggerResponse(404, "E-Mail is not in whitelist", typeof(void))]
         public async Task<IActionResult> CheckMail(string email)

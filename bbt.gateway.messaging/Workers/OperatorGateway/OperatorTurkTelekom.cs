@@ -94,7 +94,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 IsEncrypted = "False",
                 IsNotification = "True",
                 Header = Constant.OperatorSenders[header.SmsSender][OperatorType.TurkTelekom],
-                Message = content,
+                Message = content.Trim(),
                 OnNetPortInControl = "True",
                 OnNetSimChange = "True",
                 PortInCheckDate = checkDate.ToString("yyyyMMddHHmmss")

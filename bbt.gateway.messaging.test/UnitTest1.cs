@@ -12,14 +12,8 @@ namespace bbt.gateway.messaging.test
         private readonly HttpClient _client;
 
         public UnitTest1()
-        {
-
-            var webApplicationFactory = new WebApplicationFactory<Program>()
-                .WithWebHostBuilder(builder =>
-                {
-                    builder.UseEnvironment("Development");
-                });
-            _client = webApplicationFactory.CreateDefaultClient();
+        {   
+            
         }
 
         [TestMethod]
