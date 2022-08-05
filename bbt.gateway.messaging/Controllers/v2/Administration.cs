@@ -213,7 +213,8 @@ namespace bbt.gateway.messaging.Controllers.v2
             };
 
             await _repositoryManager.Whitelist.AddAsync(whitelistRecord);
-
+            await _repositoryManager.SaveChangesAsync();
+            
             return Created("", whitelistRecord.Id);
         }
 
@@ -243,6 +244,7 @@ namespace bbt.gateway.messaging.Controllers.v2
             };
 
             await _repositoryManager.Whitelist.AddAsync(whitelistRecord);
+            await _repositoryManager.SaveChangesAsync();
 
             return Created("", whitelistRecord.Id);
         }

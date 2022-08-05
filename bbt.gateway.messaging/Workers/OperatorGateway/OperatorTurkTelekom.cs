@@ -88,7 +88,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             {
                 UserCode = OperatorConfig.User,
                 Password = OperatorConfig.Password,
-                CheckDate = checkDate.ToString("yyyyMMddHHmmss"),
+                CheckDate = checkDate.ToString("ddMMyyyyHHmmss"),
                 Duration = "300",
                 GsmNo = phone.CountryCode.ToString()+phone.Prefix.ToString() + phone.Number.ToString().PadLeft(7,'0'),
                 IsEncrypted = "False",
@@ -97,7 +97,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 Message = content.Trim(),
                 OnNetPortInControl = "True",
                 OnNetSimChange = "True",
-                PortInCheckDate = checkDate.ToString("yyyyMMddHHmmss")
+                PortInCheckDate = checkDate.ToString("ddMMyyyyHHmmss")
 
             };
         }
