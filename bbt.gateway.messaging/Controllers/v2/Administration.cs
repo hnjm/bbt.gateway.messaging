@@ -283,7 +283,7 @@ namespace bbt.gateway.messaging.Controllers.v2
                && (w.Phone.Number == Number))).FirstOrDefault() != null)
                 return Ok();
             else
-                throw new WorkflowException("", System.Net.HttpStatusCode.NotFound);
+                return NotFound();
         }
 
         [SwaggerOperation(Summary = "Returns E-mail's whitelist status",
@@ -296,7 +296,7 @@ namespace bbt.gateway.messaging.Controllers.v2
             if ((await _repositoryManager.Whitelist.FindAsync(w => w.Mail == email)).FirstOrDefault() != null)
                 return Ok();
             else
-                throw new WorkflowException("", System.Net.HttpStatusCode.NotFound);
+                return NotFound();
         }
 
         [SwaggerOperation(Summary = "Returns phones otp sending logs",
