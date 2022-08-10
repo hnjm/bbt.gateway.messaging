@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace bbt.gateway.messaging.Api.dEngage.Model.Transactional
 {
@@ -8,6 +9,8 @@ namespace bbt.gateway.messaging.Api.dEngage.Model.Transactional
         public Send send { get; set; } = new();
         public string current { get; set; }
         public List<string> tags { get; set; } = new();
+        public string earliestTime { get; set; }
+        public string latestTime { get; set; }
     }
 
     public class Content

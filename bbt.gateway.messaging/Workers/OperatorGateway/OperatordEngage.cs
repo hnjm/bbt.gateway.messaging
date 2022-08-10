@@ -579,6 +579,9 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
         {
             Api.dEngage.Model.Transactional.SendSmsRequest sendSmsRequest = new();
             sendSmsRequest.send.to = phone.Concatenate();
+            var now = DateTime.Now;
+            sendSmsRequest.earliestTime = now.ToString("HH:mm");
+            sendSmsRequest.latestTime = now.AddMinutes(5).ToString("HH:mm");
             if (!string.IsNullOrEmpty(templateId))
             {
                 sendSmsRequest.content.templateId = templateId;
