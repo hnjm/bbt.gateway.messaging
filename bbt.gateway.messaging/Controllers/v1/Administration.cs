@@ -1,15 +1,20 @@
 ﻿using bbt.gateway.common.Models;
+using bbt.gateway.common.Models.v1;
 using bbt.gateway.common.Repositories;
 using bbt.gateway.messaging.Api.dEngage.Model.Contents;
 using bbt.gateway.messaging.Workers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Swashbuckle.AspNetCore.Annotations;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.DirectoryServices.Protocols;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -26,9 +31,10 @@ namespace bbt.gateway.messaging.Controllers.v1
         private readonly ITransactionManager _transactionManager;
         private readonly dEngageSender _dEngageSender;
         private readonly IDistributedCache _distributedCache;
+        private readonly UserSettings _userSettings;
         public Administration(HeaderManager headerManager, OperatorManager operatorManager,
             IRepositoryManager repositoryManager, ITransactionManager transactionManager,
-            dEngageSender dEngageSender,IDistributedCache distributedCache)
+            dEngageSender dEngageSender, IDistributedCache distributedCache, IOptions<UserSettings> userSettings)
         {
             _headerManager = headerManager;
             _operatorManager = operatorManager;
@@ -36,6 +42,7 @@ namespace bbt.gateway.messaging.Controllers.v1
             _transactionManager = transactionManager;
             _dEngageSender = dEngageSender;
             _distributedCache = distributedCache;
+            _userSettings = userSettings.Value;
         }
 
         [SwaggerOperation(Summary = "Write Templates To Cache")]
@@ -330,7 +337,7 @@ namespace bbt.gateway.messaging.Controllers.v1
         [SwaggerOperation(Summary = "Returns transactions info")]
         [HttpGet("transactions/phone/{countryCode}/{prefix}/{number}")]
         [SwaggerResponse(200, "Records was returned successfully", typeof(Transaction[]))]
-        public async Task<IActionResult> GetTransactionsWithPhone(int countryCode, int prefix, int number, int smsType,DateTime startDate,DateTime endDate, [Range(0, 100)] int page = 0, [Range(1, 100)] int pageSize = 20)
+        public async Task<IActionResult> GetTransactionsWithPhone(int countryCode, int prefix, int number, int smsType, DateTime startDate, DateTime endDate, [Range(0, 100)] int page = 0, [Range(1, 100)] int pageSize = 20)
         {
             if (smsType == 1)
             {
@@ -352,27 +359,27 @@ namespace bbt.gateway.messaging.Controllers.v1
         public async Task<IActionResult> GetTransactionsWithEmail(string mail, DateTime startDate, DateTime endDate, [Range(0, 100)] int page = 0, [Range(1, 100)] int pageSize = 20)
         {
             var res = await _repositoryManager.Transactions.GetMailMessagesWithMailAsync(mail, startDate, endDate, page, pageSize);
-            return Ok(new TransactionsDto { Transactions = res.Item1 ,Count = res.Item2});
+            return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
         }
 
         [SwaggerOperation(Summary = "Returns transactions info")]
         [HttpGet("transactions/customer/{customerNo}/{messageType}")]
         [SwaggerResponse(200, "Records was returned successfully", typeof(Transaction[]))]
-        public async Task<IActionResult> GetTransactionsWithCustomerNo(ulong customerNo,int messageType,int smsType, DateTime startDate, DateTime endDate, [Range(0, 100)] int page = 0, [Range(1, 100)] int pageSize = 20)
+        public async Task<IActionResult> GetTransactionsWithCustomerNo(ulong customerNo, int messageType, int smsType, DateTime startDate, DateTime endDate, [Range(0, 100)] int page = 0, [Range(1, 100)] int pageSize = 20)
         {
             if (messageType == 1)
             {
                 if (smsType == 1)
                 {
                     var res = await _repositoryManager.Transactions.GetOtpMessagesWithCustomerNoAsync(customerNo, startDate, endDate, page, pageSize);
-                    return Ok(new TransactionsDto { Transactions = res.Item1,Count = res.Item2});
+                    return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
                 }
                 if (smsType == 2)
                 {
                     var res = await _repositoryManager.Transactions.GetTransactionalSmsMessagesWithCustomerNoAsync(customerNo, startDate, endDate, page, pageSize);
                     return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
                 }
-                    
+
                 return Ok(new TransactionsDto());
             }
             if (messageType == 2)
@@ -401,7 +408,7 @@ namespace bbt.gateway.messaging.Controllers.v1
                     var res = await _repositoryManager.Transactions.GetOtpMessagesWithCitizenshipNoAsync(citizenshipNo, startDate, endDate, page, pageSize);
                     return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
                 }
-                    
+
                 if (smsType == 2)
                 {
                     var res = await _repositoryManager.Transactions.GetTransactionalSmsMessagesWithCitizenshipNoAsync(citizenshipNo, startDate, endDate, page, pageSize);
@@ -423,5 +430,40 @@ namespace bbt.gateway.messaging.Controllers.v1
             return Ok(new List<Transaction>());
         }
 
+
+
+        [SwaggerOperation(Summary = "Returns blacklist info")]
+        [HttpGet("blacklists/customer/{customerNo}")]
+        [SwaggerResponse(200, "Records was returned successfully", typeof(BlackListEntriesDto[]))]
+        public async Task<IActionResult> GetBlackListEntriesWithCustomerNo(ulong customerNo, [Range(0, 100)] int page = 0, [Range(1, 100)] int pageSize = 20)
+        {
+            var res = await _repositoryManager.BlackListEntries.GetBlackListByCustomerNoAsync(customerNo, page, pageSize);
+            return Ok(new BlackListEntriesDto { BlackListEntries = res.Item1, Count = res.Item2 });
+        }
+        [SwaggerOperation(Summary = "Returns blacklist info")]
+        [HttpGet("blacklists/phone/{countryCode}/{prefix}/{number}")]
+        [SwaggerResponse(200, "Records was returned successfully", typeof(BlackListEntriesDto[]))]
+        public async Task<IActionResult> GetBlackListEntriesWithPhone(int countryCode, int prefix, int number, [Range(0, 100)] int page = 0, [Range(1, 100)] int pageSize = 20)
+        {
+            var res = await _repositoryManager.BlackListEntries.GetBlackListByPhoneAsync(countryCode, prefix, number, page, pageSize);
+            return Ok(new BlackListEntriesDto { BlackListEntries = res.Item1, Count = res.Item2 });
+        }
+
+        [SwaggerOperation(Summary = "User Control")]
+        [HttpGet("user/control/{userName}")]
+        [SwaggerResponse(200, "Records was returned successfully", typeof(bool))]
+        public async Task<IActionResult> GetUserControl(string userName)
+        {
+
+            UserSettingsModel user = _userSettings.Users.Where(a => a.UserName == userName).FirstOrDefault();
+            if (user == null)
+                return Ok(false);
+            else
+            {
+                return Ok(true);
+       
+            }
+
+        }
     }
 }

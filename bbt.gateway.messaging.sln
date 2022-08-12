@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "bbt.gateway.common", "bbt.g
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "bbt.gateway.messaging.ui", "bbt.gateway.messaging.ui\bbt.gateway.messaging.ui.csproj", "{E31A92F8-BD12-4A34-8FB2-359C49728599}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "bbt.gateway.messaging.test", "bbt.gateway.messaging.test\bbt.gateway.messaging.test.csproj", "{BFFE7AF4-0B8C-44FD-8313-0A81BE83E33A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "bbt.gateway.messaging.test", "bbt.gateway.messaging.test\bbt.gateway.messaging.test.csproj", "{BFFE7AF4-0B8C-44FD-8313-0A81BE83E33A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

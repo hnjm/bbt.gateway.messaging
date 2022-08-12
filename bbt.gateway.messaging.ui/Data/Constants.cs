@@ -25,6 +25,12 @@ namespace bbt.gateway.messaging.ui.Data
             { 3, new FilterInput { Name = "Telefon No", Helpline = "Müşteri telefon numarasını boşluksuz giriniz. {ÜlkeKodu}{AlanKodu}{Numara}", MessageTypes = null, SmsTypes = SmsTypes } },
             { 4, new FilterInput { Name = "E-Mail", Helpline = "Müşteri E-Mail adresini giriniz.", MessageTypes = null, SmsTypes = null } },
         };
+        public static Dictionary<int, FilterInput> FiltersBlackList = new()
+        {
+            { 1, new FilterInput { Name = "Telefon No", Helpline = "Müşteri telefon numarasını boşluksuz giriniz. {ÜlkeKodu}{AlanKodu}{Numara}", MessageTypes = null, SmsTypes = SmsTypes } },
+            { 2, new FilterInput { Name = "Müşteri No", Helpline = "Müşteri numarasını giriniz.", MessageTypes = MessageTypes, SmsTypes = SmsTypes } },
+           
+        };
 
         public static Dictionary<TransactionType, string> TransactionTypeMap = new()
         {
@@ -36,7 +42,11 @@ namespace bbt.gateway.messaging.ui.Data
             { TransactionType.TransactionalSms, "Sms" },
             { TransactionType.TransactionalTemplatedSms, "Sms" }
         };
-
+        public static Dictionary<BlacklistStatus, string> BlacklistStatusMap = new()
+        {
+            { BlacklistStatus.Resolved, "Çözüldü" },
+            { BlacklistStatus.NotResolved, "Çözülmedi" },
+        };
         public static Dictionary<SmsTypeEnum, int> SmsTypeMap = new()
         {
             {

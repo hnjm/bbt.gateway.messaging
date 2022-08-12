@@ -4,12 +4,16 @@
 	<Nullable>enable</Nullable>
 	<ImplicitUsings>enable</ImplicitUsings>
 	<UserSecretsId>f03ac448-a6e4-46db-8c1b-4c514a9a2ef1</UserSecretsId>
+	<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 	</PropertyGroup>
 	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.Negotiate" Version="6.0.8" />
+		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.14.0" />
 		<PackageReference Include="Radzen.Blazor" Version="3.18.12" />
 		<PackageReference Include="Refit" Version="6.3.2" />
 		<PackageReference Include="Refit.HttpClientFactory" Version="6.3.2" />
 		<PackageReference Include="Refit.Newtonsoft.Json" Version="6.3.2" />
+		<PackageReference Include="System.DirectoryServices" Version="6.0.0" />
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\bbt.gateway.common\bbt.gateway.common.csproj" />

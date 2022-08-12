@@ -1,5 +1,6 @@
 using bbt.gateway.common;
 using bbt.gateway.common.Models;
+using bbt.gateway.common.Models.v1;
 using bbt.gateway.common.Repositories;
 using bbt.gateway.messaging.Api.dEngage;
 using bbt.gateway.messaging.Api.Pusula;
@@ -107,7 +108,7 @@ namespace bbt.gateway.messaging
             services.AddDbContext<DatabaseContext>(o => o.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("bbt.gateway.messaging")));
             //services.AddDbContext<DodgeDatabaseContext>(o => o.UseSqlServer(Configuration.GetConnectionString("DodgeConnection")));
             services.AddDbContext<SmsBankingDatabaseContext>(o => o.UseSqlServer(Configuration.GetConnectionString("SmsBankingConnection")));
-
+            services.Configure<UserSettings>(Configuration.GetSection(nameof(UserSettings)));
             services.AddScoped<IRepositoryManager, RepositoryManager>();
 
 

@@ -22,5 +22,31 @@ namespace bbt.gateway.common.Repositories
                 .Take(pageSize)
                 .ToListAsync();
         }
+        public async Task<(IEnumerable<BlackListEntry>, int)> GetBlackListByPhoneAsync(int countryCode, int prefix, int number, int page, int pageSize)
+        {
+            IEnumerable<BlackListEntry> list =await Context.BlackListEntries
+
+                .Where(b => b.PhoneConfiguration.Phone.CountryCode == countryCode && b.PhoneConfiguration.Phone.Prefix == prefix && b.PhoneConfiguration.Phone.Number == number)
+              
+                .Skip(page)
+                .Take(pageSize)
+                .ToListAsync();
+            int count  = await Context.BlackListEntries
+                                .CountAsync(b => b.PhoneConfiguration.Phone.CountryCode == countryCode && b.PhoneConfiguration.Phone.Prefix == prefix && b.PhoneConfiguration.Phone.Number == number);
+            return (list, count);
+        }
+        public async Task<(IEnumerable<BlackListEntry>, int)> GetBlackListByCustomerNoAsync(ulong customerNo, int page, int pageSize)
+        {
+            IEnumerable<BlackListEntry> list = await Context.BlackListEntries
+
+                 .Where(b => b.PhoneConfiguration.CustomerNo==customerNo)
+
+                 .Skip(page)
+                 .Take(pageSize)
+                 .ToListAsync();
+            int count = await Context.BlackListEntries
+                                .CountAsync(b => b.PhoneConfiguration.CustomerNo == customerNo);
+            return (list, count);
+        }
     }
 }

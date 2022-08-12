@@ -15,5 +15,14 @@ namespace bbt.gateway.messaging.ui.Data
         [Get("/api/v1/Administration/transactions/citizen/{citizenshipNo}/{messageType}")]
         Task<TransactionsDto> GetTransactionsByCitizenshipNo(string citizenshipNo, int messageType, QueryParams queryParams);
 
+        [Get("/api/v1/Administration/blacklists/{countryCode}/{prefix}/{number}")]
+        Task<IEnumerable<BlackListEntry>> GetBlackListByPhone(int countryCode, int prefix, int number, QueryParams queryParams);
+        [Get("/api/v1/Administration/blacklists/customer/{customerNo}")]
+        Task<BlackListEntriesDto> GetBlackListEntriesByCustomerNo(ulong customerNo, QueryParams queryParams);
+        [Get("/api/v1/Administration/blacklists/phone/{countryCode}/{prefix}/{number}")]
+        Task<BlackListEntriesDto> GetBlackListEntriesByPhone(int countryCode, int prefix, int number, QueryParams queryParams);
+        [Get("/api/v1/Administration/user/control/{userName}")]
+        Task<bool> GetUserControl(string userName);
+
     }
 }
