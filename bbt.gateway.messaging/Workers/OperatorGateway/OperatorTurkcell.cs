@@ -214,7 +214,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 request.IsAbroad ?
                 this.Configuration.GetSection("Operators:Turkcell:SrcMsIsdn").Get<string>() :
                 Constant.OperatorSenders[header.SmsSender][OperatorType.Turkcell];
-            request.PhoneNo = "00" + phone.CountryCode + phone.Prefix + phone.Number.ToString().PadLeft(7,'0');
+            request.PhoneNo = "00" + phone.CountryCode + phone.Prefix + (phone.CountryCode == 90 ? phone.Number.ToString().PadLeft(7,'0') : phone.Number);
             request.SessionId = _authToken;
             request.Content = content;
             request.TrustedDate = trustedDate.ToString("ddMMyyHHmmss");
