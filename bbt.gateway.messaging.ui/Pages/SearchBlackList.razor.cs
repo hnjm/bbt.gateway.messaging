@@ -38,7 +38,11 @@ namespace bbt.gateway.messaging.ui.Pages
         {
 
         }
-        async Task SearchTransactions(LoadDataArgs args = null)
+        void Save()
+        {
+
+        }
+        async Task SearchBlackListEntries(LoadDataArgs args = null)
         {
            // useSpinner = true;
             if (args == null)
