@@ -19,8 +19,12 @@ builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
                 settings.Domain = "ebt.bank";
 
             });
-
+            
         });
+builder.Services.AddAuthorization(options =>
+{
+    options.FallbackPolicy = options.DefaultPolicy;
+});
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddRefitClient<IMessagingGatewayService>()
