@@ -28,7 +28,14 @@ namespace bbt.gateway.common.Models
 
         public string Concatenate()
         {
-            return $"{CountryCode}{Prefix}{Number.ToString().PadLeft(7,'0')}";
+            if (CountryCode == 90)
+            {
+                return $"{CountryCode}{Prefix}{Number.ToString().PadLeft(7, '0')}";
+            }
+            else
+            {
+                return $"{CountryCode}{Prefix}{Number}";
+            }
         }
     }
 }

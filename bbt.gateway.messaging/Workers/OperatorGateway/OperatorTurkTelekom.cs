@@ -90,7 +90,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 Password = OperatorConfig.Password,
                 CheckDate = checkDate.ToString("ddMMyyyyHHmmss"),
                 Duration = "300",
-                GsmNo = phone.CountryCode.ToString()+phone.Prefix.ToString() + phone.Number.ToString().PadLeft(7,'0'),
+                GsmNo = phone.CountryCode.ToString()+phone.Prefix.ToString() + (phone.CountryCode == 90 ? phone.Number.ToString().PadLeft(7, '0') : phone.Number),
                 IsEncrypted = "False",
                 IsNotification = "True",
                 Header = Constant.OperatorSenders[header.SmsSender][OperatorType.TurkTelekom],

@@ -214,7 +214,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 ExpiryPeriod = "60",
                 Header = Constant.OperatorSenders[header.SmsSender][OperatorType.Vodafone],
                 Message = content,
-                PhoneNo = phone.CountryCode.ToString() + phone.Prefix.ToString() + phone.Number.ToString().PadLeft(7,'0'),
+                PhoneNo = phone.CountryCode.ToString() + phone.Prefix.ToString() + (phone.CountryCode == 90 ? phone.Number.ToString().PadLeft(7, '0') : phone.Number),
                 ControlHour = controlHour.ToString()+"M"
             };
 
