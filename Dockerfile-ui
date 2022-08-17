@@ -4,8 +4,13 @@ EXPOSE 5000
 WORKDIR /app
 
 RUN adduser -u 5679 --disabled-password --gecos "" smsgateway-uiuser && chown -R smsgateway-uiuser:smsgateway-uiuser /app
-USER smsgateway-uiuser
+USER root
 
+RUN echo "deb http://us.archive.ubuntu.com/ubuntu focal main" >> /etc/apt/sources.list
+RUN until (apt-get update ); do echo trying again; done \
+    && apt-get -y install libldap-2.4-2 sssd realmd krb5-user software-properties-common packagekit
+    
+USER smsgateway-uiuser
 FROM mcr.microsoft.com/dotnet/sdk:6.0-focal AS build
 WORKDIR /src
 
