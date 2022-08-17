@@ -18,7 +18,7 @@ namespace bbt.gateway.messaging
         public static readonly Dictionary<SmsTypes, string> smsTypes = new()
         {
             { SmsTypes.Bulk, "codec" },
-            { SmsTypes.Fast, "codec-fast" }
+            { SmsTypes.Fast, "codec" }
         };
 
         public static readonly Dictionary<OperatorType, string> OperatorBurganSenderNames =
