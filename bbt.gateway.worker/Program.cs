@@ -10,7 +10,7 @@ IHost host = Host.CreateDefaultBuilder(args)
     .UseSeriLog("entegrasyon")
     .ConfigureServices((context, services) =>
     {
-        services.AddHostedService<Worker>();
+        services.AddHostedService<TemplateWorker>();
         services.AddDbContext<DatabaseContext>(o => o.UseSqlServer(context.Configuration["ConnectionStrings:DefaultConnection"]), ServiceLifetime.Singleton);
         //services.AddDbContext<DodgeDatabaseContext>(o => o.UseSqlServer(context.Configuration.GetConnectionString("DodgeConnection")), ServiceLifetime.Singleton);
         services.AddDbContext<SmsBankingDatabaseContext>(o => o.UseSqlServer(context.Configuration.GetConnectionString("SmsBankingConnection")), ServiceLifetime.Singleton);

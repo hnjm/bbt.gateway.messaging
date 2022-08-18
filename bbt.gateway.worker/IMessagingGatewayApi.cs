@@ -12,5 +12,11 @@ namespace bbt.gateway.worker
     {
         [Post("/api/v1/Messaging/sms/check-message")]
         Task<OtpTrackingLog> CheckMessageStatus(CheckSmsRequest request);
+        [Post("/api/v1/Administration/templates/sms")]
+        Task SetSmsTemplates();
+        [Post("/api/v1/Administration/templates/mail")]
+        Task SetMailTemplates();
+        [Post("/api/v1/Administration/templates/push")]
+        Task SetPushTemplates();
     }
 }
