@@ -34,6 +34,9 @@ namespace bbt.gateway.messaging.Workers
         public bool UseFakeSmtp { get; set; }
         public SmsTypes SmsType { get; set; }
         public DateTime OldBlacklistVerifiedAt { get; set; }
+        public bool StringSend { get; set; }
+        public int PrefixLength { get; set; }
+        public int NumberLength { get; set; }
 
         public TransactionManager(PusulaClient pusulaClient,IRepositoryManager repositoryManager)
         {
@@ -46,6 +49,7 @@ namespace bbt.gateway.messaging.Workers
             {
                 Id = _txnId
             };
+            StringSend = false;
         }
 
         public async Task AddTransactionAsync()
@@ -56,6 +60,21 @@ namespace bbt.gateway.messaging.Workers
         public async Task SaveTransactionAsync()
         {
             await _repositoryManager.SaveChangesAsync();
+        }
+
+        public common.Models.v2.Phone GetPhoneFromString(common.Models.v2.PhoneString phoneString)
+        {
+            if (phoneString == null)
+                return null;
+            PrefixLength = phoneString.Prefix.Length;
+            NumberLength = phoneString.Number.Length;
+
+            return new common.Models.v2.Phone()
+            {
+                CountryCode = Convert.ToInt32(phoneString.CountryCode),
+                Prefix = Convert.ToInt32(phoneString.Prefix),
+                Number = Convert.ToInt32(phoneString.Number)
+            };
         }
 
         public void LogState()
@@ -219,9 +238,14 @@ namespace bbt.gateway.messaging.Workers
                 Transaction.Phone = CustomerRequestInfo.MainPhone;
             }
 
-            if (String.IsNullOrEmpty(Transaction.Mail))
+            if (String.IsNullOrWhiteSpace(Transaction.Mail))
             {
                 Transaction.Mail = CustomerRequestInfo.MainEmail;
+            }
+
+            if (String.IsNullOrWhiteSpace(Transaction.CitizenshipNo))
+            {
+                Transaction.CitizenshipNo = CustomerRequestInfo.Tckn;
             }
         }
 
@@ -231,13 +255,13 @@ namespace bbt.gateway.messaging.Workers
             {
                 if (HeaderInfo.Sender == SenderType.AutoDetect)
                 {
-                    throw new WorkflowException("Couldn't get customer info", System.Net.HttpStatusCode.NotFound);
+                    CustomerRequestInfo.BusinessLine = "B";
                 }
             }
             else
             {
                 if(Sender == common.Models.v2.SenderType.AutoDetect)
-                    throw new WorkflowException("Couldn't get customer info", System.Net.HttpStatusCode.NotFound);
+                    CustomerRequestInfo.BusinessLine = "B";
             }
         }
 

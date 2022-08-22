@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace bbt.gateway.common.Models
 {
-    public class SmsResponseLog : dEngageResponse
+    public class SmsResponseLog : IdEngageResponse,ICodecResponse
     {
         public Guid Id { get; set; }
         public string Content { get; set; }
@@ -17,9 +17,14 @@ namespace bbt.gateway.common.Models
         public ICollection<SmsTrackingLog> TrackingLogs { get; set; } = new List<SmsTrackingLog>();
         public DateTime CreatedAt { get; set; }
 
-        public override string GetResponseCode()
+        public string GetResponseCode()
         {
             return OperatorResponseCode.ToString();
+        }
+
+        public int GetCodecResponseCode()
+        {
+            return OperatorResponseCode;
         }
     }
 }

@@ -6,8 +6,11 @@ using System.Threading.Tasks;
 
 namespace bbt.gateway.common.Models
 {
-    public interface IdEngageResponse
+    public enum CodecResponseCodes
     {
-        public string GetResponseCode();
+        Success = 200,
+        UndefinedSender = 490,
+        NotAuthorized = 401,
+        UnknownError = 400
     }
 }

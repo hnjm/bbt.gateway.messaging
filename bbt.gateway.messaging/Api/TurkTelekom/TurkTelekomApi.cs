@@ -35,7 +35,7 @@ namespace bbt.gateway.messaging.Api.TurkTelekom
                 turkTelekomSmsRequest.Password = "XXXX";
                 turkTelekomSmsRequest.UserCode = "XXXX";
                 if (httpResponse.IsSuccessStatusCode)
-                { 
+                {
                     var turkTelekomSmsResponse = response.DeserializeXml<TurkTelekomSmsResponse>();
                     operatorApiResponse.ResponseCode = turkTelekomSmsResponse.ResponseSms.ResponseCode;
                     operatorApiResponse.ResponseMessage = turkTelekomSmsResponse.ResponseSms.ResponseMessage;
@@ -53,7 +53,11 @@ namespace bbt.gateway.messaging.Api.TurkTelekom
                     TransactionManager.LogCritical("TurkTelekom Otp Failed | " + JsonConvert.SerializeObject(operatorApiResponse));
                 }
 
-                
+
+            }
+            catch (HttpRequestException ex)
+            {
+                TransactionManager.LogError($"Critical Error Occured at TurkTelekom Otp Services | Network Related | ErrorCode:499 | Exception : {ex.ToString()}");
             }
             catch (System.Exception ex)
             {
@@ -62,6 +66,7 @@ namespace bbt.gateway.messaging.Api.TurkTelekom
                 operatorApiResponse.MessageId = "";
                 operatorApiResponse.RequestBody = turkTelekomSmsRequest.SerializeXml();
                 operatorApiResponse.ResponseBody = response;
+                TransactionManager.LogError($"Critical Error Occured at TurkTelekom Otp Services | ErrorCode:499 | Exception : {ex.ToString()}");
                 TransactionManager.LogCritical("TurkTelekom Otp Failed | " + JsonConvert.SerializeObject(operatorApiResponse));
             }
 

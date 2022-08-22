@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace bbt.gateway.common.Models
 {
-    public interface IdEngageResponse
+    public interface ICodecResponse
     {
-        public string GetResponseCode();
+        public int GetCodecResponseCode();
     }
 }

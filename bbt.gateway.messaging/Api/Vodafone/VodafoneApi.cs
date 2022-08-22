@@ -31,7 +31,7 @@ namespace bbt.gateway.messaging.Api.Vodafone
                 var httpRequest = new StringContent(requests.Item1, Encoding.UTF8, "application/soap+xml");
                 var httpResponse = await _httpClient.PostAsync(OperatorConfig.SendService, httpRequest);
                 response = httpResponse.Content.ReadAsStringAsync().Result;
-                
+
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var parsedXml = response.DeserializeXml<Model.SendSms.SuccessXml.Envelope>();
@@ -53,6 +53,10 @@ namespace bbt.gateway.messaging.Api.Vodafone
 
                 }
             }
+            catch (HttpRequestException ex)
+            {
+                TransactionManager.LogError($"Critical Error Occured at Vodafone Otp Services | Network Related | ErrorCode:499 | Exception : {ex.ToString()}");
+            }
             catch (System.Exception ex)
             {
                 vodafoneSmsResponse.ResponseCode = "-99999";
@@ -60,6 +64,7 @@ namespace bbt.gateway.messaging.Api.Vodafone
                 vodafoneSmsResponse.MessageId = "";
                 vodafoneSmsResponse.ResponseBody = response;
                 vodafoneSmsResponse.RequestBody = requests.Item2;
+                TransactionManager.LogError($"Critical Error Occured at Vodafone Otp Services | ErrorCode:499 | Exception : {ex.ToString()}");
                 TransactionManager.LogCritical("Vodafone Otp Failed | " + JsonConvert.SerializeObject(vodafoneSmsResponse));
             }
 

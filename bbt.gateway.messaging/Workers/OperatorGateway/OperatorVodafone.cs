@@ -83,13 +83,13 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             var authResponse = await Auth();
             if (authResponse.ResponseCode == "0")
             {
-                var vodafoneResponse = await _vodafoneApi.SendSms(await CreateSmsRequest(phone, content, header, true));
+                var vodafoneResponse = await _vodafoneApi.SendSms(CreateSmsRequest(phone, content, header, true));
                 if (vodafoneResponse.ResponseCode.Trim().Equals("1008") ||
                     vodafoneResponse.ResponseCode.Trim().Equals("1011") ||
                     vodafoneResponse.ResponseCode.Trim().Equals("1016"))
                 {
                     if (await RefreshToken())
-                        vodafoneResponse = await _vodafoneApi.SendSms(await CreateSmsRequest(phone, content, header, true));
+                        vodafoneResponse = await _vodafoneApi.SendSms(CreateSmsRequest(phone, content, header, true));
                 }
 
                 var response = vodafoneResponse.BuildOperatorApiResponse();
@@ -118,13 +118,13 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             var authResponse = await Auth();
             if (authResponse.ResponseCode == "0")
             {
-                var vodafoneResponse = await _vodafoneApi.SendSms(await CreateSmsRequest(phone, content, header, true));
+                var vodafoneResponse = await _vodafoneApi.SendSms(CreateSmsRequest(phone, content, header, true));
                 if (vodafoneResponse.ResponseCode.Trim().Equals("1008") ||
                     vodafoneResponse.ResponseCode.Trim().Equals("1011") ||
                     vodafoneResponse.ResponseCode.Trim().Equals("1016"))
                 {
                     if (await RefreshToken())
-                        vodafoneResponse = await _vodafoneApi.SendSms(await CreateSmsRequest(phone, content, header, true));
+                        vodafoneResponse = await _vodafoneApi.SendSms(CreateSmsRequest(phone, content, header, true));
                 }
 
                 var response = vodafoneResponse.BuildOperatorApiResponse();
@@ -162,12 +162,12 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             }
         }
 
-        private async Task<VodafoneSmsRequest> CreateSmsRequest(Phone phone, string content, Header header, bool useControlDays)
+        private VodafoneSmsRequest CreateSmsRequest(Phone phone, string content, Header header, bool useControlDays)
         {
             double controlHour = (OperatorConfig.ControlDaysForOtp * 24 * 60);
             if (useControlDays)
             {
-                var phoneConfiguration = await GetPhoneConfiguration(phone);
+                var phoneConfiguration = TransactionManager.OtpRequestInfo.PhoneConfiguration;
                 if (phoneConfiguration != null)
                 {
                     if (phoneConfiguration.BlacklistEntries != null &&
@@ -207,6 +207,17 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             if (controlHour == 0)
                 controlHour = 1;
 
+            string phoneNo;
+
+            if (TransactionManager.StringSend)
+            {
+                phoneNo = phone.CountryCode.ToString() + phone.Prefix.ToString().PadLeft(TransactionManager.PrefixLength,'0') + phone.Number.ToString().PadLeft(TransactionManager.NumberLength, '0');
+            }
+            else
+            {
+                phoneNo = phone.CountryCode.ToString() + phone.Prefix.ToString() + (phone.CountryCode == 90 ? phone.Number.ToString().PadLeft(7, '0') : phone.Number);
+            }
+            
             return new VodafoneSmsRequest()
             {
                 AuthToken = _authToken,
@@ -214,7 +225,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 ExpiryPeriod = "60",
                 Header = Constant.OperatorSenders[header.SmsSender][OperatorType.Vodafone],
                 Message = content,
-                PhoneNo = phone.CountryCode.ToString() + phone.Prefix.ToString() + (phone.CountryCode == 90 ? phone.Number.ToString().PadLeft(7, '0') : phone.Number),
+                PhoneNo = phoneNo,
                 ControlHour = controlHour.ToString()+"M"
             };
 

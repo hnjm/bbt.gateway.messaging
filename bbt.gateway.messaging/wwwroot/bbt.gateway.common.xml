@@ -22,6 +22,14 @@
             System uses header configuration to set sender automatically.
             </remarks>
         </member>
+        <member name="P:bbt.gateway.common.Models.v2.SmsRequestString.Sender">
+            <summary>
+            You have to submit sender source. There is two senders are available, **Burgan** end On. If you do not know sender of receiver, please set as AutoDetect.
+            </summary>
+            <remarks>
+            System uses header configuration to set sender automatically.
+            </remarks>
+        </member>
         <member name="M:bbt.gateway.common.CoreExtensions.UseConsulSettings(Microsoft.Extensions.Hosting.IHostBuilder,System.Type)">
             <summary>
             Read Appsettings From Consule<br />

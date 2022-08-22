@@ -87,11 +87,11 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
             if (authResponse.ResponseCode == "0")
             {
-                var turkcellResponse = await _turkcellApi.SendSms(await CreateSmsRequest(phone, content, header, true));
+                var turkcellResponse = await _turkcellApi.SendSms(CreateSmsRequest(phone, content, header, true));
                 if (turkcellResponse.ResponseCode.Trim().Equals("-2"))
                 {
                     if(await RefreshToken())
-                        turkcellResponse = await _turkcellApi.SendSms(await CreateSmsRequest(phone, content, header, true));
+                        turkcellResponse = await _turkcellApi.SendSms(CreateSmsRequest(phone, content, header, true));
                 }
 
                 var response = turkcellResponse.BuildOperatorApiResponse();
@@ -121,11 +121,11 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
             if (authResponse.ResponseCode == "0")
             {
-                var turkcellResponse = await _turkcellApi.SendSms(await CreateSmsRequest(phone, content, header, useControlDays));
+                var turkcellResponse = await _turkcellApi.SendSms(CreateSmsRequest(phone, content, header, useControlDays));
                 if (turkcellResponse.ResponseCode.Trim().Equals("-2"))
                 {
                     if (await RefreshToken())
-                        turkcellResponse = await _turkcellApi.SendSms(await CreateSmsRequest(phone, content, header, useControlDays));
+                        turkcellResponse = await _turkcellApi.SendSms(CreateSmsRequest(phone, content, header, useControlDays));
                 }
 
                 var response = turkcellResponse.BuildOperatorApiResponse();
@@ -164,12 +164,12 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             }
         }
 
-        private async Task<TurkcellSmsRequest> CreateSmsRequest(Phone phone, string content, Header header, bool useControlDays)
+        private TurkcellSmsRequest CreateSmsRequest(Phone phone, string content, Header header, bool useControlDays)
         {
             DateTime trustedDate = DateTime.Now.AddDays(-1 * OperatorConfig.ControlDaysForOtp);
             if (useControlDays)
             {
-                var phoneConfiguration = await GetPhoneConfiguration(phone);
+                var phoneConfiguration = TransactionManager.OtpRequestInfo.PhoneConfiguration;
                 if (phoneConfiguration != null)
                 {
                     if (phoneConfiguration.BlacklistEntries != null &&
@@ -214,7 +214,16 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 request.IsAbroad ?
                 this.Configuration.GetSection("Operators:Turkcell:SrcMsIsdn").Get<string>() :
                 Constant.OperatorSenders[header.SmsSender][OperatorType.Turkcell];
-            request.PhoneNo = "00" + phone.CountryCode + phone.Prefix + (phone.CountryCode == 90 ? phone.Number.ToString().PadLeft(7,'0') : phone.Number);
+
+            if (TransactionManager.StringSend)
+            {
+                request.PhoneNo = "00" + phone.CountryCode + phone.Prefix.ToString().PadLeft(TransactionManager.PrefixLength, '0') + phone.Number.ToString().PadLeft(TransactionManager.NumberLength, '0');
+            }
+            else
+            {
+                request.PhoneNo = "00" + phone.CountryCode + phone.Prefix + (phone.CountryCode == 90 ? phone.Number.ToString().PadLeft(7, '0') : phone.Number);
+            }
+            
             request.SessionId = _authToken;
             request.Content = content;
             request.TrustedDate = trustedDate.ToString("ddMMyyHHmmss");

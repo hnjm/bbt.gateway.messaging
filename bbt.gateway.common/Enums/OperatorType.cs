@@ -14,5 +14,6 @@ namespace bbt.gateway.common.Models
         IVN = 5,
         dEngageBurgan = 6,
         dEngageOn = 7,
+        Codec = 8
     }
 }

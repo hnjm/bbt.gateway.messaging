@@ -176,14 +176,21 @@ namespace bbt.gateway.messaging
             return otpTrackingLog;
         }
 
-        public static dEngageResponseCodes GetdEngageStatus(this dEngageResponse dEngageResponse)
+        public static dEngageResponseCodes GetdEngageStatus(this IdEngageResponse dEngageResponse)
         {
             if(Constant.dEngageStatusCodes.ContainsKey(dEngageResponse.GetResponseCode()))
                 return Constant.dEngageStatusCodes[dEngageResponse.GetResponseCode()];
             return dEngageResponseCodes.BadRequest;
         }
 
-            public static T DeserializeXml<T>(this string toDeserialize)
+        public static CodecResponseCodes GetCodecStatus(this ICodecResponse codecResponse)
+        {
+            if (Constant.CodecStatusCodes.ContainsKey(codecResponse.GetCodecResponseCode()))
+                return Constant.CodecStatusCodes[codecResponse.GetCodecResponseCode()];
+            return CodecResponseCodes.UnknownError;
+        }
+
+        public static T DeserializeXml<T>(this string toDeserialize)
         {
             XmlSerializer xmlSerializer = new XmlSerializer(typeof(T));
           

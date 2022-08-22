@@ -1,4 +1,5 @@
 ﻿using bbt.gateway.common.Models;
+using bbt.gateway.common.Repositories;
 using bbt.gateway.messaging.Workers;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -16,19 +17,24 @@ namespace bbt.gateway.messaging.Controllers.v1
         private readonly OtpSender _otpSender;
         private readonly ITransactionManager _transactionManager;
         private readonly dEngageSender _dEngageSender;
-        public Messaging(OtpSender otpSender,ITransactionManager transactionManager, dEngageSender dEngageSender)
+        private readonly CodecSender _codecSender;
+        private readonly IRepositoryManager _repositoryManager;
+        public Messaging(OtpSender otpSender, ITransactionManager transactionManager, dEngageSender dEngageSender
+            , IRepositoryManager repositoryManager, CodecSender codecSender)
         {
             _transactionManager = transactionManager;
             _otpSender = otpSender;
             _dEngageSender = dEngageSender;
+            _codecSender = codecSender;
+            _repositoryManager = repositoryManager;
         }
-        
+
         [SwaggerOperation(
             Summary = "Send templated Sms message",
             Description = "Templates are defined in dEngage",
-            Tags = new[] {"Sms"}
+            Tags = new[] { "Sms" }
             )]
-        [HttpPost("sms/templated") ]
+        [HttpPost("sms/templated")]
         [SwaggerResponse(200, "Sms was sent successfully", typeof(SendSmsResponse))]
         [SwaggerResponse(460, "Given template is not found on dEngage", typeof(void))]
         [SwaggerResponse(465, "Sim card is changed.", typeof(void))]
@@ -37,7 +43,8 @@ namespace bbt.gateway.messaging.Controllers.v1
         {
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Mock")
             {
-                return Ok(new SendSmsResponse() { 
+                return Ok(new SendSmsResponse()
+                {
                     Status = dEngageResponseCodes.Success,
                     TxnId = Guid.NewGuid(),
                 });
@@ -59,7 +66,7 @@ namespace bbt.gateway.messaging.Controllers.v1
         [SwaggerResponse(465, "Sim card is changed.", typeof(void))]
         [SwaggerResponse(466, "Operator is changed.", typeof(void))]
         [SwaggerResponse(460, "Has Blacklist Record.", typeof(void))]
-        
+
         public async Task<IActionResult> SendMessageSms([FromBody] SendMessageSmsRequest data)
         {
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Mock")
@@ -78,22 +85,31 @@ namespace bbt.gateway.messaging.Controllers.v1
 
             if (ModelState.IsValid)
             {
-                if(data.ContentType == MessageContentType.Otp)
+                if (data.ContentType == MessageContentType.Otp)
                 {
                     return Ok(await _otpSender.SendMessage(data));
                 }
                 else
                 {
-                    return Ok(await _dEngageSender.SendSms(data));
+                    var codecOperator = await _repositoryManager.Operators.GetOperatorAsNoTracking(OperatorType.Codec);
+                    if (codecOperator.Status == OperatorStatus.Active)
+                    {
+                        return Ok(await _codecSender.SendSms(data));
+                    }
+                    else
+                    {
+                        return Ok(await _dEngageSender.SendSms(data));
+                    }
+
                 }
             }
-            else 
+            else
             {
-                _transactionManager.LogError("Model State is Not Valid | " + 
-                    string.Join("|",ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)));
+                _transactionManager.LogError("Model State is Not Valid | " +
+                    string.Join("|", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)));
                 return BadRequest(ModelState);
             }
-            
+
 
         }
 
@@ -102,7 +118,7 @@ namespace bbt.gateway.messaging.Controllers.v1
            Description = "Check Transactional Sms Delivery Status."
            )]
         [HttpGet("sms/check")]
-        
+
         public async Task<IActionResult> CheckSmsStatus(System.Guid TxnId)
         {
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Mock")
@@ -126,7 +142,7 @@ namespace bbt.gateway.messaging.Controllers.v1
            )]
         [HttpPost("sms/check-message")]
         [ApiExplorerSettings(IgnoreApi = true)]
-        
+
         public async Task<IActionResult> CheckMessageStatus([FromBody] CheckSmsRequest data)
         {
 
@@ -150,7 +166,7 @@ namespace bbt.gateway.messaging.Controllers.v1
         [HttpPost("email/templated")]
         [SwaggerResponse(200, "Email was sent successfully", typeof(SendEmailResponse))]
         [SwaggerResponse(460, "Given template is not found on dEngage", typeof(void))]
-        
+
         public async Task<IActionResult> SendTemplatedEmail([FromBody] SendTemplatedEmailRequest data)
         {
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Mock")
@@ -177,7 +193,7 @@ namespace bbt.gateway.messaging.Controllers.v1
            )]
         [HttpPost("email/message")]
         [SwaggerResponse(200, "Email was sent successfully", typeof(SendEmailResponse))]
-        
+
         public async Task<IActionResult> SendMessageEmail([FromBody] SendMessageEmailRequest data)
         {
             if (data.Email == null)
@@ -206,7 +222,7 @@ namespace bbt.gateway.messaging.Controllers.v1
            )]
         [HttpPost("push-notification/templated")]
         [SwaggerResponse(200, "Push notification was sent successfully", typeof(SendPushNotificationResponse))]
-        
+
         public async Task<IActionResult> SendTemplatedPushNotification([FromBody] SendTemplatedPushNotificationRequest data)
         {
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Mock")

@@ -136,7 +136,7 @@ namespace bbt.gateway.messaging.Api.Turkcell
                 HttpContent httpRequest = new StringContent(getSmsStatusXml(turkcellSmsStatusRequest), Encoding.UTF8, "text/xml");
                 var httpResponse = await _httpClient.PostAsync(OperatorConfig.QueryService, httpRequest);
                 response = httpResponse.Content.ReadAsStringAsync().Result;
-                
+
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var parsedXml = response.DeserializeXml<Model.SmsStatus.SuccessXml.Envelope>();
@@ -166,8 +166,13 @@ namespace bbt.gateway.messaging.Api.Turkcell
                     turkcellSmsStatusResponse.ResponseBody = response;
                 }
             }
+            catch (HttpRequestException ex)
+            {
+                TransactionManager.LogError($"Critical Error Occured at Turkcell Otp Services | Network Related | ErrorCode:499 | Exception : {ex.ToString()}");
+            }
             catch (Exception ex)
             {
+                TransactionManager.LogError($"Critical Error Occured at Turkcell Otp Services | ErrorCode:499 | Exception : {ex.ToString()}");
                 turkcellSmsStatusResponse.ResponseCode = "-99999";
                 turkcellSmsStatusResponse.ResponseMessage = ex.ToString();
                 turkcellSmsStatusResponse.ResponseBody = response;

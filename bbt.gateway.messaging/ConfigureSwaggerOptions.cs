@@ -97,6 +97,40 @@ namespace bbt.gateway.messaging
         }
     }
 
+    public class TemplatedSmsRequestStringExampleFilter : IExamplesProvider<object>
+    {
+        private readonly IConfiguration _configuration;
+        public TemplatedSmsRequestStringExampleFilter(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
+
+        public object GetExamples()
+        {
+            return new TemplatedSmsRequestString
+            {
+                Sender = SenderType.AutoDetect,
+                Phone = new PhoneString()
+                {
+                    CountryCode = _configuration.GetValue<string>("Swagger:Examples:Sms:CountryCode"),
+                    Prefix = _configuration.GetValue<string>("Swagger:Examples:Sms:Prefix"),
+                    Number = _configuration.GetValue<string>("Swagger:Examples:Sms:Number")
+                },
+                Template = _configuration["Swagger:Examples:Sms:Template"],
+                TemplateParams = _configuration["Swagger:Examples:Sms:TemplateParams"],
+                Tags = _configuration.GetValue<string[]>("Swagger:Examples:Tags"),
+                CitizenshipNo = "",
+                CustomerNo = 0,
+                Process = new Process()
+                {
+                    Name = _configuration["Swagger:Examples:Process:Name"],
+                    Identity = _configuration["Swagger:Examples:Process:Identity"]
+                }
+            };
+
+        }
+    }
+
     public class SmsRequestExampleFilter : IExamplesProvider<object>
     {
         private readonly IConfiguration _configuration;
@@ -115,6 +149,40 @@ namespace bbt.gateway.messaging
                     CountryCode = _configuration.GetValue<int>("Swagger:Examples:Sms:CountryCode"),
                     Prefix = _configuration.GetValue<int>("Swagger:Examples:Sms:Prefix"),
                     Number = _configuration.GetValue<int>("Swagger:Examples:Sms:Number")
+                },
+                Content = _configuration["Swagger:Examples:Sms:Content"],
+                SmsType = SmsTypes.Fast,
+                CitizenshipNo = "",
+                CustomerNo = 0,
+                Tags = _configuration.GetValue<string[]>("Swagger:Examples:Tags"),
+                Process = new Process()
+                {
+                    Name = _configuration["Swagger:Examples:Process:Name"],
+                    Identity = _configuration["Swagger:Examples:Process:Identity"]
+                }
+            };
+
+        }
+    }
+
+    public class SmsRequestStringExampleFilter : IExamplesProvider<object>
+    {
+        private readonly IConfiguration _configuration;
+        public SmsRequestStringExampleFilter(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
+
+        public object GetExamples()
+        {
+            return new SmsRequestString
+            {
+                Sender = SenderType.AutoDetect,
+                Phone = new PhoneString()
+                {
+                    CountryCode = _configuration.GetValue<string>("Swagger:Examples:Sms:CountryCode"),
+                    Prefix = _configuration.GetValue<string>("Swagger:Examples:Sms:Prefix"),
+                    Number = _configuration.GetValue<string>("Swagger:Examples:Sms:Number")
                 },
                 Content = _configuration["Swagger:Examples:Sms:Content"],
                 SmsType = SmsTypes.Fast,

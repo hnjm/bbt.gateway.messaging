@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace bbt.gateway.common.Models
 {
-    public interface IdEngageResponse
+    public class SendCodecSmsResponse
     {
-        public string GetResponseCode();
+        public Guid TxnId { get; set; }
+        public CodecResponseCodes Status { get; set; }
+
     }
 }
+

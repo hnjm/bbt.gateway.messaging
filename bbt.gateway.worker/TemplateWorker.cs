@@ -63,7 +63,7 @@ namespace bbt.gateway.worker
             }
             catch (ApiException ex)
             {
-                _logger.Error("An Error Occured While Trying To Caching Mail Contents");
+                _logger.Error("An Error Occured While Trying To Caching Push Contents");
             }
         }
     }

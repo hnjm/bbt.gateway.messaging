@@ -15,6 +15,13 @@ namespace bbt.gateway.messaging
             { "429", dEngageResponseCodes.TooManyRequest },
         };
 
+        public static readonly Dictionary<int, CodecResponseCodes> CodecStatusCodes = new()
+        {
+            { 0, CodecResponseCodes.Success },
+            { -441, CodecResponseCodes.UndefinedSender },
+            { -103, CodecResponseCodes.NotAuthorized},
+        };
+
         public static readonly Dictionary<SmsTypes, string> smsTypes = new()
         {
             { SmsTypes.Bulk, "codec" },

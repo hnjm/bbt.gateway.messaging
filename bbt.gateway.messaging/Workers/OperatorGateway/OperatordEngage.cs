@@ -480,6 +480,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                         }
                         if ((int)ex.StatusCode >= 500)
                         {
+                            TransactionManager.LogError($"Critical Error Occured at dEngage Services | ErrorCode:499 | Exception : {ex.ToString()}");
                             smsLog.OperatorResponseCode = -999;
                             smsLog.OperatorResponseMessage = "dEngage Internal Server Error";
                         }
@@ -489,6 +490,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 }
                 catch (Exception ex)
                 {
+                    TransactionManager.LogError($"Critical Error Occured at dEngage Services | ErrorCode:499 | Exception : {ex.ToString()}");
                     //logging
                     smsLog.OperatorResponseCode = -99999;
                     smsLog.OperatorResponseMessage = ex.ToString();
@@ -578,9 +580,14 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
         private Api.dEngage.Model.Transactional.SendSmsRequest CreateSmsRequest(Phone phone, SmsTypes smsType, string content = null,string templateId = null,string templateParams = null)
         {
             Api.dEngage.Model.Transactional.SendSmsRequest sendSmsRequest = new();
-            
-            sendSmsRequest.send.to = phone.Concatenate();
-            
+            if (TransactionManager.StringSend)
+            {
+                sendSmsRequest.send.to = phone.CountryCode + phone.Prefix.ToString().PadLeft(TransactionManager.PrefixLength, '0') + phone.Number.ToString().PadLeft(TransactionManager.NumberLength, '0');
+            }
+            else
+            {
+                sendSmsRequest.send.to = phone.Concatenate();
+            }
             var now = DateTime.Now;
             sendSmsRequest.earliestTime = now.ToString("HH:mm");
             sendSmsRequest.latestTime = now.AddMinutes(3).ToString("HH:mm");

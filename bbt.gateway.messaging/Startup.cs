@@ -131,7 +131,7 @@ namespace bbt.gateway.messaging
             services.AddScoped<OperatorIVN>();
             services.AddScoped<OperatordEngage>();
             services.AddScoped<OperatordEngageMock>();
-
+            services.AddScoped<OperatorCodec>();
             services.AddScoped<TurkTelekomApi>();
             services.AddScoped<VodafoneApi>();
             services.AddScoped<TurkcellApi>();
@@ -190,6 +190,7 @@ namespace bbt.gateway.messaging
 
             services.AddScoped<OtpSender>();
             services.AddScoped<dEngageSender>();
+            services.AddScoped<CodecSender>();
             services.AddScoped<HeaderManager>();
             services.AddScoped<OperatorManager>();
             services.AddScoped<OperatorIVN>();
@@ -233,7 +234,7 @@ namespace bbt.gateway.messaging
             });
 
             app.UseRouting();
-
+           
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

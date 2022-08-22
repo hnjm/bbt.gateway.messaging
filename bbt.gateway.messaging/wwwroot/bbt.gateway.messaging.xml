@@ -1300,6 +1300,15 @@
         <member name="P:bbt.gateway.messaging.Api.Vodafone.Model.SmsStatus.SuccessXml.returnDeliveryStatusListDeliveryStatus.transactionId">
             <remarks/>
         </member>
+        <member name="T:CodecFastApi.KeyAndValue">
+            <remarks/>
+        </member>
+        <member name="P:CodecFastApi.KeyAndValue.Key">
+            <remarks/>
+        </member>
+        <member name="P:CodecFastApi.KeyAndValue.Value">
+            <remarks/>
+        </member>
         <member name="T:Refit.Implementation.Generated">
             <inheritdoc />
         </member>
