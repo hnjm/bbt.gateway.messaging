@@ -607,6 +607,10 @@ namespace bbt.gateway.messaging.Workers
 
         public async Task<common.Models.v2.TemplatedPushResponse> SendTemplatedPushNotificationV2(common.Models.v2.TemplatedPushRequest sendTemplatedPushNotificationRequest)
         {
+            if (String.IsNullOrWhiteSpace(sendTemplatedPushNotificationRequest.CitizenshipNo))
+            {
+                sendTemplatedPushNotificationRequest.CitizenshipNo = _transactionManager.CustomerRequestInfo.Tckn;
+            }
 
             common.Models.v2.TemplatedPushResponse sendPushNotificationResponse = new()
             {
@@ -658,6 +662,11 @@ namespace bbt.gateway.messaging.Workers
 
         public async Task<common.Models.v2.PushResponse> SendPushNotificationV2(common.Models.v2.PushRequest sendPushNotificationRequest)
         {
+
+            if (String.IsNullOrWhiteSpace(sendPushNotificationRequest.CitizenshipNo))
+            {
+                sendPushNotificationRequest.CitizenshipNo = _transactionManager.CustomerRequestInfo.Tckn;
+            }
 
             common.Models.v2.PushResponse sendPushNotificationResponse = new()
             {

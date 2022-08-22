@@ -7,8 +7,7 @@ namespace bbt.gateway.common.Models.v2
     {
         [Required]
         public SenderType Sender { get; set; }
-        [Required(AllowEmptyStrings = false)]
-        [CitizenshipNo(10, 11)]
+
         public string CitizenshipNo { get; set; }
         [Required]
         public string Template { get; set; }

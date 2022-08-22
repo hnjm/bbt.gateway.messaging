@@ -196,13 +196,13 @@ namespace bbt.gateway.messaging.Controllers.v2
         {
             if (data.Phone == null)
             {
-                throw new WorkflowException("Phone Number Field Is Mandatory",System.Net.HttpStatusCode.BadRequest);
+                return BadRequest("Phone Number Field Is Mandatory");
             }
 
             if ((await _repositoryManager.Whitelist.FindAsync(w => (w.Phone.CountryCode == data.Phone.CountryCode)
              && (w.Phone.Prefix == data.Phone.Prefix)
              && (w.Phone.Number == data.Phone.Number))).FirstOrDefault() != null)
-                throw new WorkflowException("Phone Number Is Already Exist", System.Net.HttpStatusCode.Conflict);
+                return BadRequest("Phone Number Is Already Exist");
 
             var whitelistRecord = new WhiteList()
             {
@@ -218,8 +218,8 @@ namespace bbt.gateway.messaging.Controllers.v2
             return Created("", whitelistRecord.Id);
         }
 
-        [SwaggerOperation(Summary = "Adds phone to whitelist",
-            Description = "<div>Phone Number Has To Be Added To Whitelist To Receives Sms On Test Environment</div>",
+        [SwaggerOperation(Summary = "Adds mail to whitelist",
+            Description = "<div>Mail Address Has To Be Added To Whitelist To Receives E-Mail On Test Environment</div>",
             Tags = new[] { "Whitelist Management" })]
         [HttpPost("whitelist/email")]
         [SwaggerResponse(201, "Record was created successfully", typeof(void))]
@@ -229,11 +229,11 @@ namespace bbt.gateway.messaging.Controllers.v2
         {
             if (data.Email == null)
             {
-                throw new WorkflowException("Email Field Is Mandatory", System.Net.HttpStatusCode.BadRequest);
+                return BadRequest("Email Field Is Mandatory");
             }
 
             if ((await _repositoryManager.Whitelist.FindAsync(w => w.Mail == data.Email)).FirstOrDefault() != null)
-                throw new WorkflowException("Email Is Already Exist", System.Net.HttpStatusCode.Conflict);
+                return BadRequest("Email Is Already Exist");
 
             var whitelistRecord = new WhiteList()
             {
@@ -249,18 +249,90 @@ namespace bbt.gateway.messaging.Controllers.v2
             return Created("", whitelistRecord.Id);
         }
 
-        [SwaggerOperation(Summary = "Deletes whitelist configuration",
+        [SwaggerOperation(Summary = "Adds Citizenshipno to whitelist",
+            Description = "<div>Citizenshipno Has To Be Added To Whitelist To Receives Pushs On Test Environment</div>",
             Tags = new[] { "Whitelist Management" })]
-        [HttpDelete("whitelist/{id}")]
+        [HttpPost("whitelist/push")]
+        [SwaggerResponse(201, "Record was created successfully", typeof(void))]
+        [SwaggerResponse(400, "Citizenshipno Field Is Mandatory", typeof(void))]
+        [SwaggerResponse(409, "Citizenshipno Is Already Exists In Whitelist", typeof(void))]
+        public async Task<IActionResult> AddCitizenshipnoToWhitelist([FromBody] AddCitizenshipnoToWhitelistRequest data)
+        {
+            if (data.CitizenshipNo == null)
+            {
+                return BadRequest("Citizenshipno Field Is Mandatory");
+            }
+
+            if ((await _repositoryManager.Whitelist.FindAsync(w => w.ContactId == data.CitizenshipNo)).FirstOrDefault() != null)
+                return BadRequest("Citizenshipno Is Already Exist");
+
+            var whitelistRecord = new WhiteList()
+            {
+                CreatedBy = data.CreatedBy.MapTo<common.Models.Process>(),
+                IpAddress = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault()
+                    ?? HttpContext.Connection.RemoteIpAddress.ToString(),
+                ContactId = data.CitizenshipNo
+            };
+
+            await _repositoryManager.Whitelist.AddAsync(whitelistRecord);
+            await _repositoryManager.SaveChangesAsync();
+
+            return Created("", whitelistRecord.Id);
+        }
+
+        [SwaggerOperation(Summary = "Deletes Phone Number From Whitelist configuration",
+            Tags = new[] { "Whitelist Management" })]
+        [HttpDelete("whitelist/phone")]
         [SwaggerResponse(200, "Whitelist record is deleted successfully", typeof(void))]
-        public async Task<IActionResult> DeleteFromWhitelist(common.Models.v2.Phone phone)
+        public async Task<IActionResult> DeletePhoneFromWhitelist(common.Models.v2.Phone phone)
         {
             var recordsToDelete = await _repositoryManager.Whitelist.FindAsync(w => (w.Phone.CountryCode == phone.CountryCode)
               && (w.Phone.Prefix == phone.Prefix)
               && (w.Phone.Number == phone.Number));
 
-            if(recordsToDelete.Count() == 0)
-                throw new WorkflowException("There is no record for given phone number",System.Net.HttpStatusCode.NotFound);
+            if(!recordsToDelete.Any())
+                return BadRequest("There is no record for given phone number");
+
+            foreach (WhiteList whitelist in recordsToDelete)
+            {
+                _repositoryManager.Whitelist.Remove(whitelist);
+            }
+
+            await _repositoryManager.SaveChangesAsync();
+            return Ok();
+        }
+
+
+        [SwaggerOperation(Summary = "Deletes Mail Address From Whitelist configuration",
+            Tags = new[] { "Whitelist Management" })]
+        [HttpDelete("whitelist/mail")]
+        [SwaggerResponse(200, "Whitelist record is deleted successfully", typeof(void))]
+        public async Task<IActionResult> DeleteMailFromWhitelist(string Mail)
+        {
+            var recordsToDelete = await _repositoryManager.Whitelist.FindAsync(w => w.Mail == Mail);
+
+            if (!recordsToDelete.Any())
+                return BadRequest("There is no record for given mail address");
+
+            foreach (WhiteList whitelist in recordsToDelete)
+            {
+                _repositoryManager.Whitelist.Remove(whitelist);
+            }
+
+            await _repositoryManager.SaveChangesAsync();
+            return Ok();
+        }
+
+        [SwaggerOperation(Summary = "Deletes Citizenshipno From Whitelist configuration",
+            Tags = new[] { "Whitelist Management" })]
+        [HttpDelete("whitelist/push")]
+        [SwaggerResponse(200, "Whitelist record is deleted successfully", typeof(void))]
+        public async Task<IActionResult> DeletePushFromWhitelist(string CitizenshipNo)
+        {
+            var recordsToDelete = await _repositoryManager.Whitelist.FindAsync(w => w.ContactId == CitizenshipNo);
+
+            if (!recordsToDelete.Any())
+                return BadRequest("There is no record for given citizenshipNo");
 
             foreach (WhiteList whitelist in recordsToDelete)
             {
@@ -294,6 +366,19 @@ namespace bbt.gateway.messaging.Controllers.v2
         public async Task<IActionResult> CheckMail(string email)
         {
             if ((await _repositoryManager.Whitelist.FindAsync(w => w.Mail == email)).FirstOrDefault() != null)
+                return Ok();
+            else
+                return NotFound();
+        }
+
+        [SwaggerOperation(Summary = "Returns CitizenshipNo's whitelist status",
+            Tags = new[] { "Whitelist Management" })]
+        [HttpGet("whitelist/check/push")]
+        [SwaggerResponse(200, "CitizensipNo is in whitelist", typeof(void))]
+        [SwaggerResponse(404, "CitizensipNo is not in whitelist", typeof(void))]
+        public async Task<IActionResult> CheckPush(string CitizenshipNo)
+        {
+            if ((await _repositoryManager.Whitelist.FindAsync(w => w.ContactId == CitizenshipNo)).FirstOrDefault() != null)
                 return Ok();
             else
                 return NotFound();
