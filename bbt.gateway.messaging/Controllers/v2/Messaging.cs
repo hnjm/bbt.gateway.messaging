@@ -166,6 +166,87 @@ namespace bbt.gateway.messaging.Controllers.v2
         }
 
         [SwaggerOperation(
+           Summary = "Send Sms message",
+           Description = ""
+            + "<div>To Send Sms With Plain Text Use This Method</div>"
+            + "<div>Sender,SmsType,Content,Phone,Process Fields are Mandatory</div>"
+            + "<div>When Customer Type(Burgan/On) is Not Known, Sender Field Should Be Set To AutoDetect"
+            + " <br />Otherwise This Field Must Be Set Burgan or On</div>"
+            + "<div>You can use advantages of headers by creating header from Header Management Services"
+            + "<br /> When message services are called, we get customer info(BusinessLine,BranchCode)"
+            + "<br /> Then try to find header matches with (BusinessLine[BL],BranchCode[BC],SmsType[ST])"
+            + "<br /> Match Order by priority is (BL-BC-ST)-(BL-ST)-(BL-SC)-(BL)"
+            + "<br /> If any header is matches, we add matched header prefix and suffix to beginning of message and end of the message</div>"
+            + "<div>Content Field Will Be Logged After This Method Called. If You Need To Masking Critical Information You Should Surround"
+            + " Critical Information with &lt;Mask&gt;&lt;/Mask&gt; . "
+            + "<br />Example : \"Content\" : \"Your password is &lt;Mask&gt;1000&lt;/Mask&gt;.\"</div>"
+            + "",
+           Tags = new[] { "Sms" }
+           )]
+        [HttpPost("sms/message/codec")]
+        [SwaggerRequestExample(typeof(SmsRequest), typeof(SmsRequestExampleFilter))]
+        [SwaggerResponse(200, "Sms was sent successfully", typeof(SmsResponse))]
+        [SwaggerResponse(200, "Sms was sent successfully", typeof(OtpResponse))]
+        [SwaggerResponse(400, "Bad Request", typeof(SmsResponse))]
+        [SwaggerResponse(401, "Unauthorized", typeof(SmsResponse))]
+        [SwaggerResponse(403, "Not Allowed", typeof(SmsResponse))]
+        [SwaggerResponse(404, "Not Found", typeof(SmsResponse))]
+        [SwaggerResponse(429, "Too Many Request", typeof(SmsResponse))]
+        [SwaggerResponse(450, "Given template is not found on dEngage", typeof(void))]
+        [SwaggerResponse(451, "Customer Not Found.", typeof(void))]
+        [SwaggerResponse(460, "Has Blacklist Record", typeof(OtpResponse))]
+        [SwaggerResponse(461, "Sim Change", typeof(OtpResponse))]
+        [SwaggerResponse(462, "Operator Change", typeof(OtpResponse))]
+        [SwaggerResponse(463, "Rejected By Operator", typeof(OtpResponse))]
+        [SwaggerResponse(464, "Not Subscriber", typeof(OtpResponse))]
+        [SwaggerResponse(465, "Client Error", typeof(OtpResponse))]
+        [SwaggerResponse(466, "Server Error", typeof(OtpResponse))]
+        [SwaggerResponse(467, "Maximum Characters Count Exceed", typeof(OtpResponse))]
+        [SwaggerResponse(500, "Internal Server Error. Get Contact With Integration", typeof(void))]
+        public async Task<IActionResult> SendMessageSmsCodec([FromBody] SmsRequest data)
+        {
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Mock")
+            {
+                return Ok(new SmsResponse()
+                {
+                    Status = dEngageResponseCodes.Success,
+                    TxnId = Guid.NewGuid(),
+                });
+            }
+
+            if (data.Phone == null)
+            {
+                data.Phone = new Phone
+                {
+                    CountryCode = _transactionManager.CustomerRequestInfo.MainPhone.CountryCode,
+                    Prefix = _transactionManager.CustomerRequestInfo.MainPhone.Prefix,
+                    Number = _transactionManager.CustomerRequestInfo.MainPhone.Number,
+                };
+            }
+
+            if (ModelState.IsValid)
+            {
+                if (data.SmsType == SmsTypes.Otp)
+                {
+                    return Ok(await _otpSender.SendMessageV2(data));
+                }
+                else
+                {
+
+                    return Ok(await _codecSender.SendSmsV2(data));
+                   
+                }
+            }
+            else
+            {
+                _transactionManager.LogError("Model State is Not Valid | " +
+                    string.Join("|", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)));
+                return BadRequest(ModelState);
+            }
+
+        }
+
+        [SwaggerOperation(
             Summary = "Send Templated Sms Message",
             Description = ""
             + "<div>To Send Sms With Template Which Defined On dEngage Use This Method</div>"
