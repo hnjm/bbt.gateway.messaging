@@ -14,11 +14,11 @@ builder.Host.UseConsulSettings(typeof(Program));
 builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
         .AddNegotiate(options =>
         {
-            options.EnableLdap(settings =>
-            {
-                settings.Domain = "ebt.bank";
+            //options.EnableLdap(settings =>
+            //{
+            //    settings.Domain = "ebt.bank";
 
-            });
+            //});
             
         });
 builder.Services.AddAuthorization(options =>
