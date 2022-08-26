@@ -16,11 +16,12 @@ builder.Host.UseConsulSettings(typeof(Program));
 builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
         .AddNegotiate(options =>
         {
-            options.EnableLdap(settings =>
-            {
-                settings.Domain = "ebt.bank";
-                
-            });
+            //options.EnableLdap(settings =>
+            //{
+            //    settings.Domain = "ebt.bank";
+
+
+            //});
             options.PersistKerberosCredentials = true;
             options.Events = new NegotiateEvents()
             {
@@ -28,6 +29,8 @@ builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
              {
                  if(context.Exception != null)
                  Console.WriteLine(context.Exception.Message);
+
+                 context.SkipHandler();
                  return Task.CompletedTask;
              }
             };
