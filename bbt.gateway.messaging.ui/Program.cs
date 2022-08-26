@@ -6,6 +6,8 @@ using Radzen;
 using Refit;
 using Microsoft.AspNetCore.Authentication.Negotiate;
 using System.Runtime.InteropServices;
+using Microsoft.AspNetCore.Connections.Features;
+
 var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseConsulSettings(typeof(Program));
 
@@ -14,12 +16,23 @@ builder.Host.UseConsulSettings(typeof(Program));
 builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
         .AddNegotiate(options =>
         {
-            //options.EnableLdap(settings =>
-            //{
-            //    settings.Domain = "ebt.bank";
+            options.EnableLdap(settings =>
+            {
+                settings.Domain = "ebt.bank";
+                
+            });
+            options.PersistKerberosCredentials = true;
+            options.Events = new NegotiateEvents()
+            {
+                OnAuthenticationFailed = context =>
+             {
+                 if(context.Exception != null)
+                 Console.WriteLine(context.Exception.Message);
+                 return Task.CompletedTask;
+             }
+            };
 
-            //});
-            
+
         });
 builder.Services.AddAuthorization(options =>
 {
