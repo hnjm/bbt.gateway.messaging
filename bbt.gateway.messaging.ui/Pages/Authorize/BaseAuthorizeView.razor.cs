@@ -20,23 +20,32 @@ namespace bbt.gateway.messaging.ui.Pages.Authorize
         {
             if(firstRender)
             {
-                var authste = await AuthenticationStated;
-                var user = authste.User;
-                string Name = user.Identity.Name;
-                var res = await MessagingGateway.GetUserControl(Name);
-                if (res != null && res)
+                try
                 {
-                    IsAuthorized = true;
+                    var authste = await AuthenticationStated;
+                    var user = authste.User;
+                    string Name = user.Identity.Name;
+                    var res = await MessagingGateway.GetUserControl(Name);
+                    if (res != null && res)
+                    {
+                        IsAuthorized = true;
+                    }
+                    else
+                    {
+                        IsAuthorized = false;
+                    }
+                    if (IsAuthorized)
+                        Display = AuthorizedControl;
+                    else
+                        Display = NotAuthorizedControl;
+                    StateHasChanged();
                 }
-                else
+                catch(Exception ex)
                 {
-                    IsAuthorized = false;
-                }
-                if (IsAuthorized)
-                    Display = AuthorizedControl;
-                else
                     Display = NotAuthorizedControl;
-                StateHasChanged();
+                    StateHasChanged();
+                }
+               
             }
            
            

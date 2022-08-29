@@ -22,8 +22,21 @@ builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
             {
                 options.EnableLdap("ebt.bank");
             }
-            
 
+            options.Events = new NegotiateEvents()
+            {
+                OnAuthenticationFailed = context =>
+                {
+                    if (context.Exception != null)
+                        Console.WriteLine("Hata Events Mesajý :"+context.Exception.Message);
+
+                    if (context.HttpContext!=null&& context.HttpContext.User!=null&& context.HttpContext.User.Identity!=null)
+                    {
+                        Console.WriteLine("Identity Name:" + context.HttpContext.User.Identity.Name);
+                    }
+                    return Task.CompletedTask;
+                }
+            };
 
 
         });
