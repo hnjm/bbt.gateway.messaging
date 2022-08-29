@@ -12,45 +12,33 @@ using Microsoft.AspNetCore.Server.HttpSys;
 var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseConsulSettings(typeof(Program));
 
-// Add services to the container.
-builder.Services.AddAuthentication(HttpSysDefaults.AuthenticationScheme);
-if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-{
-    builder.WebHost.UseHttpSys(options =>
-    {
-        options.Authentication.Schemes =
-            AuthenticationSchemes.NTLM |
-            AuthenticationSchemes.Negotiate;
-        options.Authentication.AllowAnonymous = false;
-    });
-}
-//builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
-//        .AddNegotiate(options =>
-//        {
+builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
+        .AddNegotiate(options =>
+        {
 
-//            options.PersistNtlmCredentials = true;
-//            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-//            {
-//                options.EnableLdap("ebt.bank");
-//            }
+            options.PersistNtlmCredentials = true;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                options.EnableLdap("ebt.bank");
+            }
 
-//            options.Events = new NegotiateEvents()
-//            {
-//                OnAuthenticationFailed = context =>
-//                {
-//                    if (context.Exception != null)
-//                        Console.WriteLine("Hata Events Mesajý :"+context.Exception.Message);
+            options.Events = new NegotiateEvents()
+            {
+                OnAuthenticationFailed = context =>
+                {
+                    if (context.Exception != null)
+                        Console.WriteLine("Hata Events Mesajý :" + context.Exception.Message);
 
-//                    if (context.HttpContext!=null&& context.HttpContext.User!=null&& context.HttpContext.User.Identity!=null)
-//                    {
-//                        Console.WriteLine("Identity Name:" + context.HttpContext.User.Identity.Name);
-//                    }
-//                    return Task.CompletedTask;
-//                }
-//            };
+                    if (context.HttpContext != null && context.HttpContext.User != null && context.HttpContext.User.Identity != null)
+                    {
+                        Console.WriteLine("Identity Name:" + context.HttpContext.User.Identity.Name);
+                    }
+                    return Task.CompletedTask;
+                }
+            };
 
 
-//        });
+        });
 builder.Services.AddAuthorization(options =>
 {
     options.FallbackPolicy = options.DefaultPolicy;
