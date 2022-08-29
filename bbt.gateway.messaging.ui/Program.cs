@@ -51,10 +51,10 @@ if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 
 
 //        });
-//builder.Services.AddAuthorization(options =>
-//{
-//    options.FallbackPolicy = options.DefaultPolicy;
-//});
+builder.Services.AddAuthorization(options =>
+{
+    options.FallbackPolicy = options.DefaultPolicy;
+});
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddRefitClient<IMessagingGatewayService>()
