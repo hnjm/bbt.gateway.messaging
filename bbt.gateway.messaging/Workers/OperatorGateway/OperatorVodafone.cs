@@ -1,14 +1,12 @@
-﻿using bbt.gateway.messaging.Api.Vodafone.Model;
-using bbt.gateway.common.Models;
-using bbt.gateway.messaging.Api.Vodafone;
+﻿using bbt.gateway.common.Models;
 using bbt.gateway.messaging.Api;
-using bbt.gateway.common;
+using bbt.gateway.messaging.Api.Vodafone;
+using bbt.gateway.messaging.Api.Vodafone.Model;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using Microsoft.Extensions.Configuration;
 
 namespace bbt.gateway.messaging.Workers.OperatorGateway
 {
@@ -17,7 +15,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
         private string _authToken;
         private readonly IVodafoneApi _vodafoneApi;
         public OperatorVodafone(VodafoneApiFactory vodafoneApiFactory, IConfiguration configuration,
-            ITransactionManager transactionManager) : base(configuration,transactionManager)
+            ITransactionManager transactionManager) : base(configuration, transactionManager)
         {
             _vodafoneApi = vodafoneApiFactory(TransactionManager.UseFakeSmtp);
             Type = OperatorType.Vodafone;
@@ -78,24 +76,24 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             }
         }
 
-        public async Task<bool> SendOtp(Phone phone, string content, ConcurrentBag<OtpResponseLog> responses, Header header, bool useControlDays)
+        public async Task<bool> SendOtp(Phone phone, string content, ConcurrentBag<OtpResponseLog> responses, Header header)
         {
             var authResponse = await Auth();
             if (authResponse.ResponseCode == "0")
             {
-                var vodafoneResponse = await _vodafoneApi.SendSms(CreateSmsRequest(phone, content, header, true));
+                var vodafoneResponse = await _vodafoneApi.SendSms(CreateSmsRequest(phone, content, header));
                 if (vodafoneResponse.ResponseCode.Trim().Equals("1008") ||
                     vodafoneResponse.ResponseCode.Trim().Equals("1011") ||
                     vodafoneResponse.ResponseCode.Trim().Equals("1016"))
                 {
                     if (await RefreshToken())
-                        vodafoneResponse = await _vodafoneApi.SendSms(CreateSmsRequest(phone, content, header, true));
+                        vodafoneResponse = await _vodafoneApi.SendSms(CreateSmsRequest(phone, content, header));
                 }
 
                 var response = vodafoneResponse.BuildOperatorApiResponse();
                 responses.Add(response);
                 await ExtendToken();
-                
+
             }
             else
             {
@@ -109,22 +107,22 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 response.ResponseMessage = authResponse.ResponseMessage;
                 responses.Add(response);
             }
-            
+
             return true;
         }
 
-        public async Task<OtpResponseLog> SendOtp(Phone phone, string content, Header header, bool useControlDays)
+        public async Task<OtpResponseLog> SendOtp(Phone phone, string content, Header header)
         {
             var authResponse = await Auth();
             if (authResponse.ResponseCode == "0")
             {
-                var vodafoneResponse = await _vodafoneApi.SendSms(CreateSmsRequest(phone, content, header, true));
+                var vodafoneResponse = await _vodafoneApi.SendSms(CreateSmsRequest(phone, content, header));
                 if (vodafoneResponse.ResponseCode.Trim().Equals("1008") ||
                     vodafoneResponse.ResponseCode.Trim().Equals("1011") ||
                     vodafoneResponse.ResponseCode.Trim().Equals("1016"))
                 {
                     if (await RefreshToken())
-                        vodafoneResponse = await _vodafoneApi.SendSms(CreateSmsRequest(phone, content, header, true));
+                        vodafoneResponse = await _vodafoneApi.SendSms(CreateSmsRequest(phone, content, header));
                 }
 
                 var response = vodafoneResponse.BuildOperatorApiResponse();
@@ -146,6 +144,12 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
                 return response;
             }
+        }
+
+        public async Task<OtpResponseLog> SendOtpForeign(Phone phone, string content, Header header)
+        {
+            await Task.CompletedTask;
+            return new OtpResponseLog();
         }
 
         public async Task<OtpTrackingLog> CheckMessageStatus(CheckSmsRequest checkSmsRequest)
@@ -162,33 +166,26 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             }
         }
 
-        private VodafoneSmsRequest CreateSmsRequest(Phone phone, string content, Header header, bool useControlDays)
+        private VodafoneSmsRequest CreateSmsRequest(Phone phone, string content, Header header)
         {
             double controlHour = (OperatorConfig.ControlDaysForOtp * 24 * 60);
-            if (useControlDays)
-            {
-                var phoneConfiguration = TransactionManager.OtpRequestInfo.PhoneConfiguration;
-                if (phoneConfiguration != null)
-                {
-                    if (phoneConfiguration.BlacklistEntries != null &&
-                        phoneConfiguration.BlacklistEntries.Count > 0)
-                    {
-                        var blackListEntry = phoneConfiguration.BlacklistEntries
-                        .Where(b => b.Status == BlacklistStatus.Resolved).OrderByDescending(b => b.CreatedAt)
-                        .FirstOrDefault();
 
-                        if (blackListEntry != null)
+            var phoneConfiguration = TransactionManager.OtpRequestInfo.PhoneConfiguration;
+            if (phoneConfiguration != null)
+            {
+                if (phoneConfiguration.BlacklistEntries != null &&
+                    phoneConfiguration.BlacklistEntries.Count > 0)
+                {
+                    var blackListEntry = phoneConfiguration.BlacklistEntries
+                    .Where(b => b.Status == BlacklistStatus.Resolved).OrderByDescending(b => b.CreatedAt)
+                    .FirstOrDefault();
+
+                    if (blackListEntry != null)
+                    {
+                        if (blackListEntry.ResolvedAt != null)
                         {
-                            if (blackListEntry.ResolvedAt != null)
-                            {
-                                double resolvedDateTotalHour = Math.Truncate((DateTime.Now - blackListEntry.ResolvedAt.Value).TotalMinutes);
-                                controlHour = resolvedDateTotalHour > controlHour ? controlHour : resolvedDateTotalHour;
-                            }
-                        }
-                        else
-                        {
-                            double oldResolvedDateTotalHour = Math.Truncate((DateTime.Now - TransactionManager.OldBlacklistVerifiedAt).TotalMinutes);
-                            controlHour = oldResolvedDateTotalHour > controlHour ? controlHour : oldResolvedDateTotalHour;
+                            double resolvedDateTotalHour = Math.Truncate((DateTime.Now - blackListEntry.ResolvedAt.Value).TotalMinutes);
+                            controlHour = resolvedDateTotalHour > controlHour ? controlHour : resolvedDateTotalHour;
                         }
                     }
                     else
@@ -203,6 +200,12 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                     controlHour = oldResolvedDateTotalHour > controlHour ? controlHour : oldResolvedDateTotalHour;
                 }
             }
+            else
+            {
+                double oldResolvedDateTotalHour = Math.Truncate((DateTime.Now - TransactionManager.OldBlacklistVerifiedAt).TotalMinutes);
+                controlHour = oldResolvedDateTotalHour > controlHour ? controlHour : oldResolvedDateTotalHour;
+            }
+
 
             if (controlHour == 0)
                 controlHour = 1;
@@ -211,13 +214,13 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
             if (TransactionManager.StringSend)
             {
-                phoneNo = phone.CountryCode.ToString() + phone.Prefix.ToString().PadLeft(TransactionManager.PrefixLength,'0') + phone.Number.ToString().PadLeft(TransactionManager.NumberLength, '0');
+                phoneNo = phone.CountryCode.ToString() + phone.Prefix.ToString().PadLeft(TransactionManager.PrefixLength, '0') + phone.Number.ToString().PadLeft(TransactionManager.NumberLength, '0');
             }
             else
             {
                 phoneNo = phone.CountryCode.ToString() + phone.Prefix.ToString() + (phone.CountryCode == 90 ? phone.Number.ToString().PadLeft(7, '0') : phone.Number);
             }
-            
+
             return new VodafoneSmsRequest()
             {
                 AuthToken = _authToken,
@@ -226,7 +229,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 Header = Constant.OperatorSenders[header.SmsSender][OperatorType.Vodafone],
                 Message = content,
                 PhoneNo = phoneNo,
-                ControlHour = controlHour.ToString()+"M"
+                ControlHour = controlHour.ToString() + "M"
             };
 
         }
@@ -243,7 +246,8 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
         private VodafoneAuthRequest CreateAuthRequest()
         {
-            return new VodafoneAuthRequest() { 
+            return new VodafoneAuthRequest()
+            {
                 User = OperatorConfig.User,
                 Password = OperatorConfig.Password
             };

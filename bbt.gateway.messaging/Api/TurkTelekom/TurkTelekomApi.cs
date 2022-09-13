@@ -11,13 +11,10 @@ namespace bbt.gateway.messaging.Api.TurkTelekom
 {
     public class TurkTelekomApi:BaseApi,ITurkTelekomApi
     {
-        private readonly HttpClient _httpClient;
-        public TurkTelekomApi(ITransactionManager transactionManager):base(transactionManager) {
+        private readonly IHttpClientFactory _httpClientFactory;
+        public TurkTelekomApi(ITransactionManager transactionManager,IHttpClientFactory httpClientFactory):base(transactionManager) {
             Type = OperatorType.TurkTelekom;
-
-            var httpClientHandler = new HttpClientHandler();
-            httpClientHandler.UseProxy = false;
-            _httpClient = new(httpClientHandler);
+            _httpClientFactory = httpClientFactory;
         }
 
         public async Task<OperatorApiResponse> SendSms(TurkTelekomSmsRequest turkTelekomSmsRequest) 
@@ -28,7 +25,8 @@ namespace bbt.gateway.messaging.Api.TurkTelekom
             {
                 var requestBody = turkTelekomSmsRequest.SerializeXml();
                 var httpRequest = new StringContent(requestBody, Encoding.UTF8, "text/xml");
-                var httpResponse = await _httpClient.PostAsync(OperatorConfig.SendService, httpRequest);
+                using var httpClient = _httpClientFactory.CreateClient("default");
+                var httpResponse = await httpClient.PostAsync(OperatorConfig.SendService, httpRequest);
                 response = httpResponse.Content.ReadAsStringAsync().Result;
 
                 turkTelekomSmsRequest.Message = turkTelekomSmsRequest.Message.MaskOtpContent();
@@ -82,7 +80,8 @@ namespace bbt.gateway.messaging.Api.TurkTelekom
             {
                 var requestBody = turkTelekomSmsStatusRequest.SerializeXml();
                 var httpRequest = new StringContent(requestBody, Encoding.UTF8, "text/xml");
-                var httpResponse = await _httpClient.PostAsync(OperatorConfig.QueryService, httpRequest);
+                using var httpClient = _httpClientFactory.CreateClient("default");
+                var httpResponse = await httpClient.PostAsync(OperatorConfig.QueryService, httpRequest);
                 response = httpResponse.Content.ReadAsStringAsync().Result;
 
                 if (httpResponse.IsSuccessStatusCode)

@@ -26,6 +26,8 @@ using Refit;
 using Swashbuckle.AspNetCore.Filters;
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
+
 namespace bbt.gateway.messaging
 {
     public delegate IVodafoneApi VodafoneApiFactory(bool useFakeSmtp);
@@ -122,6 +124,17 @@ namespace bbt.gateway.messaging
                 )
             })
                .ConfigureHttpClient(c => c.BaseAddress = new Uri(Configuration["Api:dEngage:BaseAddress"]));
+
+            services.AddHttpClient("default", httpClient =>
+            {
+
+            }).ConfigurePrimaryHttpMessageHandler(() =>
+            {
+                return new HttpClientHandler()
+                {
+                    UseProxy = false
+                };
+            });
 
             services.AddScoped<IFakeSmtpHelper, FakeSmtpHelper>();
             services.AddScoped<ITransactionManager, TransactionManager>();

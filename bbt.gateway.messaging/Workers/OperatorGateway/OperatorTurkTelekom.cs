@@ -21,57 +21,57 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             _turkTelekomApi.SetOperatorType(OperatorConfig);
         }
 
-        public async Task<bool> SendOtp(Phone phone, string content, ConcurrentBag<OtpResponseLog> responses, Header header, bool useControlDays)
+        public async Task<bool> SendOtp(Phone phone, string content, ConcurrentBag<OtpResponseLog> responses, Header header)
         {
-            var turkTelekomResponse = await _turkTelekomApi.SendSms(CreateSmsRequest(phone,content,header,true));
+            var turkTelekomResponse = await _turkTelekomApi.SendSms(CreateSmsRequest(phone,content,header));
 
             var response =  turkTelekomResponse.BuildOperatorApiResponse();
             responses.Add(response);
 
             return true;
         }
-        public async Task<OtpResponseLog> SendOtp(Phone phone, string content, Header header, bool useControlDays)
+        public async Task<OtpResponseLog> SendOtp(Phone phone, string content, Header header)
         {
-            var turkTelekomResponse = await _turkTelekomApi.SendSms(CreateSmsRequest(phone, content, header, true));
+            var turkTelekomResponse = await _turkTelekomApi.SendSms(CreateSmsRequest(phone, content, header));
 
             var response = turkTelekomResponse.BuildOperatorApiResponse();
 
             return response;
         }
 
-        public async Task<OtpTrackingLog> CheckMessageStatus(CheckSmsRequest checkSmsRequest)
+        public async Task<OtpResponseLog> SendOtpForeign(Phone phone, string content, Header header)
+        {
+            await Task.CompletedTask;
+            return new OtpResponseLog();
+        }
+
+            public async Task<OtpTrackingLog> CheckMessageStatus(CheckSmsRequest checkSmsRequest)
         {
             var turkTelekomResponse = await _turkTelekomApi.CheckSmsStatus(CreateSmsStatusRequest(checkSmsRequest.StatusQueryId));
             return turkTelekomResponse.BuildOperatorApiTrackingResponse(checkSmsRequest);
         }
 
-        private TurkTelekomSmsRequest CreateSmsRequest(Phone phone, string content, Header header,bool useControlDays)
+        private TurkTelekomSmsRequest CreateSmsRequest(Phone phone, string content, Header header)
         {
             DateTime checkDate = DateTime.Now.AddDays(-1 * OperatorConfig.ControlDaysForOtp);
-            if (useControlDays)
+            
+            var phoneConfiguration = TransactionManager.OtpRequestInfo.PhoneConfiguration;
+
+            if (phoneConfiguration != null)
             {
-                var phoneConfiguration = TransactionManager.OtpRequestInfo.PhoneConfiguration;
-
-                if (phoneConfiguration != null)
+                if (phoneConfiguration.BlacklistEntries != null &&
+                    phoneConfiguration.BlacklistEntries.Count > 0)
                 {
-                    if (phoneConfiguration.BlacklistEntries != null &&
-                        phoneConfiguration.BlacklistEntries.Count > 0)
-                    {
-                        var blackListEntry = phoneConfiguration.BlacklistEntries
-                        .Where(b => b.Status == BlacklistStatus.Resolved).OrderByDescending(b => b.CreatedAt)
-                        .FirstOrDefault();
+                    var blackListEntry = phoneConfiguration.BlacklistEntries
+                    .Where(b => b.Status == BlacklistStatus.Resolved).OrderByDescending(b => b.CreatedAt)
+                    .FirstOrDefault();
 
-                        if (blackListEntry != null)
+                    if (blackListEntry != null)
+                    {
+                        if (blackListEntry.ResolvedAt != null)
                         {
-                            if (blackListEntry.ResolvedAt != null)
-                            {
-                                DateTime resolvedDate = blackListEntry.ResolvedAt.Value;
-                                checkDate = checkDate > resolvedDate ? checkDate : resolvedDate;
-                            }
-                        }
-                        else
-                        {
-                            checkDate = checkDate > TransactionManager.OldBlacklistVerifiedAt ? checkDate : TransactionManager.OldBlacklistVerifiedAt;
+                            DateTime resolvedDate = blackListEntry.ResolvedAt.Value;
+                            checkDate = checkDate > resolvedDate ? checkDate : resolvedDate;
                         }
                     }
                     else
@@ -84,6 +84,11 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                     checkDate = checkDate > TransactionManager.OldBlacklistVerifiedAt ? checkDate : TransactionManager.OldBlacklistVerifiedAt;
                 }
             }
+            else
+            {
+                checkDate = checkDate > TransactionManager.OldBlacklistVerifiedAt ? checkDate : TransactionManager.OldBlacklistVerifiedAt;
+            }
+            
 
             string gsmNo;
 

@@ -22,10 +22,19 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
 
 
-        public async Task<SmsStatusResponse> CheckSms(string queryId)
+        public async Task<CodecSmsStatusResponse> CheckSms(string refId)
         {
-            await Task.CompletedTask;
-            return new SmsStatusResponse();
+            try
+            {
+                var res = await _codecClient.GetStatusAsync(OperatorConfig.User, OperatorConfig.Password, refId, 3, String.Empty);
+                return JsonConvert.DeserializeObject<CodecSmsStatusResponse>(res);
+            }
+            catch (Exception ex)
+            {
+                TransactionManager.LogError($"Couldn't get Codec Sms Status  | Exception : {ex}");
+                return null;
+            }
+            
         }
 
 
@@ -53,7 +62,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             }
             catch (Exception ex)
             {
-                TransactionManager.LogError($"Critical Error Occured at Codec Services | ErrorCode:499 | Exception : {ex.ToString()}");
+                TransactionManager.LogError($"Critical Error Occured at Codec Services | ErrorCode:499 | Exception : {ex}");
                 smsLog.OperatorResponseCode = -99999;
                 smsLog.OperatorResponseMessage = ex.ToString();
             }

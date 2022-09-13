@@ -1,16 +1,8 @@
 ﻿using bbt.gateway.common.Extensions;
 using bbt.gateway.common.Models;
 using bbt.gateway.common.Repositories;
-using bbt.gateway.messaging.Api.dEngage.Model.Contents;
-using bbt.gateway.messaging.Exceptions;
 using bbt.gateway.messaging.Workers.OperatorGateway;
-using Microsoft.Extensions.Caching.Distributed;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace bbt.gateway.messaging.Workers
@@ -34,10 +26,43 @@ namespace bbt.gateway.messaging.Workers
             _operatorCodec = operatorCodec;
         }
 
-        public async Task<CheckSmsStatusResponse> CheckSms(CheckSmsStatusRequest checkSmsStatusRequest)
+        public async Task<SmsTrackingLog> CheckSms(common.Models.v2.CheckFastSmsRequest checkFastSmsRequest)
         {
-            await Task.CompletedTask;
-            return new CheckSmsStatusResponse();
+            
+            var response = await _operatorCodec.CheckSms(checkFastSmsRequest.StatusQueryId);
+
+            if (response != null)
+            {
+                if (response.ResultSet.Code == 0)
+                {
+                    return response.BuildCodecTrackingResponse(checkFastSmsRequest);
+                }
+                else
+                {
+                    return new SmsTrackingLog()
+                    {
+                        Id = System.Guid.NewGuid(),
+                        LogId = checkFastSmsRequest.SmsRequestLogId,
+                        Status = SmsTrackingStatus.SystemError,
+                        Detail = "",
+                        StatusReason = $"Codec operatöründen bilgi alınamadı. Response Code : {response.ResultSet.Code} | Response Message : {response.ResultSet.Description}",
+
+                    };
+                }
+            }
+            else
+            {
+                return new SmsTrackingLog()
+                {
+                    Id = System.Guid.NewGuid(),
+                    LogId = checkFastSmsRequest.SmsRequestLogId,
+                    Status = SmsTrackingStatus.SystemError,
+                    Detail = "",
+                    StatusReason = "Codec operatöründen bilgi alınamadı.",
+                    
+                };
+            }
+
         }
 
         public async Task<SendCodecSmsResponse> SendSms(SendMessageSmsRequest sendMessageSmsRequest)
@@ -117,6 +142,6 @@ namespace bbt.gateway.messaging.Workers
 
     }
 
-        
-    
+
+
 }

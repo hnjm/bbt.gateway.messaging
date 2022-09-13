@@ -287,12 +287,34 @@ namespace bbt.gateway.messaging
 
         };
 
+        public static readonly Dictionary<string, SmsApiTrackingResponse> CodecTrackingErrorCodes =
+        new()
+        {
+            { "-1", new SmsApiTrackingResponse { ReturnMessage = "Mesaj için iletim raporu bulunamadı.", SmsTrackingStatus = SmsTrackingStatus.SystemError } },
+            { "0", new SmsApiTrackingResponse { ReturnMessage = "Mesaj başarılı şekilde iletildi", SmsTrackingStatus = SmsTrackingStatus.Delivered } },
+            { "1", new SmsApiTrackingResponse { ReturnMessage = "Mesaj İletilemedi. Başarısız.", SmsTrackingStatus = SmsTrackingStatus.SystemError } },
+            { "2", new SmsApiTrackingResponse { ReturnMessage = "Mesaj operatöre iletildi. İletim raporu bekleniyor.", SmsTrackingStatus = SmsTrackingStatus.Pending } },
+            { "4", new SmsApiTrackingResponse { ReturnMessage = "Mesaj İletilemedi. Başarısız.", SmsTrackingStatus = SmsTrackingStatus.SystemError } },
+            { "5", new SmsApiTrackingResponse { ReturnMessage = "Mesaj başarılı şekilde iletildi", SmsTrackingStatus = SmsTrackingStatus.Delivered } },
+        };
+
+        public static readonly Dictionary<string, SmsApiTrackingResponse> dEngageTrackingErrorCodes =
+        new()
+        {
+            { "DL", new SmsApiTrackingResponse { ReturnMessage = "Mesaj iletildi.", SmsTrackingStatus = SmsTrackingStatus.Delivered } },
+            { "WA", new SmsApiTrackingResponse { ReturnMessage = "İletim raporu bekleniyor", SmsTrackingStatus = SmsTrackingStatus.Pending } },
+            { "FA", new SmsApiTrackingResponse { ReturnMessage = "Mesaj iletilemedi.", SmsTrackingStatus = SmsTrackingStatus.SystemError } },
+        };
+
         public static readonly Dictionary<OperatorType, Dictionary<string, SmsApiTrackingResponse>> OperatorTrackingErrorCodes =
         new()
         {
             { OperatorType.TurkTelekom, TurkTelekomTrackingErrorCodes },
             { OperatorType.Vodafone, VodafoneTrackingErrorCodes},
             { OperatorType.Turkcell, TurkcellTrackingErrorCodes },
+            { OperatorType.Codec, CodecTrackingErrorCodes},
+            { OperatorType.dEngageBurgan, dEngageTrackingErrorCodes },
+            { OperatorType.dEngageOn, dEngageTrackingErrorCodes}
         };
 
 

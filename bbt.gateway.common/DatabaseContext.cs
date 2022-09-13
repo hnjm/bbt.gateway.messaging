@@ -13,6 +13,7 @@ namespace bbt.gateway.common
         public DbSet<OtpResponseLog> OtpResponseLog { get; set; }
         public DbSet<SmsRequestLog> SmsRequestLog { get; set; }
         public DbSet<SmsResponseLog> SmsResponseLog { get; set; }
+        public DbSet<SmsTrackingLog> SmsTrackingLog { get; set; }
         public DbSet<MailConfiguration> MailConfigurations { get; set; }
         public DbSet<MailRequestLog> MailRequestLog { get; set; }
         public DbSet<MailResponseLog> MailResponseLog { get; set; }

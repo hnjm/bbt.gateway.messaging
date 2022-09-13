@@ -12,12 +12,10 @@ namespace bbt.gateway.messaging.Api.Turkcell
 {
     public class TurkcellApi:BaseApi,ITurkcellApi
     {
-        private readonly HttpClient _httpClient;
-        public TurkcellApi(ITransactionManager transactionManager):base(transactionManager) {
+        private readonly IHttpClientFactory _httpClientFactory;
+        public TurkcellApi(ITransactionManager transactionManager, IHttpClientFactory httpClientFactory) :base(transactionManager) {
             Type = OperatorType.Turkcell;
-            var httpClientHandler = new HttpClientHandler();
-            httpClientHandler.UseProxy = false;
-            _httpClient = new(httpClientHandler);
+            _httpClientFactory = httpClientFactory;
         }
 
         public async Task<OperatorApiResponse> SendSms(TurkcellSmsRequest turkcellSmsRequest) {
@@ -28,7 +26,8 @@ namespace bbt.gateway.messaging.Api.Turkcell
             {
                 HttpContent httpRequest = new StringContent(requests.Item1, Encoding.UTF8, "text/xml");
 
-                var httpResponse = await _httpClient.PostAsync(OperatorConfig.SendService, httpRequest);
+                using var httpClient = _httpClientFactory.CreateClient("default");
+                var httpResponse = await httpClient.PostAsync(OperatorConfig.SendService, httpRequest);
                 response = httpResponse.Content.ReadAsStringAsync().Result;
                 
                 
@@ -91,7 +90,8 @@ namespace bbt.gateway.messaging.Api.Turkcell
             try
             {
                 HttpContent httpRequest = new StringContent(getAuthXml(turkcellAuthRequest), Encoding.UTF8, "text/xml");
-                var httpResponse = await _httpClient.PostAsync(OperatorConfig.AuthanticationService, httpRequest);
+                using var httpClient = _httpClientFactory.CreateClient("default");
+                var httpResponse = await httpClient.PostAsync(OperatorConfig.AuthanticationService, httpRequest);
                 var response = httpResponse.Content.ReadAsStringAsync().Result;
                 if (httpResponse.IsSuccessStatusCode)
                 {
@@ -134,7 +134,8 @@ namespace bbt.gateway.messaging.Api.Turkcell
             try
             {
                 HttpContent httpRequest = new StringContent(getSmsStatusXml(turkcellSmsStatusRequest), Encoding.UTF8, "text/xml");
-                var httpResponse = await _httpClient.PostAsync(OperatorConfig.QueryService, httpRequest);
+                using var httpClient = _httpClientFactory.CreateClient("default");
+                var httpResponse = await httpClient.PostAsync(OperatorConfig.QueryService, httpRequest);
                 response = httpResponse.Content.ReadAsStringAsync().Result;
 
                 if (httpResponse.IsSuccessStatusCode)

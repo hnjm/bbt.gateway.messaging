@@ -1,14 +1,12 @@
-﻿using bbt.gateway.messaging.Api.Turkcell.Model;
-using bbt.gateway.common.Models;
+﻿using bbt.gateway.common.Models;
+using bbt.gateway.messaging.Api;
 using bbt.gateway.messaging.Api.Turkcell;
-using bbt.gateway.common;
+using bbt.gateway.messaging.Api.Turkcell.Model;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using Microsoft.Extensions.Configuration;
-using bbt.gateway.messaging.Api;
 
 namespace bbt.gateway.messaging.Workers.OperatorGateway
 {
@@ -16,8 +14,8 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
     {
         private readonly ITurkcellApi _turkcellApi;
         private string _authToken;
-        public OperatorTurkcell(TurkcellApiFactory turkcellApiFactory,IConfiguration configuration,
-            ITransactionManager transactionManager) : base(configuration,transactionManager)
+        public OperatorTurkcell(TurkcellApiFactory turkcellApiFactory, IConfiguration configuration,
+            ITransactionManager transactionManager) : base(configuration, transactionManager)
         {
             _turkcellApi = turkcellApiFactory(TransactionManager.UseFakeSmtp);
             Type = OperatorType.Turkcell;
@@ -81,17 +79,17 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             await SaveOperator();
         }
 
-        public async Task<bool> SendOtp(Phone phone, string content, ConcurrentBag<OtpResponseLog> responses, Header header, bool useControlDays)
+        public async Task<bool> SendOtp(Phone phone, string content, ConcurrentBag<OtpResponseLog> responses, Header header)
         {
             var authResponse = await Auth();
 
             if (authResponse.ResponseCode == "0")
             {
-                var turkcellResponse = await _turkcellApi.SendSms(CreateSmsRequest(phone, content, header, true));
+                var turkcellResponse = await _turkcellApi.SendSms(CreateSmsRequest(phone, content, header));
                 if (turkcellResponse.ResponseCode.Trim().Equals("-2"))
                 {
-                    if(await RefreshToken())
-                        turkcellResponse = await _turkcellApi.SendSms(CreateSmsRequest(phone, content, header, true));
+                    if (await RefreshToken())
+                        turkcellResponse = await _turkcellApi.SendSms(CreateSmsRequest(phone, content, header));
                 }
 
                 var response = turkcellResponse.BuildOperatorApiResponse();
@@ -115,17 +113,17 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             return true;
         }
 
-        public async Task<OtpResponseLog> SendOtp(Phone phone, string content, Header header, bool useControlDays)
+        public async Task<OtpResponseLog> SendOtp(Phone phone, string content, Header header)
         {
             var authResponse = await Auth();
 
             if (authResponse.ResponseCode == "0")
             {
-                var turkcellResponse = await _turkcellApi.SendSms(CreateSmsRequest(phone, content, header, useControlDays));
+                var turkcellResponse = await _turkcellApi.SendSms(CreateSmsRequest(phone, content, header));
                 if (turkcellResponse.ResponseCode.Trim().Equals("-2"))
                 {
                     if (await RefreshToken())
-                        turkcellResponse = await _turkcellApi.SendSms(CreateSmsRequest(phone, content, header, useControlDays));
+                        turkcellResponse = await _turkcellApi.SendSms(CreateSmsRequest(phone, content, header));
                 }
 
                 var response = turkcellResponse.BuildOperatorApiResponse();
@@ -134,7 +132,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
                 return response;
             }
-            else 
+            else
             {
                 var response = new OtpResponseLog
                 {
@@ -147,7 +145,44 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
                 return response;
             }
-                        
+
+        }
+
+        public async Task<OtpResponseLog> SendOtpForeign(Phone phone, string content, Header header)
+        {
+            var authResponse = await Auth();
+
+            if (authResponse.ResponseCode == "0")
+            {
+                var turkcellResponse = await _turkcellApi.SendSms(CreateSmsRequest(phone, content, header, true));
+                if (turkcellResponse.ResponseCode.Trim().Equals("-2"))
+                {
+                    if (await RefreshToken())
+                        turkcellResponse = await _turkcellApi.SendSms(CreateSmsRequest(phone, content, header, true));
+                }
+
+                var response = turkcellResponse.BuildOperatorApiResponse();
+                response.Operator = OperatorType.Foreign;
+                response.Topic = "Foreign Otp Sending";
+
+                await ExtendToken();
+
+                return response;
+            }
+            else
+            {
+                var response = new OtpResponseLog
+                {
+                    Operator = OperatorType.Turkcell,
+                    Topic = "Turkcell Foreign otp sending",
+                    TrackingStatus = SmsTrackingStatus.SystemError
+                };
+                response.ResponseCode = SendSmsResponseStatus.ClientError;
+                response.ResponseMessage = authResponse.ResponseMessage;
+
+                return response;
+            }
+
         }
 
         public async Task<OtpTrackingLog> CheckMessageStatus(CheckSmsRequest checkSmsRequest)
@@ -164,32 +199,26 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             }
         }
 
-        private TurkcellSmsRequest CreateSmsRequest(Phone phone, string content, Header header, bool useControlDays)
+        private TurkcellSmsRequest CreateSmsRequest(Phone phone, string content, Header header, bool isAbroad = false)
         {
             DateTime trustedDate = DateTime.Now.AddDays(-1 * OperatorConfig.ControlDaysForOtp);
-            if (useControlDays)
-            {
-                var phoneConfiguration = TransactionManager.OtpRequestInfo.PhoneConfiguration;
-                if (phoneConfiguration != null)
-                {
-                    if (phoneConfiguration.BlacklistEntries != null &&
-                        phoneConfiguration.BlacklistEntries.Count > 0)
-                    {
-                        var blackListEntry = phoneConfiguration.BlacklistEntries
-                            .Where(b => b.Status == BlacklistStatus.Resolved).OrderByDescending(b => b.CreatedAt)
-                            .FirstOrDefault();
 
-                        if (blackListEntry != null)
+            var phoneConfiguration = TransactionManager.OtpRequestInfo.PhoneConfiguration;
+            if (phoneConfiguration != null)
+            {
+                if (phoneConfiguration.BlacklistEntries != null &&
+                    phoneConfiguration.BlacklistEntries.Count > 0)
+                {
+                    var blackListEntry = phoneConfiguration.BlacklistEntries
+                        .Where(b => b.Status == BlacklistStatus.Resolved).OrderByDescending(b => b.CreatedAt)
+                        .FirstOrDefault();
+
+                    if (blackListEntry != null)
+                    {
+                        if (blackListEntry.ResolvedAt != null)
                         {
-                            if (blackListEntry.ResolvedAt != null)
-                            {
-                                DateTime resolvedDate = blackListEntry.ResolvedAt.Value;
-                                trustedDate = trustedDate > resolvedDate ? trustedDate : resolvedDate;
-                            }
-                        }
-                        else
-                        {
-                            trustedDate = trustedDate > TransactionManager.OldBlacklistVerifiedAt ? trustedDate : TransactionManager.OldBlacklistVerifiedAt;
+                            DateTime resolvedDate = blackListEntry.ResolvedAt.Value;
+                            trustedDate = trustedDate > resolvedDate ? trustedDate : resolvedDate;
                         }
                     }
                     else
@@ -202,13 +231,18 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                     trustedDate = trustedDate > TransactionManager.OldBlacklistVerifiedAt ? trustedDate : TransactionManager.OldBlacklistVerifiedAt;
                 }
             }
+            else
+            {
+                trustedDate = trustedDate > TransactionManager.OldBlacklistVerifiedAt ? trustedDate : TransactionManager.OldBlacklistVerifiedAt;
+            }
+
 
             var request = new TurkcellSmsRequest();
-            request.IsAbroad = phone.CountryCode != 90;
+            request.IsAbroad = phone.CountryCode != 90 || isAbroad;
             request.MsgCode = this.Configuration.GetSection("Operators:Turkcell:MsgCode").Get<string>();
             request.VariantId =
                 request.IsAbroad ?
-                this.Configuration.GetSection("Operators:Turkcell:UVariantId").Get<string>():
+                this.Configuration.GetSection("Operators:Turkcell:UVariantId").Get<string>() :
                 this.Configuration.GetSection("Operators:Turkcell:VariantId").Get<string>();
             request.Header =
                 request.IsAbroad ?
@@ -223,7 +257,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             {
                 request.PhoneNo = "00" + phone.CountryCode + phone.Prefix + (phone.CountryCode == 90 ? phone.Number.ToString().PadLeft(7, '0') : phone.Number);
             }
-            
+
             request.SessionId = _authToken;
             request.Content = content;
             request.TrustedDate = trustedDate.ToString("ddMMyyHHmmss");
@@ -243,7 +277,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
         {
             var request = new TurkcellAuthRequest();
             request.User = OperatorConfig.User;
-            request.Password= OperatorConfig.Password;
+            request.Password = OperatorConfig.Password;
             return request;
         }
     }
