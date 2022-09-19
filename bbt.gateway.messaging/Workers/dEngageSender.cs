@@ -184,9 +184,23 @@ namespace bbt.gateway.messaging.Workers
             {
                 if (response.code == 0)
                 {
-                    if (response.data.result.Count() > 0)
+                    if (response.data.result != null)
                     {
-                        return response.BuilddEngageTrackingResponse(checkFastSmsRequest);
+                        if (response.data.result.Count() > 0)
+                        {
+                            return response.BuilddEngageTrackingResponse(checkFastSmsRequest);
+                        }
+                        else
+                        {
+                            return new SmsTrackingLog()
+                            {
+                                Id = Guid.NewGuid(),
+                                LogId = checkFastSmsRequest.SmsRequestLogId,
+                                Status = SmsTrackingStatus.Pending,
+                                Detail = "",
+                                StatusReason = $"İletim raporu henüz hazır değil",
+                            };
+                        }
                     }
                     else
                     {
@@ -199,6 +213,7 @@ namespace bbt.gateway.messaging.Workers
                             StatusReason = $"İletim raporu henüz hazır değil",
                         };
                     }
+                    
                 }
                 else
                 {

@@ -1,4 +1,5 @@
-﻿using bbt.gateway.common.Models.v2;
+﻿using bbt.gateway.common.Extensions;
+using bbt.gateway.common.Models.v2;
 using bbt.gateway.common.Repositories;
 using bbt.gateway.messaging.Workers;
 using Microsoft.AspNetCore.Mvc;
@@ -535,37 +536,6 @@ namespace bbt.gateway.messaging.Controllers.v2
         }
 
 
-        [SwaggerOperation(
-           Summary = "Check Fast Sms Message Status",
-           Description = "Check Fast Sms Delivery Status."
-           )]
-        [HttpPost("sms/check-message")]
-        [ApiExplorerSettings(IgnoreApi = true)]
-
-        public async Task<IActionResult> CheckMessageStatus([FromBody] CheckFastSmsRequest data)
-        {
-
-            if (ModelState.IsValid)
-            {
-                if (data.Operator == common.Models.OperatorType.Codec)
-                {
-                    var res = await _codecSender.CheckSms(data);
-                    return Ok(res);
-                }
-                if (data.Operator == common.Models.OperatorType.dEngageOn ||
-                    data.Operator == common.Models.OperatorType.dEngageBurgan)
-                {
-                    var res = await _dEngageSender.CheckSms(data);
-                    return Ok(res);
-                }
-                return BadRequest("Unknown Operator");
-            }
-            else
-            {
-                return BadRequest(ModelState);
-            }
-
-
-        }
+        
     }
 }

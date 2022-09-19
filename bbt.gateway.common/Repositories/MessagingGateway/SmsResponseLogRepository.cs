@@ -14,9 +14,20 @@ namespace bbt.gateway.common.Repositories
         public async Task<IEnumerable<SmsResponseLog>> GetSmsResponseLogsAsync(Expression<Func<SmsResponseLog, bool>> predicate)
         {
             return await Context.SmsResponseLog
+                .Include(s => s.TrackingLogs)
                 .Where(predicate)
-                .Take(10)
+                .Take(5)
                 .OrderBy(s => s.CreatedAt)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<SmsResponseLog>> GetSmsResponseLogsDescAsync(Expression<Func<SmsResponseLog, bool>> predicate)
+        {
+            return await Context.SmsResponseLog
+                .Include(s => s.TrackingLogs)
+                .Where(predicate)
+                .Take(5)
+                .OrderByDescending(s => s.CreatedAt)
                 .ToListAsync();
         }
 

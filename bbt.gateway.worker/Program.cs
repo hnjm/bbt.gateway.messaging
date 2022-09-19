@@ -1,9 +1,10 @@
-using bbt.gateway.worker;
 using bbt.gateway.common;
 using bbt.gateway.common.Repositories;
+using bbt.gateway.worker;
+using Elastic.Apm.NetCoreAll;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Refit;
-
 
 IHost host = Host.CreateDefaultBuilder(args)
     .UseConsulSettings(typeof(Program))
@@ -11,16 +12,17 @@ IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureServices((context, services) =>
     {
         services.AddHostedService<TemplateWorker>();
-        //services.AddHostedService<OtpWorker>();
-        services.AddDbContext<DatabaseContext>(o => o.UseSqlServer(context.Configuration["ConnectionStrings:DefaultConnection"]), ServiceLifetime.Singleton);
-        services.AddDbContext<SmsBankingDatabaseContext>(o => o.UseSqlServer(context.Configuration.GetConnectionString("SmsBankingConnection")), ServiceLifetime.Singleton);
-
-        services.AddSingleton<IRepositoryManager, RepositoryManager>();
+        services.AddHostedService<OtpWorker>();
+        services.AddHostedService<SmsWorker>();
+        services.AddSingleton<DbContextOptions<DatabaseContext>>(new DbContextOptionsBuilder<DatabaseContext>()
+                .UseSqlServer(context.Configuration.GetConnectionString("DefaultConnection"))
+                .Options);
+        services.AddSingleton<LogManager>();
 
         services.AddRefitClient<IMessagingGatewayApi>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(context.Configuration["Api:ServiceUrl"]));
     })
+    .UseAllElasticApm()
     .Build();
-
 
 await host.RunAsync();

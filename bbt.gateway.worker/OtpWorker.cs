@@ -1,66 +1,108 @@
 
+using bbt.gateway.common;
 using bbt.gateway.common.Models;
 using bbt.gateway.common.Repositories;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using Elastic.Apm.Api;
+using Microsoft.EntityFrameworkCore;
 using Refit;
-using System;
 using System.Collections.Concurrent;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace bbt.gateway.worker
 {
     public class OtpWorker : BackgroundService
     {
-        private readonly ILogger<OtpWorker> _logger;
-        private readonly IRepositoryManager _repositoryManager;
+        private readonly LogManager _logManager;
         private readonly IMessagingGatewayApi _messagingGatewayApi;
-        public OtpWorker(ILogger<OtpWorker> logger, IRepositoryManager repositoryManager,
-            IMessagingGatewayApi messagingGatewayApi)
+        private readonly ITracer _tracer;
+        private readonly DatabaseContext _dbContext;
+
+        public OtpWorker(LogManager logManager,ITracer tracer,
+            IMessagingGatewayApi messagingGatewayApi, DbContextOptions<DatabaseContext> dbContextOptions)
         {
-            _logger = logger;
-            _repositoryManager = repositoryManager;
+            _logManager = logManager;
+            _tracer = tracer;
             _messagingGatewayApi = messagingGatewayApi;
+            _dbContext = new DatabaseContext(dbContextOptions);
         }
+        
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                var otpResponseLogs = (await _repositoryManager.OtpResponseLogs.GetOtpResponseLogsAsync(
-                    o => o.ResponseCode == SendSmsResponseStatus.Success &&
-                    o.TrackingStatus == SmsTrackingStatus.Pending
-                    && o.CreatedAt < DateTime.Now.AddMinutes(-5)
-                    )).ToList();
-
-                var taskList = new List<Task>();
-                ConcurrentBag<OtpEntitiesToBeProcessed> concurrentBag = new();
-                otpResponseLogs.ForEach(otpResponseLog =>
+                try
                 {
-                    taskList.Add(GetDeliveryStatus(otpResponseLog, concurrentBag));
-                });
-
-                await Task.WhenAll(taskList);
-
-                foreach (var entities in concurrentBag)
-                {
-                    if (entities.otpTrackingLog != null)
+                    await _tracer.CaptureTransaction("Otp Tracking", ApiConstants.TypeRequest, async () =>
                     {
-                        await _repositoryManager.OtpTrackingLog.AddAsync(entities.otpTrackingLog);
-                    }
-                    if (entities.otpResponseLog != null)
-                    {
-                        _repositoryManager.OtpResponseLogs.Update(entities.otpResponseLog);
-                    }
+                        try
+                        {
+                            var otpResponseLogsAsc = await _dbContext.OtpResponseLog.Include(o => o.TrackingLogs).Where(
+                                o => o.ResponseCode == SendSmsResponseStatus.Success &&
+                                o.TrackingStatus == SmsTrackingStatus.Pending
+                                && o.CreatedAt < DateTime.Now.AddMinutes(-5)
+                                && o.TrackingLogs.Count <= 10
+                            )
+                            .Take(5)
+                            .OrderBy(o => o.CreatedAt)
+                            .ToListAsync();
+
+                            var otpResponseLogsDesc = await _dbContext.OtpResponseLog.Include(o => o.TrackingLogs).Where(
+                                    o => o.ResponseCode == SendSmsResponseStatus.Success &&
+                                    o.TrackingStatus == SmsTrackingStatus.Pending
+                                    && o.CreatedAt < DateTime.Now.AddMinutes(-5)
+                                    && o.TrackingLogs.Count <= 10
+                                )
+                                .Take(5)
+                                .OrderByDescending(o => o.CreatedAt)
+                                .ToListAsync();
+
+                            var otpResponseLogs = otpResponseLogsAsc.Concat(otpResponseLogsDesc).ToList();
+
+                            var taskList = new List<Task>();
+                            ConcurrentBag<OtpEntitiesToBeProcessed> concurrentBag = new();
+                            otpResponseLogs.ForEach(otpResponseLog =>
+                            {
+                                taskList.Add(GetDeliveryStatus(otpResponseLog, concurrentBag));
+                            });
+
+                            await Task.WhenAll(taskList);
+
+                            foreach (var entities in concurrentBag)
+                            {
+                                if (entities.otpTrackingLog != null)
+                                {
+                                    await _dbContext.OtpTrackingLog.AddAsync(entities.otpTrackingLog);
+                                }
+                                if (entities.otpResponseLog != null)
+                                {
+                                    _dbContext.OtpResponseLog.Update(entities.otpResponseLog);
+                                }
+                            }
+                            await _dbContext.SaveChangesAsync();
+                        }
+                        catch (Exception ex)
+                        {
+                            await _dbContext.DisposeAsync();
+                            _logManager.LogError(ex.ToString());
+                            _tracer.CaptureException(ex);
+                            await StopAsync(stoppingToken);
+                            
+                        }
+
+                        await Task.Delay(1000 * 60 * 1, stoppingToken);
+                    });
                 }
-                await _repositoryManager.SaveChangesAsync();
-
+                catch (Exception ex)
+                {
+                    _logManager.LogError(ex.ToString());
+                    await _dbContext.DisposeAsync();
+                    await StopAsync(stoppingToken);
+                }
+                
             }
         }
 
-        private async Task GetDeliveryStatus(OtpResponseLog otpResponseLog,ConcurrentBag<OtpEntitiesToBeProcessed> concurrentBag)
+        private async Task GetDeliveryStatus(OtpResponseLog otpResponseLog, ConcurrentBag<OtpEntitiesToBeProcessed> concurrentBag)
         {
             try
             {
@@ -84,11 +126,11 @@ namespace bbt.gateway.worker
             }
             catch (ApiException ex)
             {
-                _logger.LogCritical($"Messaging Gateway Api Error | Status Code : {ex.StatusCode}");
+                _logManager.LogError($"Messaging Gateway Api Error | Status Code : {ex.StatusCode}");
             }
             catch (Exception ex)
             {
-                _logger.LogCritical($"Messaging Gateway Worker Error | Error : {ex.Message}");
+                _logManager.LogError($"Messaging Gateway Worker Error | Error : {ex.Message}");
             }
         }
     }

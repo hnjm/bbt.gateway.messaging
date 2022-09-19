@@ -11,6 +11,7 @@ namespace bbt.gateway.common
         public DbSet<BlackListEntry> BlackListEntries { get; set; }
         public DbSet<OtpRequestLog> OtpRequestLogs { get; set; }
         public DbSet<OtpResponseLog> OtpResponseLog { get; set; }
+        public DbSet<OtpTrackingLog> OtpTrackingLog { get; set; }
         public DbSet<SmsRequestLog> SmsRequestLog { get; set; }
         public DbSet<SmsResponseLog> SmsResponseLog { get; set; }
         public DbSet<SmsTrackingLog> SmsTrackingLog { get; set; }

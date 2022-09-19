@@ -1,67 +1,107 @@
 
+using bbt.gateway.common;
 using bbt.gateway.common.Models;
 using bbt.gateway.common.Repositories;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using Elastic.Apm.Api;
+using Microsoft.EntityFrameworkCore;
 using Refit;
-using System;
 using System.Collections.Concurrent;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace bbt.gateway.worker
 {
     public class SmsWorker : BackgroundService
     {
-        private readonly ILogger<OtpWorker> _logger;
-        private readonly IRepositoryManager _repositoryManager;
         private readonly IMessagingGatewayApi _messagingGatewayApi;
-        public SmsWorker(ILogger<OtpWorker> logger, IRepositoryManager repositoryManager,
-            IMessagingGatewayApi messagingGatewayApi)
+        private readonly ITracer _tracer;
+        private readonly LogManager _logManager;
+        private readonly DatabaseContext _dbContext;
+        public SmsWorker(LogManager logManager,ITracer tracer,
+            IMessagingGatewayApi messagingGatewayApi,DbContextOptions<DatabaseContext> dbContextOptions)
         {
-            _logger = logger;
-            _repositoryManager = repositoryManager;
+            _logManager = logManager;
             _messagingGatewayApi = messagingGatewayApi;
+            _dbContext = new DatabaseContext(dbContextOptions);
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                var now = DateTime.Now;
-                var smsResponseLogs = (await _repositoryManager.SmsResponseLogs.GetSmsResponseLogsAsync(
-                    o => o.OperatorResponseCode == 0 &&
-                    (o.Status == null || String.IsNullOrWhiteSpace(o.Status))
-                    && o.CreatedAt < DateTime.Now.AddMinutes(-10)
-                    )).ToList();
-                var time = (DateTime.Now - now).TotalSeconds;
-                var taskList = new List<Task>();
-                ConcurrentBag<SmsEntitiesToBeProcessed> concurrentBag = new();
-                smsResponseLogs.ForEach(smsResponseLog =>
+                try
                 {
-                    taskList.Add(GetDeliveryStatus(smsResponseLog, concurrentBag));
-                });
-
-                await Task.WhenAll(taskList);
-
-                foreach (var entities in concurrentBag)
-                {
-                    if (entities.smsTrackingLog != null)
+                    await _tracer.CaptureTransaction("Sms Tracking", ApiConstants.TypeRequest, async () =>
                     {
-                        await _repositoryManager.SmsTrackingLogs.AddAsync(entities.smsTrackingLog);
-                    }
-                    if (entities.smsResponseLog != null)
-                    {
-                        _repositoryManager.SmsResponseLogs.Update(entities.smsResponseLog);
-                    }
+                        try
+                        {
+                            var smsResponseLogsAsc = await _dbContext.SmsResponseLog.Include(s => s.TrackingLogs).Where(
+                                    o => o.OperatorResponseCode == 0 &&
+                                    (o.Status == null || String.IsNullOrWhiteSpace(o.Status))
+                                    && o.CreatedAt < DateTime.Now.AddMinutes(-10)
+                                    && o.TrackingLogs.Count <= 10
+                                )
+                                .Take(5)
+                                .OrderBy(s => s.CreatedAt)
+                                .ToListAsync();
+
+                            var smsResponseLogsDesc = await _dbContext.SmsResponseLog.Include(s => s.TrackingLogs).Where(
+                                        o => o.OperatorResponseCode == 0 &&
+                                        (o.Status == null || String.IsNullOrWhiteSpace(o.Status))
+                                        && o.CreatedAt < DateTime.Now.AddMinutes(-10)
+                                        && o.TrackingLogs.Count <= 10
+                                    )
+                                    .Take(5)
+                                    .OrderByDescending(s => s.CreatedAt)
+                                    .ToListAsync();
+
+                            var smsResponseLogs = smsResponseLogsAsc.Concat(smsResponseLogsDesc).ToList();
+
+                            var taskList = new List<Task>();
+                            ConcurrentBag<SmsEntitiesToBeProcessed> concurrentBag = new();
+                            smsResponseLogs.ForEach(smsResponseLog =>
+                            {
+                                taskList.Add(GetDeliveryStatus(smsResponseLog, concurrentBag));
+                            });
+
+                            await Task.WhenAll(taskList);
+
+                            foreach (var entities in concurrentBag)
+                            {
+                                if (entities.smsTrackingLog != null)
+                                {
+                                    await _dbContext.SmsTrackingLog.AddAsync(entities.smsTrackingLog);
+                                }
+                                if (entities.smsResponseLog != null)
+                                {
+                                    _dbContext.SmsResponseLog.Update(entities.smsResponseLog);
+                                }
+                            }
+                            await _dbContext.SaveChangesAsync();
+                        }
+                        catch (Exception ex)
+                        {
+                            await _dbContext.DisposeAsync();
+                            _logManager.LogError(ex.ToString());
+                            _tracer.CaptureException(ex);
+                            await StopAsync(stoppingToken);
+                        }
+                        
+                    });
+
+                    await Task.Delay(1000 * 60 * 1, stoppingToken);
                 }
-                await _repositoryManager.SaveChangesAsync();
+                catch (Exception ex)
+                {
+                    _logManager.LogError(ex.ToString());
+                    await _dbContext.DisposeAsync();
+                    await StopAsync(stoppingToken);
+                }
+                
 
+                
             }
         }
 
-        private async Task GetDeliveryStatus(SmsResponseLog smsResponseLog,ConcurrentBag<SmsEntitiesToBeProcessed> concurrentBag)
+        private async Task GetDeliveryStatus(SmsResponseLog smsResponseLog, ConcurrentBag<SmsEntitiesToBeProcessed> concurrentBag)
         {
             try
             {
@@ -85,11 +125,11 @@ namespace bbt.gateway.worker
             }
             catch (ApiException ex)
             {
-                _logger.LogCritical($"Messaging Gateway Api Error | Status Code : {ex.StatusCode}");
+                _logManager.LogError($"Messaging Gateway Api Error | Status Code : {ex.StatusCode}");
             }
             catch (Exception ex)
             {
-                _logger.LogCritical($"Messaging Gateway Worker Error | Error : {ex.Message}");
+                _logManager.LogError($"Messaging Gateway Worker Error | Error : {ex.Message}");
             }
         }
     }

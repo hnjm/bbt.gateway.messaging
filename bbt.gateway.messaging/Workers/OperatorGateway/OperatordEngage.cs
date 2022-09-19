@@ -105,6 +105,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                     {
                         trackingId = queryId,
                     };
+                    
                     var response = await _dEngageClient.GetSmsStatus(_authToken, smsStatusRequest);
                     return response;
                 }
