@@ -19,6 +19,7 @@ namespace bbt.gateway.worker
             IMessagingGatewayApi messagingGatewayApi,DbContextOptions<DatabaseContext> dbContextOptions)
         {
             _logManager = logManager;
+            _tracer = tracer;
             _messagingGatewayApi = messagingGatewayApi;
             _dbContext = new DatabaseContext(dbContextOptions);
         }
@@ -27,6 +28,7 @@ namespace bbt.gateway.worker
         {
             while (!stoppingToken.IsCancellationRequested)
             {
+                _logManager.LogInformation("Sms Tracking Triggered");
                 try
                 {
                     await _tracer.CaptureTransaction("Sms Tracking", ApiConstants.TypeRequest, async () =>
@@ -53,7 +55,7 @@ namespace bbt.gateway.worker
                                     .OrderByDescending(s => s.CreatedAt)
                                     .ToListAsync();
 
-                            var smsResponseLogs = smsResponseLogsAsc.Concat(smsResponseLogsDesc).ToList();
+                            var smsResponseLogs = smsResponseLogsAsc.Concat(smsResponseLogsDesc).Distinct().ToList();
 
                             var taskList = new List<Task>();
                             ConcurrentBag<SmsEntitiesToBeProcessed> concurrentBag = new();

@@ -30,6 +30,7 @@ namespace bbt.gateway.worker
         {
             while (!stoppingToken.IsCancellationRequested)
             {
+                _logManager.LogInformation("Otp Tracking Triggered");
                 try
                 {
                     await _tracer.CaptureTransaction("Otp Tracking", ApiConstants.TypeRequest, async () =>
@@ -56,7 +57,7 @@ namespace bbt.gateway.worker
                                 .OrderByDescending(o => o.CreatedAt)
                                 .ToListAsync();
 
-                            var otpResponseLogs = otpResponseLogsAsc.Concat(otpResponseLogsDesc).ToList();
+                            var otpResponseLogs = otpResponseLogsAsc.Concat(otpResponseLogsDesc).Distinct().ToList();
 
                             var taskList = new List<Task>();
                             ConcurrentBag<OtpEntitiesToBeProcessed> concurrentBag = new();
