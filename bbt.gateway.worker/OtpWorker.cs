@@ -86,7 +86,7 @@ namespace bbt.gateway.worker
                             await _dbContext.DisposeAsync();
                             _logManager.LogError(ex.ToString());
                             _tracer.CaptureException(ex);
-                            await StopAsync(stoppingToken);
+                            await StopAsync(new CancellationToken(true));
                             
                         }
 
@@ -97,7 +97,7 @@ namespace bbt.gateway.worker
                 {
                     _logManager.LogError(ex.ToString());
                     await _dbContext.DisposeAsync();
-                    await StopAsync(stoppingToken);
+                    await StopAsync(new CancellationToken(true));
                 }
                 
             }
@@ -134,6 +134,7 @@ namespace bbt.gateway.worker
                 _logManager.LogError($"Messaging Gateway Worker Error | Error : {ex.Message}");
             }
         }
+
     }
 
     public class OtpEntitiesToBeProcessed
