@@ -333,8 +333,8 @@ namespace bbt.gateway.messaging.Workers
                 case OperatorType.TurkTelekom:
                     gateway = _operatorRepository(OperatorType.TurkTelekom);
                     break;
-                case OperatorType.IVN:
-                    gateway = _operatorRepository(OperatorType.IVN);
+                case OperatorType.Foreign:
+                    gateway = _operatorRepository(OperatorType.Turkcell);
                     break;
                 default:
                     // Serious Exception
