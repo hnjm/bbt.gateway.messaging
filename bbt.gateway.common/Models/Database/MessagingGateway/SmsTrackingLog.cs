@@ -6,6 +6,7 @@ namespace bbt.gateway.common.Models
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         [ForeignKey("SmsResponseLog")]
+        [Column("SmsResponseLogId")]
         public Guid LogId { get; set; }
         public SmsTrackingStatus Status { get; set; }
         public string StatusReason { get; set; }
