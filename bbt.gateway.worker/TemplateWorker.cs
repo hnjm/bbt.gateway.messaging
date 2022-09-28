@@ -23,6 +23,7 @@ namespace bbt.gateway.worker
         {
             while (!stoppingToken.IsCancellationRequested)
             {
+                _logManager.LogInformation("Set Templates Triggered");
                 await _tracer.CaptureTransaction("SetTemplates",ApiConstants.TypeRequest,async () => {
                     try
                     {
