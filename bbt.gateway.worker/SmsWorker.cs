@@ -56,6 +56,7 @@ namespace bbt.gateway.worker
                                     .ToListAsync();
 
                             var smsResponseLogs = smsResponseLogsAsc.Concat(smsResponseLogsDesc).Distinct().ToList();
+                            _logManager.LogInformation("Sms Count : " + smsResponseLogs.Count);
 
                             var taskList = new List<Task>();
                             ConcurrentBag<SmsEntitiesToBeProcessed> concurrentBag = new();

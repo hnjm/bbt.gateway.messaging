@@ -58,6 +58,7 @@ namespace bbt.gateway.worker
                                 .ToListAsync();
 
                             var otpResponseLogs = otpResponseLogsAsc.Concat(otpResponseLogsDesc).Distinct().ToList();
+                            _logManager.LogInformation("Otp Count : "+otpResponseLogs.Count);
 
                             var taskList = new List<Task>();
                             ConcurrentBag<OtpEntitiesToBeProcessed> concurrentBag = new();
