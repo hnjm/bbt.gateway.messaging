@@ -91,7 +91,7 @@ namespace bbt.gateway.worker
                             
                         }
 
-                        await Task.Delay(1000 * 60 * 1, stoppingToken);
+                        
                     });
                 }
                 catch (Exception ex)
@@ -100,8 +100,9 @@ namespace bbt.gateway.worker
                     await _dbContext.DisposeAsync();
                     await StopAsync(new CancellationToken(true));
                 }
-                
+                await Task.Delay(1000 * 60 * 1, stoppingToken);
             }
+            
         }
 
         private async Task GetDeliveryStatus(OtpResponseLog otpResponseLog, ConcurrentBag<OtpEntitiesToBeProcessed> concurrentBag)
