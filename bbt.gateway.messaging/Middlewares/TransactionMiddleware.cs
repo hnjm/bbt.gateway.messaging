@@ -59,7 +59,8 @@ namespace bbt.gateway.messaging.Middlewares
                 _transactionManager.Transaction.Mail = _middlewareRequest.Email;
                 _transactionManager.Transaction.Phone = _middlewareRequest.Phone;
                 _transactionManager.Transaction.CustomerNo = _middlewareRequest.CustomerNo.GetValueOrDefault();
-                _transactionManager.Transaction.CitizenshipNo = _middlewareRequest.ContactId;
+                _transactionManager.Transaction.CitizenshipNo = String.IsNullOrWhiteSpace(_middlewareRequest.ContactId) ? 
+                    _middlewareRequest.CitizenshipNo : _middlewareRequest.ContactId;
                 _transactionManager.HeaderInfo = _middlewareRequest.HeaderInfo;
                 _transactionManager.Sender = _middlewareRequest.Sender;
                 _transactionManager.SmsType = _middlewareRequest.SmsType;
