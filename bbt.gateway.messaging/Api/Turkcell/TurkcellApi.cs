@@ -169,11 +169,11 @@ namespace bbt.gateway.messaging.Api.Turkcell
             }
             catch (HttpRequestException ex)
             {
-                TransactionManager.LogError($"Critical Error Occured at Turkcell Otp Services | Network Related | ErrorCode:499 | Exception : {ex.ToString()}");
+                TransactionManager.LogError($"Critical Error Occured at Turkcell Otp Services | Network Related | ErrorCode:498 | Exception : {ex.ToString()}");
             }
             catch (Exception ex)
             {
-                TransactionManager.LogError($"Critical Error Occured at Turkcell Otp Services | ErrorCode:499 | Exception : {ex.ToString()}");
+                TransactionManager.LogError($"Critical Error Occured at Turkcell Otp Services | ErrorCode:498 | Exception : {ex.ToString()}");
                 turkcellSmsStatusResponse.ResponseCode = "-99999";
                 turkcellSmsStatusResponse.ResponseMessage = ex.ToString();
                 turkcellSmsStatusResponse.ResponseBody = response;
