@@ -42,8 +42,8 @@ namespace bbt.gateway.worker
                                     && o.CreatedAt < DateTime.Now.AddMinutes(-10)
                                     && o.TrackingLogs.Count <= 10
                                 )
-                                .Take(5)
                                 .OrderBy(s => s.CreatedAt)
+                                .Take(5)
                                 .ToListAsync();
 
                             var smsResponseLogsDesc = await _dbContext.SmsResponseLog.Include(s => s.TrackingLogs).Where(
@@ -53,8 +53,8 @@ namespace bbt.gateway.worker
                                         && o.CreatedAt < DateTime.Now.AddMinutes(-10)
                                         && o.TrackingLogs.Count <= 10
                                     )
-                                    .Take(5)
                                     .OrderByDescending(s => s.CreatedAt)
+                                    .Take(5)
                                     .ToListAsync();
 
                             var smsResponseLogs = smsResponseLogsAsc.Concat(smsResponseLogsDesc).Distinct().ToList();
