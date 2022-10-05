@@ -129,7 +129,7 @@ namespace bbt.gateway.worker
             }
             catch (ApiException ex)
             {
-                _logManager.LogError($"Messaging Gateway Api Error | Status Code : {ex.StatusCode}");
+                _logManager.LogError($"Messaging Gateway Api Error | Status Code : {ex.StatusCode} | Detail : Operator => {otpResponseLog.Operator}, OtpResponseLogId => {otpResponseLog.Id}, StatusQueryId => {otpResponseLog.StatusQueryId}");
             }
             catch (Exception ex)
             {
