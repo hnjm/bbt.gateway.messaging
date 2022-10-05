@@ -37,6 +37,7 @@ namespace bbt.gateway.worker
                         {
                             var smsResponseLogsAsc = await _dbContext.SmsResponseLog.Include(s => s.TrackingLogs).Where(
                                     o => o.OperatorResponseCode == 0 &&
+                                    o.Operator != 0 &&
                                     (o.Status == null || String.IsNullOrWhiteSpace(o.Status))
                                     && o.CreatedAt < DateTime.Now.AddMinutes(-10)
                                     && o.TrackingLogs.Count <= 10
@@ -47,6 +48,7 @@ namespace bbt.gateway.worker
 
                             var smsResponseLogsDesc = await _dbContext.SmsResponseLog.Include(s => s.TrackingLogs).Where(
                                         o => o.OperatorResponseCode == 0 &&
+                                        o.Operator != 0 &&
                                         (o.Status == null || String.IsNullOrWhiteSpace(o.Status))
                                         && o.CreatedAt < DateTime.Now.AddMinutes(-10)
                                         && o.TrackingLogs.Count <= 10
