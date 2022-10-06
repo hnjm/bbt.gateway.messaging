@@ -3,6 +3,7 @@ using bbt.gateway.common.Models;
 using bbt.gateway.common.Models.v1;
 using bbt.gateway.common.Repositories;
 using bbt.gateway.messaging.Api.dEngage;
+using bbt.gateway.messaging.Api.Fora;
 using bbt.gateway.messaging.Api.Pusula;
 using bbt.gateway.messaging.Api.Turkcell;
 using bbt.gateway.messaging.Api.TurkTelekom;
@@ -208,6 +209,7 @@ namespace bbt.gateway.messaging
             services.AddScoped<OperatorManager>();
             services.AddScoped<OperatorIVN>();
             services.AddScoped<PusulaClient>();
+            services.AddScoped<ForaClient>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

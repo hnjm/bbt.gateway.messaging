@@ -1,15 +1,14 @@
 ﻿using bbt.gateway.common.Models;
 using bbt.gateway.common.Repositories;
+using bbt.gateway.messaging.Api.Fora;
+using bbt.gateway.messaging.Api.Fora.Model.Permission;
 using bbt.gateway.messaging.Api.Pusula;
 using bbt.gateway.messaging.Api.Pusula.Model.GetByCitizenshipNumber;
 using bbt.gateway.messaging.Api.Pusula.Model.GetByPhone;
 using bbt.gateway.messaging.Api.Pusula.Model.GetCustomer;
-using bbt.gateway.messaging.Exceptions;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Serilog;
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace bbt.gateway.messaging.Workers
@@ -19,6 +18,7 @@ namespace bbt.gateway.messaging.Workers
         private readonly Guid _txnId;
         private Serilog.ILogger _logger;
         private readonly PusulaClient _pusulaClient;
+        private readonly ForaClient _foraClient;
         private readonly IRepositoryManager _repositoryManager;
         public Transaction Transaction { get; set; }
 
@@ -29,7 +29,7 @@ namespace bbt.gateway.messaging.Workers
         public PushRequestInfo PushRequestInfo { get; set; } = new();
 
         public CustomerRequestInfo CustomerRequestInfo { get; set; } = new();
-        public HeaderInfo HeaderInfo{ get; set; }
+        public HeaderInfo HeaderInfo { get; set; }
         public common.Models.v2.SenderType Sender { get; set; }
         public bool UseFakeSmtp { get; set; }
         public SmsTypes SmsType { get; set; }
@@ -38,13 +38,14 @@ namespace bbt.gateway.messaging.Workers
         public int PrefixLength { get; set; }
         public int NumberLength { get; set; }
 
-        public TransactionManager(PusulaClient pusulaClient,IRepositoryManager repositoryManager)
+        public TransactionManager(PusulaClient pusulaClient, ForaClient foraClient, IRepositoryManager repositoryManager)
         {
             _txnId = Guid.NewGuid();
             _logger = Log.ForContext<TransactionManager>();
             _pusulaClient = pusulaClient;
+            _foraClient = foraClient;
             _repositoryManager = repositoryManager;
-            
+
             Transaction = new()
             {
                 Id = _txnId
@@ -79,7 +80,7 @@ namespace bbt.gateway.messaging.Workers
 
         public void LogState()
         {
-            
+
             switch (Transaction.TransactionType)
             {
                 case TransactionType.Otp:
@@ -130,7 +131,7 @@ namespace bbt.gateway.messaging.Workers
 
                 if (customerDetail.IsSuccess)
                 {
-                    SetCustomerRequestInfo(customerDetail);
+                    await SetCustomerRequestInfo(customerDetail);
                 }
                 else
                 {
@@ -162,7 +163,7 @@ namespace bbt.gateway.messaging.Workers
 
                 if (customerDetail.IsSuccess)
                 {
-                    SetCustomerRequestInfo(customerDetail);
+                    await SetCustomerRequestInfo(customerDetail);
                 }
                 else
                 {
@@ -193,7 +194,7 @@ namespace bbt.gateway.messaging.Workers
 
                 if (customerDetail.IsSuccess)
                 {
-                    SetCustomerRequestInfo(customerDetail);
+                    await SetCustomerRequestInfo(customerDetail);
                 }
                 else
                 {
@@ -217,7 +218,7 @@ namespace bbt.gateway.messaging.Workers
 
             if (customerDetail.IsSuccess)
             {
-                SetCustomerRequestInfo(customerDetail);
+                await SetCustomerRequestInfo(customerDetail);
             }
             else
             {
@@ -225,13 +226,35 @@ namespace bbt.gateway.messaging.Workers
             }
         }
 
-        private void SetCustomerRequestInfo(GetCustomerResponse customerDetail)
+        private async Task<string> GetCustomerPermissionInfo(string CitizenshipNo)
+        {
+            try
+            {
+                var response = await _foraClient.getPermission(CitizenshipNo);
+                if (response.ResponseCode == 0)
+                {
+                    var permissionInfo = JsonConvert.DeserializeObject<PermissionInfo>(response.ResponseMesssage);
+                    return permissionInfo.PreferredLanguage.Split('-')[1];
+                }
+                else
+                {
+                    return String.Empty;
+                }
+            }
+            catch (Exception ex)
+            {
+                return String.Empty;
+            }
+        }
+
+        private async Task SetCustomerRequestInfo(GetCustomerResponse customerDetail)
         {
             CustomerRequestInfo.BusinessLine = customerDetail.BusinessLine;
             CustomerRequestInfo.BranchCode = customerDetail.BranchCode;
             CustomerRequestInfo.MainPhone = customerDetail.MainPhone;
             CustomerRequestInfo.MainEmail = customerDetail.MainEmail;
             CustomerRequestInfo.Tckn = customerDetail.CitizenshipNo;
+            CustomerRequestInfo.PreferedLanguage = await GetCustomerPermissionInfo(customerDetail.CitizenshipNo);
 
             if (Transaction.Phone == null)
             {
@@ -260,7 +283,7 @@ namespace bbt.gateway.messaging.Workers
             }
             else
             {
-                if(Sender == common.Models.v2.SenderType.AutoDetect)
+                if (Sender == common.Models.v2.SenderType.AutoDetect)
                     CustomerRequestInfo.BusinessLine = "B";
             }
         }
@@ -296,7 +319,7 @@ namespace bbt.gateway.messaging.Workers
         }
     }
 
-    
+
 
     public class CustomerRequestInfo
     {
@@ -306,6 +329,7 @@ namespace bbt.gateway.messaging.Workers
         public Phone? MainPhone { get; set; }
         public string MainEmail { get; set; }
         public string Tckn { get; set; }
+        public string PreferedLanguage { get; set; }
     }
 
     public class OtpRequestInfo

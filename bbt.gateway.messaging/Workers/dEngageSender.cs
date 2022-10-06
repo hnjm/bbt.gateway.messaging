@@ -304,11 +304,12 @@ namespace bbt.gateway.messaging.Workers
                         Encoding.UTF8.GetString(contentListByteArray)
                     );
 
-
-            var templateInfo = contentList.Where(c => c.contentName.Trim() == sendTemplatedSmsRequest.Template.Trim()).FirstOrDefault();
+            var templateInfo = contentList.Where(c => c.contentName.Trim() == $"{sendTemplatedSmsRequest.Template.Trim()}_{_transactionManager.CustomerRequestInfo.PreferedLanguage}").FirstOrDefault();
             if (templateInfo == null)
             {
-                throw new WorkflowException("Template Not Found", System.Net.HttpStatusCode.NotFound);
+                templateInfo = contentList.Where(c => c.contentName.Trim() == sendTemplatedSmsRequest.Template.Trim()).FirstOrDefault();
+                if(templateInfo == null)
+                    throw new WorkflowException("Template Not Found", System.Net.HttpStatusCode.NotFound);
             }
 
             var smsRequest = new SmsRequestLog()
@@ -390,10 +391,12 @@ namespace bbt.gateway.messaging.Workers
                         Encoding.UTF8.GetString(contentListByteArray)
                     );
 
-            var templateInfo = contentList.Where(c => c.contentName.Trim() == sendTemplatedEmailRequest.Template.Trim()).FirstOrDefault();
+            var templateInfo = contentList.Where(c => c.contentName.Trim() == $"{sendTemplatedEmailRequest.Template.Trim()}_{_transactionManager.CustomerRequestInfo.PreferedLanguage}").FirstOrDefault();
             if (templateInfo == null)
             {
-                throw new WorkflowException("Template Not Found", System.Net.HttpStatusCode.NotFound);
+                templateInfo = contentList.Where(c => c.contentName.Trim() == sendTemplatedEmailRequest.Template.Trim()).FirstOrDefault();
+                if(templateInfo == null)
+                    throw new WorkflowException("Template Not Found", System.Net.HttpStatusCode.NotFound);
             }
 
             var mailRequest = new MailRequestLog()
@@ -453,10 +456,12 @@ namespace bbt.gateway.messaging.Workers
                         Encoding.UTF8.GetString(contentListByteArray)
                     );
 
-            var templateInfo = contentList.Where(c => c.name.Trim() == sendTemplatedPushNotificationRequest.Template.Trim()).FirstOrDefault();
+            var templateInfo = contentList.Where(c => c.name.Trim() == $"{sendTemplatedPushNotificationRequest.Template.Trim()}_{_transactionManager.CustomerRequestInfo.PreferedLanguage}").FirstOrDefault();
             if (templateInfo == null)
             {
-                throw new WorkflowException("Template Not Found", System.Net.HttpStatusCode.NotFound);
+                templateInfo = contentList.Where(c => c.name.Trim() == sendTemplatedPushNotificationRequest.Template.Trim()).FirstOrDefault();
+                if(templateInfo == null)
+                    throw new WorkflowException("Template Not Found", System.Net.HttpStatusCode.NotFound);
             }
 
             var pushRequest = new PushNotificationRequestLog()
@@ -502,10 +507,12 @@ namespace bbt.gateway.messaging.Workers
                         Encoding.UTF8.GetString(contentListByteArray)
                     );
 
-            var templateInfo = contentList.Where(c => c.contentName.Trim() == templatedSmsRequest.Template.Trim()).FirstOrDefault();
+            var templateInfo = contentList.Where(c => c.contentName.Trim() == $"{templatedSmsRequest.Template.Trim()}_{_transactionManager.CustomerRequestInfo.PreferedLanguage}").FirstOrDefault();
             if (templateInfo == null)
             {
-                throw new WorkflowException("Template Not Found", System.Net.HttpStatusCode.NotFound);
+                templateInfo = contentList.Where(c => c.contentName.Trim() == templatedSmsRequest.Template.Trim()).FirstOrDefault();
+                if (templateInfo == null)
+                    throw new WorkflowException("Template Not Found", System.Net.HttpStatusCode.NotFound);
             }
 
             var smsRequest = new SmsRequestLog()
@@ -644,10 +651,12 @@ namespace bbt.gateway.messaging.Workers
                         Encoding.UTF8.GetString(contentListByteArray)
                     );
 
-            var templateInfo = contentList.Where(c => c.contentName.Trim() == templatedMailRequest.Template.Trim()).FirstOrDefault();
+            var templateInfo = contentList.Where(c => c.contentName.Trim() == $"{templatedMailRequest.Template.Trim()}_{_transactionManager.CustomerRequestInfo.PreferedLanguage}").FirstOrDefault();
             if (templateInfo == null)
             {
-                throw new WorkflowException("Template Not Found", System.Net.HttpStatusCode.NotFound);
+                templateInfo = contentList.Where(c => c.contentName.Trim() == templatedMailRequest.Template.Trim()).FirstOrDefault();
+                if (templateInfo == null)
+                    throw new WorkflowException("Template Not Found", System.Net.HttpStatusCode.NotFound);
             }
 
             var mailRequest = new MailRequestLog()
@@ -701,10 +710,12 @@ namespace bbt.gateway.messaging.Workers
                         Encoding.UTF8.GetString(contentListByteArray)
                     );
 
-            var templateInfo = contentList.Where(c => c.name.Trim() == sendTemplatedPushNotificationRequest.Template.Trim()).FirstOrDefault();
+            var templateInfo = contentList.Where(c => c.name.Trim() == $"{sendTemplatedPushNotificationRequest.Template.Trim()}_{_transactionManager.CustomerRequestInfo.PreferedLanguage}").FirstOrDefault();
             if (templateInfo == null)
             {
-                throw new WorkflowException("Template Not Found", System.Net.HttpStatusCode.NotFound);
+                templateInfo = contentList.Where(c => c.name.Trim() == sendTemplatedPushNotificationRequest.Template.Trim()).FirstOrDefault();
+                if (templateInfo == null)
+                    throw new WorkflowException("Template Not Found", System.Net.HttpStatusCode.NotFound);
             }
 
             var pushRequest = new PushNotificationRequestLog()
