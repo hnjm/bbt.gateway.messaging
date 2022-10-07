@@ -13,8 +13,11 @@ namespace bbt.gateway.messaging.ui.Pages.Authorize
         bbt.gateway.messaging.ui.Data.HttpContextAccessor contextAccessor { get; set; }
         public async  Task OnGet(string redirectUri)
         {
+
+            string redirect ="http://"+ HttpContext.Request.Host.Value+"/callback";
+
             var authenticationProperties = new LoginAuthenticationPropertiesBuilder()
-                .WithRedirectUri("http://localhost:5066/callback")
+                .WithRedirectUri(redirect)
                 .Build();
             //var test = Challenge(OktaDefaults.MvcAuthenticationScheme);
             //ChallengeResult challengeResult = Challenge(OktaDefaults.MvcAuthenticationScheme);
