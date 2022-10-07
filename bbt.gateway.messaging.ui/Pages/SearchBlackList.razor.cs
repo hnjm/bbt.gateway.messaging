@@ -1,6 +1,7 @@
 ﻿
 using bbt.gateway.common.Models;
 using bbt.gateway.messaging.ui.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Radzen;
 using Radzen.Blazor;
@@ -8,8 +9,12 @@ using System.DirectoryServices;
 
 namespace bbt.gateway.messaging.ui.Pages
 {
+    [Authorize]
     public partial class SearchBlackList:ComponentBase
     {
+ 
+        [Inject]
+        public bbt.gateway.messaging.ui.Base.Administration.AdministrationService administrationService { get; set; }
         private IEnumerable<BlackListEntry>? blackListEntries;
         private SearchModel searchModel = new SearchModel();
         private int pageCount = 10;
@@ -78,11 +83,12 @@ namespace bbt.gateway.messaging.ui.Pages
                 Phone phone = new Phone(searchModel.FilterValue);
                 try
                 {
+                    var res2 = administrationService.GetBlackListEntriesByPhone(phone.CountryCode, phone.Prefix, phone.Number, CreateQueryParams());
                     //blackListEntries = await MessagingGateway.GetBlackListByPhone(phone.CountryCode, phone.Prefix, phone.Number, CreateQueryParams());
                     //rowsCount = blackListEntries.Count();
-                    var res = await MessagingGateway.GetBlackListEntriesByPhone(phone.CountryCode, phone.Prefix, phone.Number, CreateQueryParams());
-                    blackListEntries = res.BlackListEntries;
-                    rowsCount = res.Count;
+                    //var res = await MessagingGateway.GetBlackListEntriesByPhone(phone.CountryCode, phone.Prefix, phone.Number, CreateQueryParams());
+                    blackListEntries = res2.Result.BlackListEntries;
+                    rowsCount = res2.Result.Count;
                 }
                 catch(Exception ex)
                 {

@@ -20,6 +20,7 @@ namespace bbt.gateway.messaging.ui.Data
         [Get("/api/v1/Administration/blacklists/customer/{customerNo}")]
         Task<BlackListEntriesDto> GetBlackListEntriesByCustomerNo(ulong customerNo, QueryParams queryParams);
         [Get("/api/v1/Administration/blacklists/phone/{countryCode}/{prefix}/{number}")]
+        [Headers("Authorization","Bearer")]
         Task<BlackListEntriesDto> GetBlackListEntriesByPhone(int countryCode, int prefix, int number, QueryParams queryParams);
         [Get("/api/v1/Administration/user/control/{userName}")]
         Task<bool> GetUserControl(string userName);

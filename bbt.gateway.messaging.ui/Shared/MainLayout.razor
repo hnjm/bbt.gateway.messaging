@@ -5,8 +5,8 @@
 <AuthorizeView>
     <Authorized>
         <div class="page">
-               <BaseAuthorizeView>
-            <AuthorizedControl>
+           @*    <BaseAuthorizeView>
+            <AuthorizedControl>*@
     <RadzenDialog />
     <div class="sidebar">
         <NavMenu />
@@ -24,11 +24,11 @@
          
           
              
-     
+       
     </main>
-      </AuthorizedControl>
-       <NotAuthorizedControl>
-            <div class="sidebar">
+    @*  </AuthorizedControl>
+       <NotAuthorizedControl>*@
+       @*     <div class="sidebar">
                  </div>
                   <main>
                        <article class="content px-4">
@@ -40,12 +40,12 @@
                  <br />
              </p>
               </article>
-                 </main>
-       </NotAuthorizedControl>
+                 </main>*@
+      @* </NotAuthorizedControl>
 
-        </BaseAuthorizeView>
+        </BaseAuthorizeView>*@
 </div>
-</Authorized><NotAuthorized><h1>EBT.bank'a bağlanılmadı</h1></NotAuthorized>
+</Authorized><NotAuthorized><p>Yetkiniz yoktur. Login olmanız gerekmektedir.</p><br /> <a href="/login">Log in</a></NotAuthorized>
 </AuthorizeView>
    @* </AuthorizedControl>
     <NotAuthorizedControl>
