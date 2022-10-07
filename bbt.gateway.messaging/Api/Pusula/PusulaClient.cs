@@ -187,7 +187,10 @@ namespace bbt.gateway.messaging.Api.Pusula
                         }
                         else
                         {
-                            getCustomerResponse.IsSuccess = false;
+                            getCustomerResponse.IsSuccess = true;
+                            getCustomerResponse.BusinessLine = "B";
+                            getCustomerResponse.BranchCode = pusulaCustomerInfo.root.MainBranchCode;
+                            getCustomerResponse.CitizenshipNo = pusulaCustomerInfo.root.CitizenshipNumber;
                         }
                     }
                     else

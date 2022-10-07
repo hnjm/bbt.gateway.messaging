@@ -6,6 +6,9 @@ using bbt.gateway.messaging.Api;
 using bbt.gateway.common.Models;
 using System.Text.RegularExpressions;
 using System;
+using bbt.gateway.messaging.Api.Codec.Model;
+using Newtonsoft.Json;
+using bbt.gateway.messaging.Api.dEngage.Model.Transactional;
 
 namespace bbt.gateway.messaging
 {
@@ -174,6 +177,60 @@ namespace bbt.gateway.messaging
                     otpTrackingLog.ResponseMessage = $"Given Operator Type Not Exist In Dictionary | Operator Type : {apiTrackingResponse.OperatorType}";
             }
             return otpTrackingLog;
+        }
+
+        public static SmsTrackingLog BuildCodecTrackingResponse(this CodecSmsStatusResponse apiTrackingResponse, common.Models.v2.CheckFastSmsRequest checkFastSmsRequest)
+        {
+            var smsTrackingLog = new SmsTrackingLog();
+            smsTrackingLog.LogId = checkFastSmsRequest.SmsRequestLogId;
+            smsTrackingLog.Detail = JsonConvert.SerializeObject(apiTrackingResponse);
+            if (Constant.OperatorTrackingErrorCodes.ContainsKey(checkFastSmsRequest.Operator))
+            {
+                var errorCodes = Constant.OperatorTrackingErrorCodes[checkFastSmsRequest.Operator];
+                if (errorCodes.ContainsKey(apiTrackingResponse.ResultList[0].Status.ToString().Trim()))
+                {
+                    smsTrackingLog.Status = errorCodes[apiTrackingResponse.ResultList[0].Status.ToString()].SmsTrackingStatus;
+                    smsTrackingLog.StatusReason = errorCodes[apiTrackingResponse.ResultList[0].Status.ToString()].ReturnMessage;
+                }
+                else
+                {
+                    smsTrackingLog.Status = SmsTrackingStatus.SystemError;
+                    smsTrackingLog.StatusReason = $"Given Error Code Not Exist In Dictionary | Operator Type : {checkFastSmsRequest.Operator} | Error Code : {apiTrackingResponse.ResultList[0].Status}";
+                }
+            }
+            else
+            {
+                smsTrackingLog.Status = SmsTrackingStatus.SystemError;
+                smsTrackingLog.StatusReason = $"Given Operator Type Not Exist In Dictionary | Operator Type : {checkFastSmsRequest.Operator}";
+            }
+            return smsTrackingLog;
+        }
+
+        public static SmsTrackingLog BuilddEngageTrackingResponse(this SmsStatusResponse apiTrackingResponse, common.Models.v2.CheckFastSmsRequest checkFastSmsRequest)
+        {
+            var smsTrackingLog = new SmsTrackingLog();
+            smsTrackingLog.LogId = checkFastSmsRequest.SmsRequestLogId;
+            smsTrackingLog.Detail = JsonConvert.SerializeObject(apiTrackingResponse);
+            if (Constant.OperatorTrackingErrorCodes.ContainsKey(checkFastSmsRequest.Operator))
+            {
+                var errorCodes = Constant.OperatorTrackingErrorCodes[checkFastSmsRequest.Operator];
+                if (errorCodes.ContainsKey(apiTrackingResponse.data.result[0].event_type.ToString().Trim()))
+                {
+                    smsTrackingLog.Status = errorCodes[apiTrackingResponse.data.result[0].event_type].SmsTrackingStatus;
+                    smsTrackingLog.StatusReason = errorCodes[apiTrackingResponse.data.result[0].event_type].ReturnMessage;
+                }
+                else
+                {
+                    smsTrackingLog.Status = SmsTrackingStatus.SystemError;
+                    smsTrackingLog.StatusReason = $"Given Error Code Not Exist In Dictionary | Operator Type : {checkFastSmsRequest.Operator} | Error Code : {apiTrackingResponse.data.result[0].event_type}";
+                }
+            }
+            else
+            {
+                smsTrackingLog.Status = SmsTrackingStatus.SystemError;
+                smsTrackingLog.StatusReason = $"Given Operator Type Not Exist In Dictionary | Operator Type : {checkFastSmsRequest.Operator}";
+            }
+            return smsTrackingLog;
         }
 
         public static dEngageResponseCodes GetdEngageStatus(this IdEngageResponse dEngageResponse)

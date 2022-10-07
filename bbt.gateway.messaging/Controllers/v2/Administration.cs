@@ -2,7 +2,6 @@
 using bbt.gateway.common.Models;
 using bbt.gateway.common.Models.v2;
 using bbt.gateway.common.Repositories;
-using bbt.gateway.messaging.Exceptions;
 using bbt.gateway.messaging.Workers;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -24,13 +23,77 @@ namespace bbt.gateway.messaging.Controllers.v2
         private readonly OperatorManager _operatorManager;
         private readonly IRepositoryManager _repositoryManager;
         private readonly ITransactionManager _transactionManager;
+        private readonly CodecSender _codecSender;
+        private readonly dEngageSender _dEngageSender;
+        private readonly OtpSender _otpSender;
         public Administration(HeaderManager headerManager, OperatorManager operatorManager,
-            IRepositoryManager repositoryManager, ITransactionManager transactionManager)
+            IRepositoryManager repositoryManager, ITransactionManager transactionManager,
+            CodecSender codecSender,dEngageSender dEngageSender,OtpSender otpSender)
         {
             _headerManager = headerManager;
             _operatorManager = operatorManager;
             _repositoryManager = repositoryManager;
             _transactionManager = transactionManager;
+            _codecSender = codecSender;
+            _dEngageSender = dEngageSender;
+            _otpSender = otpSender;
+        }
+
+        [SwaggerOperation(
+           Summary = "Check Fast Sms Message Status",
+           Description = "Check Fast Sms Delivery Status."
+           )]
+        [HttpPost("sms/check-message")]
+        [ApiExplorerSettings(IgnoreApi = true)]
+
+        public async Task<IActionResult> CheckMessageStatus([FromBody] CheckFastSmsRequest data)
+        {
+
+            if (ModelState.IsValid)
+            {
+                if (data.Operator == common.Models.OperatorType.Codec)
+                {
+                    var res = await _codecSender.CheckSms(data);
+                    return Ok(res);
+                }
+                if (data.Operator == common.Models.OperatorType.dEngageOn ||
+                    data.Operator == common.Models.OperatorType.dEngageBurgan)
+                {
+                    var res = await _dEngageSender.CheckSms(data);
+                    return Ok(res);
+                }
+                return BadRequest("Unknown Operator");
+            }
+            else
+            {
+                return BadRequest(ModelState);
+            }
+
+
+        }
+
+        [SwaggerOperation(
+           Summary = "Check Fast Sms Message Status",
+           Description = "Check Fast Sms Delivery Status."
+           )]
+        [HttpPost("otp/check-message")]
+        [ApiExplorerSettings(IgnoreApi = true)]
+
+        public async Task<IActionResult> CheckOtpMessageStatus([FromBody] common.Models.v2.CheckSmsRequest data)
+        {
+
+            if (ModelState.IsValid)
+            {
+                var res = await _otpSender.CheckMessage(data.MapTo<common.Models.CheckSmsRequest>());
+                return Ok(res);
+
+            }
+            else
+            {
+                return BadRequest(ModelState);
+            }
+
+
         }
 
         [SwaggerOperation(Summary = "Returns content headers configuration",

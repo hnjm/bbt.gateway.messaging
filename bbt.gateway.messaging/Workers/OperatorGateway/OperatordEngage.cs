@@ -105,6 +105,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                     {
                         trackingId = queryId,
                     };
+                    
                     var response = await _dEngageClient.GetSmsStatus(_authToken, smsStatusRequest);
                     return response;
                 }
@@ -588,9 +589,9 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             {
                 sendSmsRequest.send.to = phone.Concatenate();
             }
-            var now = DateTime.Now;
-            sendSmsRequest.earliestTime = now.ToString("HH:mm");
-            sendSmsRequest.latestTime = now.AddMinutes(3).ToString("HH:mm");
+            //var now = DateTime.Now;
+            //sendSmsRequest.earliestTime = now.ToString("HH:mm");
+            //sendSmsRequest.latestTime = now.AddMinutes(3).ToString("HH:mm");
             
             if (!string.IsNullOrEmpty(templateId))
             {

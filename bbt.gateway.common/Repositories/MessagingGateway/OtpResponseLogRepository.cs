@@ -14,11 +14,23 @@ namespace bbt.gateway.common.Repositories
         
         }
 
-        public async Task<IEnumerable<OtpResponseLog>> GetOtpResponseLogsWithTrackingLogAsync(Expression<Func<OtpResponseLog, bool>> predicate)
+        public async Task<IEnumerable<OtpResponseLog>> GetOtpResponseLogsAsync(Expression<Func<OtpResponseLog, bool>> predicate)
         {
             return await Context.OtpResponseLog
+                .Include(o => o.TrackingLogs)
                 .Where(predicate)
-                .Include("TrackingLogs")
+                .Take(5)
+                .OrderBy(o => o.CreatedAt)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<OtpResponseLog>> GetOtpResponseLogsDescAsync(Expression<Func<OtpResponseLog, bool>> predicate)
+        {
+            return await Context.OtpResponseLog
+                .Include(o => o.TrackingLogs)
+                .Where(predicate)
+                .Take(5)
+                .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
         }
     }

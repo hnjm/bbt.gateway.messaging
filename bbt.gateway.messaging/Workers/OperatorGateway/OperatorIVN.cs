@@ -15,7 +15,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
         }
 
 
-        public async Task<bool> SendOtp(Phone phone, string content, ConcurrentBag<OtpResponseLog> responses, Header header, bool useControlDays)
+        public async Task<bool> SendOtp(Phone phone, string content, ConcurrentBag<OtpResponseLog> responses, Header header)
         {
             await Task.CompletedTask;
             var response = new OtpResponseLog { 
@@ -32,10 +32,26 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
       
 
-        public async Task<OtpResponseLog> SendOtp(Phone phone, string content, Header header,bool useControlDays)
+        public async Task<OtpResponseLog> SendOtp(Phone phone, string content, Header header)
         {
            await Task.CompletedTask;
            var response = new OtpResponseLog { 
+                Operator = OperatorType.IVN,
+                Topic = "IVN otp sending",
+                TrackingStatus = SmsTrackingStatus.Delivered
+            };
+
+            System.Diagnostics.Debug.WriteLine("IVN otp is send");
+            response.ResponseCode = SendSmsResponseStatus.NotSubscriber;
+
+            return response;
+        }
+
+        public async Task<OtpResponseLog> SendOtpForeign(Phone phone, string content, Header header)
+        {
+            await Task.CompletedTask;
+            var response = new OtpResponseLog
+            {
                 Operator = OperatorType.IVN,
                 Topic = "IVN otp sending",
                 TrackingStatus = SmsTrackingStatus.Delivered

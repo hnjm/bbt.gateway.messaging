@@ -27,8 +27,7 @@ namespace bbt.gateway.messaging.Workers
         {
             { typeof(OperatorTurkcell) , OperatorType.Turkcell},
             { typeof(OperatorVodafone) , OperatorType.Vodafone},
-            { typeof(OperatorTurkTelekom) , OperatorType.TurkTelekom},
-            { typeof(OperatorIVN) , OperatorType.IVN}
+            { typeof(OperatorTurkTelekom) , OperatorType.TurkTelekom}
         };
         public OtpSender(HeaderManager headerManager,
             Func<OperatorType, IOperatorGateway> operatorRepository,
@@ -118,7 +117,7 @@ namespace bbt.gateway.messaging.Workers
             )
             {
 
-                var responseLog = await SendMessageToKnown(phoneConfiguration,true);
+                var responseLog = await SendMessageToKnown(phoneConfiguration);
                 _requestLog.ResponseLogs.Add(responseLog);
 
                 if (responseLog.ResponseCode == SendSmsResponseStatus.OperatorChange
@@ -201,7 +200,7 @@ namespace bbt.gateway.messaging.Workers
         {
 
             //if discardCurrentOperator is true,phone is known number
-            var responseLogs = await SendMessageToUnknown(phoneConfiguration, discardCurrentOperator, discardCurrentOperator);
+            var responseLogs = await SendMessageToUnknown(phoneConfiguration, discardCurrentOperator);
 
             // Decide which response code will be returned
             returnValue = responseLogs.UnifyResponse();
@@ -251,7 +250,7 @@ namespace bbt.gateway.messaging.Workers
 
         }
 
-        private async Task<List<OtpResponseLog>> SendMessageToUnknown(PhoneConfiguration phoneConfiguration,bool useControlDays,bool discardCurrentOperator = false)
+        private async Task<List<OtpResponseLog>> SendMessageToUnknown(PhoneConfiguration phoneConfiguration,bool discardCurrentOperator = false)
         {
             var header =  await _headerManager.Get(_data.ContentType,_data.HeaderInfo);
             _requestLog.Content = header.BuildContentForLog(_data.Content);
@@ -267,27 +266,27 @@ namespace bbt.gateway.messaging.Workers
                         if (phoneConfiguration.Operator != currentElement.Value)
                         {
                             IOperatorGateway gateway = _operatorRepository(currentElement.Value);
-                            tasks.Add(gateway.SendOtp(_data.Phone, header.BuildContentForSms(_data.Content), responses, header, useControlDays));
+                            tasks.Add(gateway.SendOtp(_data.Phone, header.BuildContentForSms(_data.Content), responses, header));
                         }
                     }
                     else
                     {
                         IOperatorGateway gateway = _operatorRepository(currentElement.Value);
-                        tasks.Add(gateway.SendOtp(_data.Phone, header.BuildContentForSms(_data.Content), responses, header, useControlDays));
+                        tasks.Add(gateway.SendOtp(_data.Phone, header.BuildContentForSms(_data.Content), responses, header));
                     }
                 }
             }
             else 
             {
                 IOperatorGateway gateway = _operatorRepository(OperatorType.Turkcell);
-                tasks.Add(gateway.SendOtp(_data.Phone, header.BuildContentForSms(_data.Content), responses, header, useControlDays));
+                tasks.Add(gateway.SendOtp(_data.Phone, header.BuildContentForSms(_data.Content), responses, header));
             }
 
             await Task.WhenAll(tasks);
             return responses.ToList();
         }
 
-        private async Task<OtpResponseLog> SendMessageToKnown(PhoneConfiguration phoneConfiguration,bool useControlDays)
+        private async Task<OtpResponseLog> SendMessageToKnown(PhoneConfiguration phoneConfiguration)
         {
             _transactionManager.OtpRequestInfo.Operator = phoneConfiguration.Operator.Value;
 
@@ -314,7 +313,7 @@ namespace bbt.gateway.messaging.Workers
                     break;
             }
 
-            var result = await gateway.SendOtp(_data.Phone, header.BuildContentForSms(_data.Content), header,useControlDays);
+            var result = await gateway.SendOtp(_data.Phone, header.BuildContentForSms(_data.Content), header);
 
             return result;
         }
@@ -334,8 +333,8 @@ namespace bbt.gateway.messaging.Workers
                 case OperatorType.TurkTelekom:
                     gateway = _operatorRepository(OperatorType.TurkTelekom);
                     break;
-                case OperatorType.IVN:
-                    gateway = _operatorRepository(OperatorType.IVN);
+                case OperatorType.Foreign:
+                    gateway = _operatorRepository(OperatorType.Turkcell);
                     break;
                 default:
                     // Serious Exception
@@ -428,7 +427,7 @@ namespace bbt.gateway.messaging.Workers
             )
             {
 
-                var responseLog = await SendMessageToKnownV2(phoneConfiguration, true);
+                var responseLog = await SendMessageToKnownV2(phoneConfiguration);
                 _requestLog.ResponseLogs.Add(responseLog);
 
                 if (responseLog.ResponseCode == SendSmsResponseStatus.OperatorChange
@@ -502,7 +501,7 @@ namespace bbt.gateway.messaging.Workers
             }
 
             _requestLog.PhoneConfiguration = phoneConfiguration;
-
+            
             await _repositoryManager.OtpRequestLogs.AddAsync(_requestLog);
             _transactionManager.Transaction.OtpRequestLog = _requestLog;
 
@@ -514,7 +513,18 @@ namespace bbt.gateway.messaging.Workers
         {
 
             //if discardCurrentOperator is true,phone is known number
-            var responseLogs = await SendMessageToUnknownV2(phoneConfiguration, discardCurrentOperator, true);
+            var responseLogs = await SendMessageToUnknownV2(phoneConfiguration, discardCurrentOperator);
+
+            if (responseLogs.All(c => c.ResponseCode == SendSmsResponseStatus.NotSubscriber))
+            {
+                var foreignOperator = _operatorRepository(OperatorType.Turkcell);
+
+                var header = _headerManager.Get(_dataV2.SmsType);
+                var foreignResponse = await foreignOperator.SendOtpForeign(_dataV2.Phone.MapTo<Phone>(), header.BuildContentForSms(_dataV2.Content), header);
+                _requestLog.ResponseLogs.Add(foreignResponse);
+
+                responseLogs.Add(foreignResponse);
+            }
 
             // Decide which response code will be returned
             returnValue = responseLogs.UnifyResponse();
@@ -562,9 +572,11 @@ namespace bbt.gateway.messaging.Workers
             // Add all response logs to request log
             responseLogs.ForEach(l => _requestLog.ResponseLogs.Add(l));
 
+            
+
         }
 
-        private async Task<List<OtpResponseLog>> SendMessageToUnknownV2(PhoneConfiguration phoneConfiguration, bool useControlDays, bool discardCurrentOperator = false)
+        private async Task<List<OtpResponseLog>> SendMessageToUnknownV2(PhoneConfiguration phoneConfiguration,bool discardCurrentOperator = false)
         {
             var header = _headerManager.Get(_dataV2.SmsType);
             _requestLog.Content = header.BuildContentForLog(_dataV2.Content);
@@ -580,27 +592,27 @@ namespace bbt.gateway.messaging.Workers
                         if (phoneConfiguration.Operator != currentElement.Value)
                         {
                             IOperatorGateway gateway = _operatorRepository(currentElement.Value);
-                            tasks.Add(gateway.SendOtp(_dataV2.Phone.MapTo<Phone>(), header.BuildContentForSms(_dataV2.Content), responses, header, useControlDays));
+                            tasks.Add(gateway.SendOtp(_dataV2.Phone.MapTo<Phone>(), header.BuildContentForSms(_dataV2.Content), responses, header));
                         }
                     }
                     else
                     {
                         IOperatorGateway gateway = _operatorRepository(currentElement.Value);
-                        tasks.Add(gateway.SendOtp(_dataV2.Phone.MapTo<Phone>(),header.BuildContentForSms(_dataV2.Content), responses, header, useControlDays));
+                        tasks.Add(gateway.SendOtp(_dataV2.Phone.MapTo<Phone>(),header.BuildContentForSms(_dataV2.Content), responses, header));
                     }
                 }
             }
             else
             {
                 IOperatorGateway gateway = _operatorRepository(OperatorType.Turkcell);
-                tasks.Add(gateway.SendOtp(_dataV2.Phone.MapTo<Phone>(), header.BuildContentForSms(_dataV2.Content), responses, header, useControlDays));
+                tasks.Add(gateway.SendOtp(_dataV2.Phone.MapTo<Phone>(), header.BuildContentForSms(_dataV2.Content), responses, header));
             }
 
             await Task.WhenAll(tasks);
             return responses.ToList();
         }
 
-        private async Task<OtpResponseLog> SendMessageToKnownV2(PhoneConfiguration phoneConfiguration, bool useControlDays)
+        private async Task<OtpResponseLog> SendMessageToKnownV2(PhoneConfiguration phoneConfiguration)
         {
             _transactionManager.OtpRequestInfo.Operator = phoneConfiguration.Operator.Value;
 
@@ -622,14 +634,24 @@ namespace bbt.gateway.messaging.Workers
                 case OperatorType.IVN:
                     gateway = _operatorRepository(OperatorType.IVN);
                     break;
+                case OperatorType.Foreign:
+                    gateway = _operatorRepository(OperatorType.Turkcell);
+                    break;
                 default:
                     // Serious Exception
                     break;
             }
 
-            var result = await gateway.SendOtp(_dataV2.Phone.MapTo<Phone>(), header.BuildContentForSms(_dataV2.Content), header, useControlDays);
-
-            return result;
+            if (phoneConfiguration.Operator != OperatorType.Foreign)
+            {
+                var result = await gateway.SendOtp(_dataV2.Phone.MapTo<Phone>(), header.BuildContentForSms(_dataV2.Content), header);
+                return result;
+            }
+            else
+            {
+                var result = await gateway.SendOtpForeign(_dataV2.Phone.MapTo<Phone>(), header.BuildContentForSms(_dataV2.Content), header);
+                return result;
+            }
         }
 
         private PhoneConfiguration createNewPhoneConfiguration()
