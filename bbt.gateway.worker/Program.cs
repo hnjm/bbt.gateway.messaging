@@ -12,8 +12,8 @@ IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureServices((context, services) =>
     {
         services.AddHostedService<TemplateWorker>();
-        services.AddHostedService<OtpWorker>();
-        services.AddHostedService<SmsWorker>();
+        //services.AddHostedService<OtpWorker>();
+        //services.AddHostedService<SmsWorker>();
         services.AddSingleton<DbContextOptions<DatabaseContext>>(new DbContextOptionsBuilder<DatabaseContext>()
                 .UseSqlServer(context.Configuration.GetConnectionString("DefaultConnection"))
                 .Options);
