@@ -7,7 +7,6 @@ namespace bbt.gateway.common.Models.v2
     {
         [Required]
         public SenderType Sender { get; set; }
-        [Required]
         public Phone Phone { get; set; }
         [Required]
         public string Template { get; set; }
