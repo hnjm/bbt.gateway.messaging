@@ -71,9 +71,12 @@ namespace bbt.gateway.messaging.Controllers.v2
             }
             if (data.Phone == null)
             {
-                data.Phone.CountryCode = _transactionManager.CustomerRequestInfo.MainPhone.CountryCode;
-                data.Phone.Prefix = _transactionManager.CustomerRequestInfo.MainPhone.Prefix;
-                data.Phone.Number = _transactionManager.CustomerRequestInfo.MainPhone.Number;
+                data.Phone = new Phone
+                {
+                    CountryCode = _transactionManager.CustomerRequestInfo.MainPhone.CountryCode,
+                    Prefix = _transactionManager.CustomerRequestInfo.MainPhone.Prefix,
+                    Number = _transactionManager.CustomerRequestInfo.MainPhone.Number,
+                };
             }
 
             return Ok(await _dEngageSender.SendTemplatedSmsV2(data));
