@@ -19,11 +19,7 @@ namespace bbt.gateway.messaging.ui.Pages.Authorize
             var authenticationProperties = new LoginAuthenticationPropertiesBuilder()
                 .WithRedirectUri(redirect)
                 .Build();
-            //var test = Challenge(OktaDefaults.MvcAuthenticationScheme);
-            //ChallengeResult challengeResult = Challenge(OktaDefaults.MvcAuthenticationScheme);
-            //return Task.FromResult(challengeResult);
            await HttpContext.ChallengeAsync(Auth0Constants.AuthenticationScheme, authenticationProperties);
-            //HttpContext.ChallengeAsync(Auth0Constants.AuthenticationScheme, authenticationProperties);
         }
     }
 }
