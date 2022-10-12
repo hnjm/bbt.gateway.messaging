@@ -475,16 +475,22 @@ namespace bbt.gateway.messaging.Workers
             else
             {
                 //Known Number With Active Blacklist Entry
-                if (phoneConfiguration != null &&
-                    phoneConfiguration.BlacklistEntries.Any(b => b.Status == BlacklistStatus.NotResolved && b.ValidTo > DateTime.Today))
+                if (phoneConfiguration != null)
                 {
-                    _transactionManager.LogError("Phone has a blacklist record");
-                    returnValue = SendSmsResponseStatus.HasBlacklistRecord;
-                    _requestLog.ResponseLogs.Add(new OtpResponseLog
+                    var blacklistRecord = phoneConfiguration.BlacklistEntries.Where(b => b.ValidTo > DateTime.Today).OrderByDescending(b => b.CreatedAt).FirstOrDefault();
+                    if (blacklistRecord != null)
                     {
-                        Operator = (OperatorType)phoneConfiguration.Operator,
-                        ResponseCode = SendSmsResponseStatus.HasBlacklistRecord
-                    });
+                        if (blacklistRecord.Status == BlacklistStatus.NotResolved)
+                        {
+                            _transactionManager.LogError("Phone has a blacklist record");
+                            returnValue = SendSmsResponseStatus.HasBlacklistRecord;
+                            _requestLog.ResponseLogs.Add(new OtpResponseLog
+                            {
+                                Operator = (OperatorType)phoneConfiguration.Operator,
+                                ResponseCode = SendSmsResponseStatus.HasBlacklistRecord
+                            });
+                        }
+                    }
                 }
                 else
                 {
