@@ -29,14 +29,14 @@ builder.Host.UseConsulSettings(typeof(Program));
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<bbt.gateway.messaging.ui.Data.HttpContextAccessor>();
-builder.Services.Configure<CookiePolicyOptions>(options =>
-{
+//builder.Services.Configure<CookiePolicyOptions>(options =>
+//{
 
-    // this lambda determines whether user consent for non-essential cookies is needed for a given request.
-    options.CheckConsentNeeded = context => true;
-    options.MinimumSameSitePolicy = SameSiteMode.Unspecified;
+//    // this lambda determines whether user consent for non-essential cookies is needed for a given request.
+//    options.CheckConsentNeeded = context => true;
+//    options.MinimumSameSitePolicy = SameSiteMode.None;
 
-});
+//});
 
 IdentityModelEventSource.ShowPII = true;
 
@@ -72,7 +72,7 @@ builder.Services.AddAuthentication(options =>
         options.GetClaimsFromUserInfoEndpoint = true;
         // Use the authorization code flow.
         options.ResponseType = OpenIdConnectResponseType.Code;
-
+       
         options.CallbackPath = new PathString("/authorization-code/callback");
         options.SignedOutCallbackPath = new PathString("/authorization-code/signout/callback");
         // Configure the Claims Issuer to be Auth0
@@ -81,7 +81,17 @@ builder.Services.AddAuthentication(options =>
         options.Events = new OpenIdConnectEvents
 
         {
-            
+
+            OnRedirectToIdentityProvider = context =>
+            {
+                var builder = new UriBuilder(context.ProtocolMessage.RedirectUri);
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    builder.Scheme = "https";
+                }
+                context.ProtocolMessage.RedirectUri = builder.ToString();
+                return Task.FromResult(0);
+            },
             OnTokenValidated = context =>
             {
 
