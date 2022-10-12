@@ -88,7 +88,9 @@ builder.Services.AddAuthentication(options =>
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
                     builder.Scheme = "https";
+                    builder.Port = -1;
                 }
+
                 context.ProtocolMessage.RedirectUri = builder.ToString();
                 return Task.FromResult(0);
             },
