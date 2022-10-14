@@ -15,7 +15,8 @@ namespace bbt.gateway.messaging.ui.Shared
         protected Task<AuthenticationState> AuthenticationState { get; set; }
         [Inject]
         public bbt.gateway.messaging.ui.Data.HttpContextAccessor httpContext { get; set; }
-
+        [Inject]
+        public NavigationManager navigationManager { get; set; }
         protected override async Task OnParametersSetAsync()
         {
             var user = (await AuthenticationState).User;
@@ -38,6 +39,10 @@ namespace bbt.gateway.messaging.ui.Shared
         {
             base.OnInitialized();
             httpContext.Context.Features.Get<HttpContext>();
+        }
+        public void LoginSite()
+        {
+            navigationManager.NavigateTo($"login?redirectUri=/", forceLoad: true);
         }
 
     }

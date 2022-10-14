@@ -45,7 +45,29 @@
 
         </BaseAuthorizeView>*@
 </div>
-</Authorized><NotAuthorized><p>Yetkiniz yoktur. Login olmanız gerekmektedir.</p><br /> <a href="/login">Log in</a></NotAuthorized>
+</Authorized><NotAuthorized><p></p><br />    
+    <div class="row">
+        <div class="col-lg-4 mb-4">
+        </div>
+        <div class="col-lg-4 mb-4">
+            <RadzenCard style="height: 100%;margin-bottom:1rem">
+                  <div class="row">
+                          <div class="col-4"></div>
+                <p  class="col-4 text-center">Yetkiniz yoktur. Login olmanız gerekmektedir.</p>
+                <div class="col-4"></div>
+               </div>
+              <div class="row">
+                  <div class="col-4"></div>
+                   <RadzenButton Click="@(args => LoginSite())" Text="Login" class="col-4" />
+                        <div class="col-4"></div>
+              </div>
+                   
+               
+            </RadzenCard>
+        </div>
+        <div class="col-lg-4 mb-4">
+        </div>
+    </div></NotAuthorized>
 </AuthorizeView>
    @* </AuthorizedControl>
     <NotAuthorizedControl>

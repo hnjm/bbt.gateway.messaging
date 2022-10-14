@@ -3,7 +3,37 @@
 @model bbt.gateway.messaging.ui.Pages.Authorize.LogoutModel
 @{
    <div>
-   <p>Yetkiniz için verilen süre bitmiştir. Tekrar Login olmanız gerekmektedir</p>
-  <a href="/login">Log in </a>
+   <p></p>
+    <div class="row">
+        <div class="col-lg-4 mb-4">
+        </div>
+        <div class="col-lg-4 mb-4">
+            <RadzenCard style="height: 100%;margin-bottom:1rem">
+                  <div class="row">
+                          <div class="col-4"></div>
+                <p  class="col-4 text-center">Yetkiniz için verilen süre bitmiştir. Tekrar Login olmanız gerekmektedir</p>
+                <div class="col-4"></div>
+               </div>
+              <div class="row">
+                  <div class="col-4"></div>
+                   <a href="/login" class="col-4" style="display: block;
+    width: 115px;
+    height: 25px;
+    background: #4E9CAF;
+    padding: 10px;
+    text-align: center;
+    border-radius: 5px;
+    color: white;
+    font-weight: bold;
+    line-height: 25px;">Login</a>
+                        <div class="col-4"></div>
+              </div>
+                   
+               
+            </RadzenCard>
+        </div>
+        <div class="col-lg-4 mb-4">
+        </div>
+    </div>
    </div>
 }
