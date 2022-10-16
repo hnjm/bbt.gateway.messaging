@@ -420,90 +420,57 @@ namespace bbt.gateway.messaging.Workers
             }
 
             // if known number without any blacklist entry 
-            if (
-            phoneConfiguration != null &&
-            phoneConfiguration.Operator != null &&
-            !phoneConfiguration.BlacklistEntries.Any(b => b.Status == BlacklistStatus.NotResolved)
-            )
+            if (phoneConfiguration.Operator != null)
             {
-
-                var responseLog = await SendMessageToKnownV2(phoneConfiguration);
-                _requestLog.ResponseLogs.Add(responseLog);
-
-                if (responseLog.ResponseCode == SendSmsResponseStatus.OperatorChange
-                    || responseLog.ResponseCode == SendSmsResponseStatus.SimChange)
+                //Known Number With Active Blacklist Entry
+                var blacklistRecord = phoneConfiguration.BlacklistEntries.Where(b => b.ValidTo > DateTime.Today).OrderByDescending(b => b.CreatedAt).FirstOrDefault();
+                if (blacklistRecord?.Status != null && blacklistRecord?.Status == BlacklistStatus.NotResolved)
                 {
-                    _transactionManager.LogError("OperatorChange or SimChange Has Occured");
-
-                    //Add to Blacklist If Not Exists
-                    if (phoneConfiguration.BlacklistEntries != null)
+                    _transactionManager.LogError("Phone has a blacklist record");
+                    returnValue = SendSmsResponseStatus.HasBlacklistRecord;
+                    _requestLog.ResponseLogs.Add(new OtpResponseLog
                     {
-                        if (!phoneConfiguration.BlacklistEntries.Any(b => b.Status == BlacklistStatus.NotResolved && b.ValidTo > DateTime.Today))
-                        {
-                            _transactionManager.LogError("Phone has a blacklist record");
-                            var oldBlackListEntry = createOldBlackListEntry((long)_transactionManager.CustomerRequestInfo.CustomerNo, phoneConfiguration.Phone.ToString());
-                            await _repositoryManager.DirectBlacklists.AddAsync(oldBlackListEntry);
-                            await _repositoryManager.SaveSmsBankingChangesAsync();
-
-                            var blackListEntry = createBlackListEntryV2(phoneConfiguration, returnValue.ToString(), "SendMessageToKnownProcess", oldBlackListEntry.SmsId);
-                            await _repositoryManager.BlackListEntries.AddAsync(blackListEntry);
-                        }
-                    }
-                    else
-                    {
-                            var oldBlackListEntry = createOldBlackListEntry((long)_transactionManager.CustomerRequestInfo.CustomerNo, phoneConfiguration.Phone.ToString());
-                            await _repositoryManager.DirectBlacklists.AddAsync(oldBlackListEntry);
-                            await _repositoryManager.SaveSmsBankingChangesAsync();
-
-                            var blackListEntry = createBlackListEntryV2(phoneConfiguration, returnValue.ToString(), "SendMessageToKnownProcess", oldBlackListEntry.SmsId);
-                            await _repositoryManager.BlackListEntries.AddAsync(blackListEntry);
-                    }
+                        Operator = (OperatorType)phoneConfiguration.Operator,
+                        ResponseCode = SendSmsResponseStatus.HasBlacklistRecord
+                    });
                 }
-                returnValue = responseLog.ResponseCode;
-
-                //Operator Change | Sim Change | Not Subscriber handle edilmeli
-                if (responseLog.ResponseCode == SendSmsResponseStatus.NotSubscriber)
+                else
                 {
-                    _transactionManager.LogError("Known Number Changed Operator");
+                    var responseLog = await SendMessageToKnownV2(phoneConfiguration);
+                    _requestLog.ResponseLogs.Add(responseLog);
 
-                    //Known Number Returns Not Subscriber For Related Operator
-                    //Try to Send Sms With Another Operators
-                    //Should pass true for discarding current operator
-                    await SendMessageToUnknownProcessV2(true);
+                    if (responseLog.ResponseCode == SendSmsResponseStatus.OperatorChange
+                        || responseLog.ResponseCode == SendSmsResponseStatus.SimChange)
+                    {
+                        _transactionManager.LogError("OperatorChange or SimChange Has Occured");
+
+                        _transactionManager.LogError("Phone has a blacklist record");
+                        var oldBlackListEntry = createOldBlackListEntry((long)_transactionManager.CustomerRequestInfo.CustomerNo, phoneConfiguration.Phone.ToString());
+                        await _repositoryManager.DirectBlacklists.AddAsync(oldBlackListEntry);
+                        await _repositoryManager.SaveSmsBankingChangesAsync();
+
+                        var blackListEntry = createBlackListEntryV2(phoneConfiguration, returnValue.ToString(), "SendMessageToKnownProcess", oldBlackListEntry.SmsId);
+                        await _repositoryManager.BlackListEntries.AddAsync(blackListEntry);
+
+                    }
+                    returnValue = responseLog.ResponseCode;
+
+                    //Operator Change | Sim Change | Not Subscriber handle edilmeli
+                    if (responseLog.ResponseCode == SendSmsResponseStatus.NotSubscriber)
+                    {
+                        _transactionManager.LogError("Known Number Changed Operator");
+
+                        //Known Number Returns Not Subscriber For Related Operator
+                        //Try to Send Sms With Another Operators
+                        //Should pass true for discarding current operator
+                        await SendMessageToUnknownProcessV2(true);
+                    }
                 }
             }
             else
             {
-                //Known Number With Active Blacklist Entry
-                if (phoneConfiguration != null)
-                {
-                    var blacklistRecord = phoneConfiguration.BlacklistEntries.Where(b => b.ValidTo > DateTime.Today).OrderByDescending(b => b.CreatedAt).FirstOrDefault();
-                    if (blacklistRecord != null)
-                    {
-                        if (blacklistRecord.Status == BlacklistStatus.NotResolved)
-                        {
-                            _transactionManager.LogError("Phone has a blacklist record");
-                            returnValue = SendSmsResponseStatus.HasBlacklistRecord;
-                            _requestLog.ResponseLogs.Add(new OtpResponseLog
-                            {
-                                Operator = (OperatorType)phoneConfiguration.Operator,
-                                ResponseCode = SendSmsResponseStatus.HasBlacklistRecord
-                            });
-                        }
-                    }
-                }
-                else
-                {
-                    //If configuration is not available then create clean phone configuration to phone number   
-                    if (phoneConfiguration == null)
-                    {
-                        phoneConfiguration = createNewPhoneConfigurationV2();
-                        await _repositoryManager.PhoneConfigurations.AddAsync(phoneConfiguration);
-                    }
-
-                    await SendMessageToUnknownProcessV2(false);
-                }
-
+                //Unknown Phone Number
+                await SendMessageToUnknownProcessV2(false);
             }
 
             _requestLog.PhoneConfiguration = phoneConfiguration;

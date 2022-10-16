@@ -2,7 +2,6 @@
 using bbt.gateway.common.Models;
 using bbt.gateway.common.Repositories;
 using bbt.gateway.messaging.Workers.OperatorGateway;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace bbt.gateway.messaging.Workers
@@ -28,7 +27,7 @@ namespace bbt.gateway.messaging.Workers
 
         public async Task<SmsTrackingLog> CheckSms(common.Models.v2.CheckFastSmsRequest checkFastSmsRequest)
         {
-            
+            _operatorCodec.Type = OperatorType.Codec;
             var response = await _operatorCodec.CheckSms(checkFastSmsRequest.StatusQueryId);
 
             if (response != null)
@@ -59,7 +58,7 @@ namespace bbt.gateway.messaging.Workers
                     Status = SmsTrackingStatus.SystemError,
                     Detail = "",
                     StatusReason = "Codec operatöründen bilgi alınamadı.",
-                    
+
                 };
             }
 

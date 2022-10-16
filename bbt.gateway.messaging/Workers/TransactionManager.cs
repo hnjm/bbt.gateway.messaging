@@ -270,6 +270,11 @@ namespace bbt.gateway.messaging.Workers
             {
                 Transaction.CitizenshipNo = CustomerRequestInfo.Tckn;
             }
+
+            if(Transaction.CustomerNo == 0)
+            {
+                Transaction.CustomerNo = CustomerRequestInfo.CustomerNo;
+            }
         }
 
         private void ThrowNotFoundError()

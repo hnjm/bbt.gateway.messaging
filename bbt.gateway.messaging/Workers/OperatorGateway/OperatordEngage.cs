@@ -143,7 +143,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             var authResponse = await Auth();
             if (authResponse.ResponseCode == "0")
             {
-                smsContentsResponse = await _dEngageClient.GetSmsContents(_authToken,limit,offset);
+                smsContentsResponse = await _dEngageClient.GetSmsContents(_authToken, limit, offset);
             }
             else
             {
