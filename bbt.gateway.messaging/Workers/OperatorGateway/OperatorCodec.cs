@@ -4,6 +4,7 @@ using bbt.gateway.messaging.Api.dEngage.Model.Transactional;
 using CodecFastApi;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -24,10 +25,12 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
         public async Task<CodecSmsStatusResponse> CheckSms(string refId)
         {
+            var serializeSettings = new JsonSerializerSettings();
+            serializeSettings.Converters.Add(new IsoDateTimeConverter(){ DateTimeFormat = "ddMMyyHHmmss" });
             try
             {
                 var res = await _codecClient.GetStatusAsync(OperatorConfig.User, OperatorConfig.Password, refId, 3, String.Empty);
-                return JsonConvert.DeserializeObject<CodecSmsStatusResponse>(res);
+                return JsonConvert.DeserializeObject<CodecSmsStatusResponse>(res,serializeSettings);
             }
             catch (Exception ex)
             {
