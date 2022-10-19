@@ -5,10 +5,10 @@ using CodecFastApi;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using Polly;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
+using System.ServiceModel;
 using System.Threading.Tasks;
 
 namespace bbt.gateway.messaging.Workers.OperatorGateway
@@ -54,36 +54,24 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
             try
             {
-                var nvc = new List<KeyValuePair<string, string>>();
-                nvc.Add(new KeyValuePair<string, string>("username", OperatorConfig.User));
-                nvc.Add(new KeyValuePair<string, string>("password", OperatorConfig.Password));
-                nvc.Add(new KeyValuePair<string, string>("sender", GetSender()));
-                nvc.Add(new KeyValuePair<string, string>("phone", phone.Concatenate()));
-                nvc.Add(new KeyValuePair<string, string>("messageContent", content));
-                nvc.Add(new KeyValuePair<string, string>("msgSpecialId", String.Empty));
-                nvc.Add(new KeyValuePair<string, string>("isOtn", "false"));
-                nvc.Add(new KeyValuePair<string, string>("headerCode", Configuration["Api:Codec:HeaderCode"]));
-                nvc.Add(new KeyValuePair<string, string>("responseType", "3"));
-                nvc.Add(new KeyValuePair<string, string>("optionalParameters", String.Empty));
-                nvc.Add(new KeyValuePair<string, string>("iysBrandCode", String.Empty));
-                nvc.Add(new KeyValuePair<string, string>("iysRecipientType", "BIREYSEL"));
-                nvc.Add(new KeyValuePair<string, string>("iysMessageType", "BILGILENDIRME"));
+                await Policy.Handle<EndpointNotFoundException>().RetryAsync(5,
+                  (e, r) =>
+                  {
+                      TransactionManager.LogError($"Codec Retry : {r}");
+                  }).ExecuteAsync(async () =>
+                  {
+                      var response = await _codecClient.SendSmsAsync(OperatorConfig.User, OperatorConfig.Password, GetSender(),
+                    phone.Concatenate(), content, string.Empty, false, Configuration["Api:Codec:HeaderCode"], 3, string.Empty, string.Empty,
+                    "BIREYSEL", "BILGILENDIRME");
 
+                      var parsedResponse = JsonConvert.DeserializeObject<CodecSmsResponse>(response);
 
-                var client = new HttpClient();
-                var req = new HttpRequestMessage(HttpMethod.Post, "https://fastsms-api.codec.com.tr/Soap.asmx/SendSms") { Content = new FormUrlEncodedContent(nvc) };
-                var response = await client.SendAsync(req);
-                var res = await response.Content.ReadAsStringAsync();
-                ////var response = await _codecClient.SendSmsAsync(OperatorConfig.User, OperatorConfig.Password, GetSender(),
-                //    phone.Concatenate(), content, string.Empty, false, Configuration["Api:Codec:HeaderCode"], 3, string.Empty, string.Empty,
-                //    "BIREYSEL", "BILGILENDIRME");
-                res = res.GetWithRegexSingle("(<string[^>]*>)(.*?)(</string>)", 2);
-                var parsedResponse = JsonConvert.DeserializeObject<CodecSmsResponse>(res);
-
-                smsLog.OperatorResponseCode = parsedResponse.ResultSet.Code;
-                smsLog.OperatorResponseMessage = parsedResponse.ResultSet.Description;
-                smsLog.StatusQueryId = parsedResponse.ResultList.FirstOrDefault()?.SmsRefId ?? String.Empty;
-                smsLog.Status = String.Empty;
+                      smsLog.OperatorResponseCode = parsedResponse.ResultSet.Code;
+                      smsLog.OperatorResponseMessage = parsedResponse.ResultSet.Description;
+                      smsLog.StatusQueryId = parsedResponse.ResultList.FirstOrDefault()?.SmsRefId ?? String.Empty;
+                      smsLog.Status = String.Empty;
+                  });
+                
             }
             catch (Exception ex)
             {
