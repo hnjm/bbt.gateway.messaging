@@ -2,6 +2,7 @@
 using bbt.gateway.common.Models.v2;
 using bbt.gateway.common.Repositories;
 using bbt.gateway.messaging.Workers;
+using Elastic.Apm.Api;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using Swashbuckle.AspNetCore.Filters;
@@ -21,14 +22,16 @@ namespace bbt.gateway.messaging.Controllers.v2
         private readonly dEngageSender _dEngageSender;
         private readonly CodecSender _codecSender;
         private readonly IRepositoryManager _repositoryManager;
+        private readonly ITracer _tracer;
         public Messaging(OtpSender otpSender, ITransactionManager transactionManager, dEngageSender dEngageSender
-            , IRepositoryManager repositoryManager, CodecSender codecSender)
+            , IRepositoryManager repositoryManager, CodecSender codecSender,ITracer tracer)
         {
             _transactionManager = transactionManager;
             _otpSender = otpSender;
             _dEngageSender = dEngageSender;
             _codecSender = codecSender;
             _repositoryManager = repositoryManager;
+            _tracer = tracer;
         }
 
         [SwaggerOperation(
@@ -145,18 +148,27 @@ namespace bbt.gateway.messaging.Controllers.v2
             {
                 if (data.SmsType == SmsTypes.Otp)
                 {
-                    return Ok(await _otpSender.SendMessageV2(data));
+                    await _tracer.CaptureTransaction("OtpSending", ApiConstants.TypeRequest, async () =>
+                    {
+                        return Ok(await _otpSender.SendMessageV2(data));
+                    });
                 }
                 else
                 {
                     var codecOperator = await _repositoryManager.Operators.GetOperatorAsNoTracking(common.Models.OperatorType.Codec);
                     if (codecOperator.Status == common.Models.OperatorStatus.Active)
                     {
-                        return Ok(await _codecSender.SendSmsV2(data));
+                        await _tracer.CaptureTransaction("SmsSendingCodec", ApiConstants.TypeRequest, async () =>
+                        {
+                            return Ok(await _codecSender.SendSmsV2(data));
+                        });
                     }
                     else
                     {
-                        return Ok(await _dEngageSender.SendSmsV2(data));
+                        await _tracer.CaptureTransaction("SmsSendingdEngage", ApiConstants.TypeRequest, async () =>
+                        {
+                            return Ok(await _dEngageSender.SendSmsV2(data));
+                        });
                     }
                 }
             }
