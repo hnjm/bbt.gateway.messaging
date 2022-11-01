@@ -24,14 +24,14 @@ namespace bbt.gateway.messaging.Controllers.v2
         private readonly IRepositoryManager _repositoryManager;
         private readonly ITracer _tracer;
         public Messaging(OtpSender otpSender, ITransactionManager transactionManager, dEngageSender dEngageSender
-            , IRepositoryManager repositoryManager, CodecSender codecSender,ITracer tracer)
+            , IRepositoryManager repositoryManager, CodecSender codecSender)
         {
             _transactionManager = transactionManager;
             _otpSender = otpSender;
             _dEngageSender = dEngageSender;
             _codecSender = codecSender;
             _repositoryManager = repositoryManager;
-            _tracer = tracer;
+            _tracer = Elastic.Apm.Agent.Tracer;
         }
 
         [SwaggerOperation(
