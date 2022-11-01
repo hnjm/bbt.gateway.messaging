@@ -148,7 +148,7 @@ namespace bbt.gateway.messaging.Controllers.v2
             {
                 if (data.SmsType == SmsTypes.Otp)
                 {
-                    await _tracer.CaptureTransaction("OtpSending", ApiConstants.TypeRequest, async () =>
+                    return await _tracer.CaptureTransaction("OtpSending", ApiConstants.TypeRequest, async () =>
                     {
                         return Ok(await _otpSender.SendMessageV2(data));
                     });
@@ -158,14 +158,14 @@ namespace bbt.gateway.messaging.Controllers.v2
                     var codecOperator = await _repositoryManager.Operators.GetOperatorAsNoTracking(common.Models.OperatorType.Codec);
                     if (codecOperator.Status == common.Models.OperatorStatus.Active)
                     {
-                        await _tracer.CaptureTransaction("SmsSendingCodec", ApiConstants.TypeRequest, async () =>
+                        return await _tracer.CaptureTransaction("SmsSendingCodec", ApiConstants.TypeRequest, async () =>
                         {
                             return Ok(await _codecSender.SendSmsV2(data));
                         });
                     }
                     else
                     {
-                        await _tracer.CaptureTransaction("SmsSendingdEngage", ApiConstants.TypeRequest, async () =>
+                        return await _tracer.CaptureTransaction("SmsSendingdEngage", ApiConstants.TypeRequest, async () =>
                         {
                             return Ok(await _dEngageSender.SendSmsV2(data));
                         });
