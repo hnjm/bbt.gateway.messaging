@@ -4,6 +4,7 @@ using bbt.gateway.common.Repositories;
 using bbt.gateway.messaging.Api.dEngage.Model.Contents;
 using bbt.gateway.messaging.Exceptions;
 using bbt.gateway.messaging.Workers.OperatorGateway;
+using Dapr.Client;
 using Microsoft.Extensions.Caching.Distributed;
 using Newtonsoft.Json;
 using System;
@@ -64,6 +65,8 @@ namespace bbt.gateway.messaging.Workers
 
             if (mailContents.Count > 0)
             {
+                var daprClient = new DaprClientBuilder().Build();
+                await daprClient.SaveStateAsync("smsgateway-statestore", _operatordEngage.Type.ToString() + "_MailContents", Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(mailContents)));
                 await _distributedCache.SetAsync(_operatordEngage.Type.ToString() + "_MailContents", Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(mailContents)),
                     new DistributedCacheEntryOptions()
                     {
@@ -502,18 +505,9 @@ namespace bbt.gateway.messaging.Workers
             else
                 _operatordEngage.Type = OperatorType.dEngageBurgan;
 
-            var contentListByteArray = await _distributedCache.GetAsync(_operatordEngage.Type.ToString() + "_SmsContents");
-            List<SmsContentInfo> contentList = JsonConvert.DeserializeObject<List<SmsContentInfo>>(
-                        Encoding.UTF8.GetString(contentListByteArray)
-                    );
+            var contentList = await GetContentList<SmsContentInfo>(_operatordEngage.Type.ToString() + "_SmsContents");
 
-            var templateInfo = contentList.Where(c => c.contentName.Trim() == $"{templatedSmsRequest.Template.Trim()}_{_transactionManager.CustomerRequestInfo.PreferedLanguage}").FirstOrDefault();
-            if (templateInfo == null)
-            {
-                templateInfo = contentList.Where(c => c.contentName.Trim() == templatedSmsRequest.Template.Trim()).FirstOrDefault();
-                if (templateInfo == null)
-                    throw new WorkflowException("Template Not Found", System.Net.HttpStatusCode.NotFound);
-            }
+            var templateInfo = GetContentInfo(contentList, templatedSmsRequest.Template);
 
             var smsRequest = new SmsRequestLog()
             {
@@ -646,18 +640,9 @@ namespace bbt.gateway.messaging.Workers
             else
                 _operatordEngage.Type = OperatorType.dEngageBurgan;
 
-            var contentListByteArray = await _distributedCache.GetAsync(_operatordEngage.Type.ToString() + "_MailContents");
-            List<ContentInfo> contentList = JsonConvert.DeserializeObject<List<ContentInfo>>(
-                        Encoding.UTF8.GetString(contentListByteArray)
-                    );
+            var contentList = await GetContentList<ContentInfo>(_operatordEngage.Type.ToString() + "_MailContents");
 
-            var templateInfo = contentList.Where(c => c.contentName.Trim() == $"{templatedMailRequest.Template.Trim()}_{_transactionManager.CustomerRequestInfo.PreferedLanguage}").FirstOrDefault();
-            if (templateInfo == null)
-            {
-                templateInfo = contentList.Where(c => c.contentName.Trim() == templatedMailRequest.Template.Trim()).FirstOrDefault();
-                if (templateInfo == null)
-                    throw new WorkflowException("Template Not Found", System.Net.HttpStatusCode.NotFound);
-            }
+            var templateInfo = GetContentInfo(contentList,templatedMailRequest.Template);
 
             var mailRequest = new MailRequestLog()
             {
@@ -705,18 +690,10 @@ namespace bbt.gateway.messaging.Workers
             else
                 _operatordEngage.Type = OperatorType.dEngageBurgan;
 
-            var contentListByteArray = await _distributedCache.GetAsync(_operatordEngage.Type.ToString() + "_PushContents");
-            List<PushContentInfo> contentList = JsonConvert.DeserializeObject<List<PushContentInfo>>(
-                        Encoding.UTF8.GetString(contentListByteArray)
-                    );
+            
+            var contentList = await GetContentList<PushContentInfo>(_operatordEngage.Type.ToString() + "_PushContents");
 
-            var templateInfo = contentList.Where(c => c.name.Trim() == $"{sendTemplatedPushNotificationRequest.Template.Trim()}_{_transactionManager.CustomerRequestInfo.PreferedLanguage}").FirstOrDefault();
-            if (templateInfo == null)
-            {
-                templateInfo = contentList.Where(c => c.name.Trim() == sendTemplatedPushNotificationRequest.Template.Trim()).FirstOrDefault();
-                if (templateInfo == null)
-                    throw new WorkflowException("Template Not Found", System.Net.HttpStatusCode.NotFound);
-            }
+            var templateInfo = GetContentInfo(contentList, sendTemplatedPushNotificationRequest.Template);
 
             var pushRequest = new PushNotificationRequestLog()
             {
@@ -806,6 +783,38 @@ namespace bbt.gateway.messaging.Workers
         {
             return smsType == common.Models.v2.SmsTypes.Bulk ? "Bulk" : "Fast";
         }
+
+        public string GetTemplateNameWithPreferredLang(string template)
+        {
+            return $"{template.Trim()}_{_transactionManager.CustomerRequestInfo.PreferedLanguage}";
+        }
+
+        public string GetTemplateName(string template)
+        {
+            return template.Trim();
+        }
+
+        public T GetContentInfo<T>(List<T> contentList,string givenTemplate) where T : IContentReadeble
+        {
+            var templateInfo = contentList.Where(c => c.GetPath(givenTemplate.Trim().StartsWith("/")) == GetTemplateNameWithPreferredLang(givenTemplate)).FirstOrDefault();
+            if (templateInfo == null)
+            {
+                templateInfo = contentList.Where(c => c.GetPath(givenTemplate.Trim().StartsWith("/")) == GetTemplateName(givenTemplate)).FirstOrDefault();
+                if (templateInfo == null)
+                    throw new WorkflowException("Template Not Found", System.Net.HttpStatusCode.NotFound);
+            }
+
+            return templateInfo;
+        }
+
+        public async Task<List<T>> GetContentList<T>(string templateListPath)
+        {
+            var contentListByteArray = await _distributedCache.GetAsync(templateListPath);
+            return JsonConvert.DeserializeObject<List<T>>(
+                        Encoding.UTF8.GetString(contentListByteArray)
+                    );
+        }
+        
     }
 
 }
