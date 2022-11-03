@@ -1,12 +1,8 @@
 using Auth0.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.JSInterop;
-using Okta.AspNetCore;
-using Microsoft.Extensions.Configuration;
+
 using bbt.gateway.messaging.ui.Base;
 
 namespace bbt.gateway.messaging.ui.Pages.Authorize

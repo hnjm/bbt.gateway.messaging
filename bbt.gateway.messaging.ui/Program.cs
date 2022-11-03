@@ -63,11 +63,11 @@ builder.Services.AddAuthentication(options =>
         options.AuthenticationMethod = OpenIdConnectRedirectBehavior.RedirectGet;
 
         options.Scope.Clear();
-        options.Scope.Add("openid");
+       // options.Scope.Add("openid");
         options.Scope.Add("profile");
-        options.Scope.Add("offline_access");
-        options.Scope.Add("tckn");
-        options.Scope.Add("phone");
+       // options.Scope.Add("offline_access");
+        //options.Scope.Add("tckn");
+        //options.Scope.Add("phone");
         options.RequireHttpsMetadata = false;
         options.GetClaimsFromUserInfoEndpoint = true;
         // Use the authorization code flow.
@@ -84,7 +84,11 @@ builder.Services.AddAuthentication(options =>
 
             OnRedirectToIdentityProvider = context =>
             {
+                //context.ProtocolMessage.RedirectUri = "https://test-messaginggateway-ui.burgan.com.tr/authorization-code/callback";
+               
                 var builder = new UriBuilder(context.ProtocolMessage.RedirectUri);
+                //builder.Scheme = "https";
+                //builder.Port = -1;
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
                     builder.Scheme = "https";
