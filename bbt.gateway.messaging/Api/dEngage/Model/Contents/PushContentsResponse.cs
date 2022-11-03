@@ -17,9 +17,16 @@ namespace bbt.gateway.messaging.Api.dEngage.Model.Contents
         public int totalRowCount { get; set; }
     }
 
-    public class PushContentInfo
+    public class PushContentInfo : IContentReadeble
     {
         public string name { get; set; }
         public string id { get; set; }
+        public string location { get; set; }
+        public string GetPath(bool isAbsolutePath)
+        {
+            if (isAbsolutePath)
+                return $"{location}/{name}";
+            return name;
+        }
     }
 }
