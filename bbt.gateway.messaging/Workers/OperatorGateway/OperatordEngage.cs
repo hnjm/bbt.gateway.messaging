@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using bbt.gateway.messaging.Api.dEngage.Model.Contents;
 using Microsoft.Extensions.Caching.Distributed;
 using Newtonsoft.Json;
+using Dapr.Client;
 
 namespace bbt.gateway.messaging.Workers.OperatorGateway
 {
@@ -26,13 +27,16 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
         private readonly IdEngageClient _dEngageClient;
         private IDistributedCache _distrubitedCache;
         private IConfiguration _configuration;
+        private DaprClient _daprClient;
+
         public OperatordEngage(IdEngageClient dEngageClient, IConfiguration configuration,
-            ITransactionManager transactionManager,IDistributedCache distributedCache) : base(configuration,transactionManager)
+            ITransactionManager transactionManager,IDistributedCache distributedCache,DaprClient daprClient) : base(configuration,transactionManager)
         {
             _authTryCount = 0;
             _dEngageClient = dEngageClient;
             _distrubitedCache = distributedCache;
             _configuration = configuration;
+            _daprClient = daprClient;
         }
 
         private async Task<OperatorApiAuthResponse> Auth()
@@ -176,13 +180,17 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             try
             {                
                 var res = await _dEngageClient.GetMailFroms(_authToken);
-                await _distrubitedCache.SetAsync(OperatorConfig.Type.ToString() + "_mailFroms",
-                    System.Text.Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(res)),
-                    new DistributedCacheEntryOptions
-                    {
-                        AbsoluteExpiration = DateTimeOffset.UtcNow.AddHours(1)
-                    }
-                    );
+                await _daprClient.SaveStateAsync("messaginggateway-statestore",
+                    OperatorConfig.Type.ToString() + "_mailFroms",
+                    System.Text.Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(res)), metadata: new Dictionary<string, string>() { { "ttlInSeconds","3600" } }
+                );
+                //await _distrubitedCache.SetAsync(OperatorConfig.Type.ToString() + "_mailFroms",
+                //    System.Text.Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(res)),
+                //    new DistributedCacheEntryOptions
+                //    {
+                //        AbsoluteExpiration = DateTimeOffset.UtcNow.AddHours(1)
+                //    }
+                //    );
                 _mailIds = res;   
             }
             catch (ApiException ex)
@@ -205,7 +213,8 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             {
                 if (html != null)
                 {
-                    var mailFromsByteArray = await _distrubitedCache.GetAsync(OperatorConfig.Type.ToString() + "_mailFroms");
+                    var mailFromsByteArray = await _daprClient.GetStateAsync<byte[]>("messagingateway-statestore", OperatorConfig.Type.ToString() + "_mailFroms");
+                    //var mailFromsByteArray = await _distrubitedCache.GetAsync(OperatorConfig.Type.ToString() + "_mailFroms");
                     if (mailFromsByteArray != null)
                     {
                         _mailIds = JsonConvert.DeserializeObject<GetMailFromsResponse>(System.Text.Encoding.UTF8.GetString(mailFromsByteArray));
@@ -411,7 +420,8 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 {
                     try
                     {
-                        var smsFromsByteArray = await _distrubitedCache.GetAsync(OperatorConfig.Type.ToString() + "_smsFroms");
+                        //var smsFromsByteArray = await _distrubitedCache.GetAsync(OperatorConfig.Type.ToString() + "_smsFroms");
+                        var smsFromsByteArray = await _daprClient.GetStateAsync<byte[]>("messaginggateway-statestore", OperatorConfig.Type.ToString() + "_smsFroms");
                         if (smsFromsByteArray != null)
                         {
                             _smsIds = JsonConvert.DeserializeObject<GetSmsFromsResponse>(System.Text.Encoding.UTF8.GetString(smsFromsByteArray));
@@ -419,13 +429,18 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                         else
                         {
                             var res = await _dEngageClient.GetSmsFroms(_authToken);
-                            await _distrubitedCache.SetAsync(OperatorConfig.Type.ToString() + "_smsFroms",
+                            await _daprClient.SaveStateAsync("messaginggateway-statestore",
+                                OperatorConfig.Type.ToString() + "_smsFroms",
                                 System.Text.Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(res)),
-                                new DistributedCacheEntryOptions
-                                {
-                                    AbsoluteExpiration = DateTimeOffset.UtcNow.AddHours(1)
-                                }
+                                metadata:new Dictionary<string, string>() { { "ttlInSeconds","3600" } }
                                 );
+                            //await _distrubitedCache.SetAsync(OperatorConfig.Type.ToString() + "_smsFroms",
+                            //    System.Text.Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(res)),
+                            //    new DistributedCacheEntryOptions
+                            //    {
+                            //        AbsoluteExpiration = DateTimeOffset.UtcNow.AddHours(1)
+                            //    }
+                            //    );
                             _smsIds = res;
                         }
                         

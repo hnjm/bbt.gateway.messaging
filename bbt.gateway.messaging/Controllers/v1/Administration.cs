@@ -3,6 +3,7 @@ using bbt.gateway.common.Models.v1;
 using bbt.gateway.common.Repositories;
 using bbt.gateway.messaging.Api.dEngage.Model.Contents;
 using bbt.gateway.messaging.Workers;
+using Dapr.Client;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
@@ -32,9 +33,11 @@ namespace bbt.gateway.messaging.Controllers.v1
         private readonly dEngageSender _dEngageSender;
         private readonly IDistributedCache _distributedCache;
         private readonly UserSettings _userSettings;
+        private readonly DaprClient _daprClient;
         public Administration(HeaderManager headerManager, OperatorManager operatorManager,
             IRepositoryManager repositoryManager, ITransactionManager transactionManager,
-            dEngageSender dEngageSender, IDistributedCache distributedCache, IOptions<UserSettings> userSettings)
+            dEngageSender dEngageSender, IDistributedCache distributedCache, IOptions<UserSettings> userSettings,
+            DaprClient daprClient)
         {
             _headerManager = headerManager;
             _operatorManager = operatorManager;
@@ -43,6 +46,7 @@ namespace bbt.gateway.messaging.Controllers.v1
             _dEngageSender = dEngageSender;
             _distributedCache = distributedCache;
             _userSettings = userSettings.Value;
+            _daprClient = daprClient;
         }
 
         [SwaggerOperation(Summary = "Write Templates To Cache")]
@@ -80,7 +84,7 @@ namespace bbt.gateway.messaging.Controllers.v1
         [SwaggerResponse(200, "Templates returned successfully")]
         public async Task<IActionResult> GetBurganSmsTemplates()
         {
-            var data = await _distributedCache.GetAsync("dEngageBurgan_SmsContents");
+            var data = await _daprClient.GetStateAsync<byte[]>("messaginggateway-statestore","dEngageBurgan_SmsContents");
             return Ok(JsonConvert.DeserializeObject<List<SmsContentInfo>>(
                         Encoding.UTF8.GetString(data)
                     ));
@@ -91,7 +95,7 @@ namespace bbt.gateway.messaging.Controllers.v1
         [SwaggerResponse(200, "Templates returned successfully")]
         public async Task<IActionResult> GetOnSmsTemplates()
         {
-            var data = await _distributedCache.GetAsync("dEngageOn_SmsContents");
+            var data = await _daprClient.GetStateAsync<byte[]>("messaginggateway-statestore", "dEngageOn_SmsContents");
             return Ok(JsonConvert.DeserializeObject<List<SmsContentInfo>>(
                         Encoding.UTF8.GetString(data)
                     ));
@@ -102,7 +106,7 @@ namespace bbt.gateway.messaging.Controllers.v1
         [SwaggerResponse(200, "Templates returned successfully")]
         public async Task<IActionResult> GetBurganMailTemplates()
         {
-            var data = await _distributedCache.GetAsync("dEngageBurgan_MailContents");
+            var data = await _daprClient.GetStateAsync<byte[]>("messaginggateway-statestore", "dEngageBurgan_MailContents");
             return Ok(JsonConvert.DeserializeObject<List<ContentInfo>>(
                         Encoding.UTF8.GetString(data)
                     ));
@@ -113,7 +117,7 @@ namespace bbt.gateway.messaging.Controllers.v1
         [SwaggerResponse(200, "Templates returned successfully")]
         public async Task<IActionResult> GetOnMailTemplates()
         {
-            var data = await _distributedCache.GetAsync("dEngageOn_MailContents");
+            var data = await _daprClient.GetStateAsync<byte[]>("messaginggateway-statestore", "dEngageOn_MailContents");
             return Ok(JsonConvert.DeserializeObject<List<ContentInfo>>(
                         Encoding.UTF8.GetString(data)
                     ));
@@ -124,7 +128,7 @@ namespace bbt.gateway.messaging.Controllers.v1
         [SwaggerResponse(200, "Templates returned successfully")]
         public async Task<IActionResult> GetBurganPushTemplates()
         {
-            var data = await _distributedCache.GetAsync("dEngageBurgan_PushContents");
+            var data = await _daprClient.GetStateAsync<byte[]>("messaginggateway-statestore", "dEngageBurgan_PushContents");
             return Ok(JsonConvert.DeserializeObject<List<PushContentInfo>>(
                         Encoding.UTF8.GetString(data)
                     ));
@@ -135,7 +139,7 @@ namespace bbt.gateway.messaging.Controllers.v1
         [SwaggerResponse(200, "Templates returned successfully")]
         public async Task<IActionResult> GetOnPushTemplates()
         {
-            var data = await _distributedCache.GetAsync("dEngageOn_PushContents");
+            var data = await _daprClient.GetStateAsync<byte[]>("messaginggateway-statestore", "dEngageOn_PushContents");
             return Ok(JsonConvert.DeserializeObject<List<PushContentInfo>>(
                         Encoding.UTF8.GetString(data)
                     ));

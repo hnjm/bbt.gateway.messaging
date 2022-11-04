@@ -28,6 +28,7 @@ using Swashbuckle.AspNetCore.Filters;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Text.Json;
 
 namespace bbt.gateway.messaging
 {
@@ -102,6 +103,14 @@ namespace bbt.gateway.messaging
             });
 
             services.AddSwaggerExamplesFromAssemblyOf<Startup>();
+
+            services.AddDaprClient(builder =>
+                   builder.UseJsonSerializationOptions(
+                       new JsonSerializerOptions()
+                       {
+                           PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                           PropertyNameCaseInsensitive = true,
+                       }));
 
             services.AddStackExchangeRedisCache(opt =>
             {

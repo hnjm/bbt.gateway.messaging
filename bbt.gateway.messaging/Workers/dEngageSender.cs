@@ -22,6 +22,11 @@ namespace bbt.gateway.messaging.Workers
         private readonly ITransactionManager _transactionManager;
         private readonly IOperatordEngage _operatordEngage;
         private readonly IDistributedCache _distributedCache;
+        private readonly DaprClient _daprClient;
+
+        private const string SMS_CONTENTS_SUFFIX = "SmsContents";
+        private const string MAIL_CONTENTS_SUFFIX = "MailContents";
+        private const string PUSH_CONTENTS_SUFFIX = "PushContents";
 
         private const string DEFAULT_TEMPLATE_NAME = "Default";
         private const string BURGAN_MAIL_SUFFIX = "@m.burgan.com.tr";
@@ -31,14 +36,15 @@ namespace bbt.gateway.messaging.Workers
             IRepositoryManager repositoryManager,
             ITransactionManager transactionManager,
             dEngageFactory dEngageFactory,
-            IDistributedCache distributedCache)
+            IDistributedCache distributedCache,
+            DaprClient daprClient)
         {
             _headerManager = headerManager;
             _repositoryManager = repositoryManager;
             _transactionManager = transactionManager;
             _operatordEngage = dEngageFactory(_transactionManager.UseFakeSmtp);
             _distributedCache = distributedCache;
-
+            _daprClient = daprClient;
 
         }
 
@@ -65,13 +71,12 @@ namespace bbt.gateway.messaging.Workers
 
             if (mailContents.Count > 0)
             {
-                var daprClient = new DaprClientBuilder().Build();
-                await daprClient.SaveStateAsync("smsgateway-statestore", _operatordEngage.Type.ToString() + "_MailContents", Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(mailContents)));
-                await _distributedCache.SetAsync(_operatordEngage.Type.ToString() + "_MailContents", Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(mailContents)),
-                    new DistributedCacheEntryOptions()
-                    {
-                        AbsoluteExpiration = DateTimeOffset.UtcNow.AddMonths(1)
-                    });
+                await _daprClient.SaveStateAsync("messaginggateway-statestore", _operatordEngage.Type.ToString() + "_" + MAIL_CONTENTS_SUFFIX, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(mailContents)));
+                //await _distributedCache.SetAsync(_operatordEngage.Type.ToString() + "_MailContents", Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(mailContents)),
+                //    new DistributedCacheEntryOptions()
+                //    {
+                //        AbsoluteExpiration = DateTimeOffset.UtcNow.AddMonths(1)
+                //    });
             }
 
             return mailContents;
@@ -100,11 +105,12 @@ namespace bbt.gateway.messaging.Workers
 
             if (pushContents.Count > 0)
             {
-                await _distributedCache.SetAsync(_operatordEngage.Type.ToString() + "_PushContents", Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(pushContents)),
-                    new DistributedCacheEntryOptions()
-                    {
-                        AbsoluteExpiration = DateTimeOffset.UtcNow.AddMonths(1)
-                    });
+                await _daprClient.SaveStateAsync("messaginggateway-statestore", _operatordEngage.Type.ToString() + "_" + PUSH_CONTENTS_SUFFIX, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(pushContents)));
+                //await _distributedCache.SetAsync(_operatordEngage.Type.ToString() + "_PushContents", Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(pushContents)),
+                //    new DistributedCacheEntryOptions()
+                //    {
+                //        AbsoluteExpiration = DateTimeOffset.UtcNow.AddMonths(1)
+                //    });
             }
 
             return pushContents;
@@ -133,11 +139,13 @@ namespace bbt.gateway.messaging.Workers
 
             if (smsContents.Count > 0)
             {
-                await _distributedCache.SetAsync(_operatordEngage.Type.ToString() + "_SmsContents", Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(smsContents)),
-                    new DistributedCacheEntryOptions()
-                    {
-                        AbsoluteExpiration = DateTimeOffset.UtcNow.AddMonths(1)
-                    });
+                await _daprClient.SaveStateAsync("messaging-statestore", _operatordEngage.Type.ToString() + "_" + SMS_CONTENTS_SUFFIX, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(smsContents)));
+
+                //await _distributedCache.SetAsync(_operatordEngage.Type.ToString() + "_SmsContents", Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(smsContents)),
+                //    new DistributedCacheEntryOptions()
+                //    {
+                //        AbsoluteExpiration = DateTimeOffset.UtcNow.AddMonths(1)
+                //    });
             }
             return smsContents;
         }
@@ -302,25 +310,16 @@ namespace bbt.gateway.messaging.Workers
             else
                 _operatordEngage.Type = OperatorType.dEngageBurgan;
 
-            var contentListByteArray = await _distributedCache.GetAsync(_operatordEngage.Type.ToString() + "_SmsContents");
-            List<SmsContentInfo> contentList = JsonConvert.DeserializeObject<List<SmsContentInfo>>(
-                        Encoding.UTF8.GetString(contentListByteArray)
-                    );
+            var contentList = await GetContentList<SmsContentInfo>(_operatordEngage.Type.ToString() + "_" + SMS_CONTENTS_SUFFIX);
 
-            var templateInfo = contentList.Where(c => c.contentName.Trim() == $"{sendTemplatedSmsRequest.Template.Trim()}_{_transactionManager.CustomerRequestInfo.PreferedLanguage}").FirstOrDefault();
-            if (templateInfo == null)
-            {
-                templateInfo = contentList.Where(c => c.contentName.Trim() == sendTemplatedSmsRequest.Template.Trim()).FirstOrDefault();
-                if(templateInfo == null)
-                    throw new WorkflowException("Template Not Found", System.Net.HttpStatusCode.NotFound);
-            }
+            var contentInfo = GetContentInfo(contentList, sendTemplatedSmsRequest.Template);
 
             var smsRequest = new SmsRequestLog()
             {
                 Operator = _operatordEngage.Type,
                 Phone = sendTemplatedSmsRequest.Phone,
                 content = "",
-                TemplateId = templateInfo.publicId,
+                TemplateId = contentInfo.publicId,
                 TemplateParams = sendTemplatedSmsRequest.TemplateParams?.MaskFields(),
                 CreatedBy = sendTemplatedSmsRequest.Process
             };
@@ -329,7 +328,7 @@ namespace bbt.gateway.messaging.Workers
             smsRequest.PhoneConfiguration = _transactionManager.SmsRequestInfo.PhoneConfiguration;
             _transactionManager.Transaction.SmsRequestLog = smsRequest;
 
-            var response = await _operatordEngage.SendSms(sendTemplatedSmsRequest.Phone, SmsTypes.Fast, null, templateInfo.publicId, sendTemplatedSmsRequest.TemplateParams);
+            var response = await _operatordEngage.SendSms(sendTemplatedSmsRequest.Phone, SmsTypes.Fast, null, contentInfo.publicId, sendTemplatedSmsRequest.TemplateParams);
 
             smsRequest.ResponseLogs.Add(response);
 
@@ -389,25 +388,16 @@ namespace bbt.gateway.messaging.Workers
             else
                 _operatordEngage.Type = OperatorType.dEngageBurgan;
 
-            var contentListByteArray = await _distributedCache.GetAsync(_operatordEngage.Type.ToString() + "_MailContents");
-            List<ContentInfo> contentList = JsonConvert.DeserializeObject<List<ContentInfo>>(
-                        Encoding.UTF8.GetString(contentListByteArray)
-                    );
+            var contentList = await GetContentList<ContentInfo>(_operatordEngage.Type.ToString() + "_" + MAIL_CONTENTS_SUFFIX);
 
-            var templateInfo = contentList.Where(c => c.contentName.Trim() == $"{sendTemplatedEmailRequest.Template.Trim()}_{_transactionManager.CustomerRequestInfo.PreferedLanguage}").FirstOrDefault();
-            if (templateInfo == null)
-            {
-                templateInfo = contentList.Where(c => c.contentName.Trim() == sendTemplatedEmailRequest.Template.Trim()).FirstOrDefault();
-                if(templateInfo == null)
-                    throw new WorkflowException("Template Not Found", System.Net.HttpStatusCode.NotFound);
-            }
+            var contentInfo = GetContentInfo(contentList, sendTemplatedEmailRequest.Template);
 
             var mailRequest = new MailRequestLog()
             {
                 Operator = _operatordEngage.Type,
                 content = "",
                 subject = "",
-                TemplateId = templateInfo.publicId,
+                TemplateId = contentInfo.publicId,
                 TemplateParams = sendTemplatedEmailRequest.TemplateParams?.MaskFields(),
                 CreatedBy = sendTemplatedEmailRequest.Process
             };
@@ -418,7 +408,7 @@ namespace bbt.gateway.messaging.Workers
 
             _transactionManager.Transaction.MailRequestLog = mailRequest;
 
-            var response = await _operatordEngage.SendMail(sendTemplatedEmailRequest.Email, null, null, null, templateInfo.publicId, sendTemplatedEmailRequest.TemplateParams, sendTemplatedEmailRequest.Attachments, sendTemplatedEmailRequest.Cc, sendTemplatedEmailRequest.Bcc);
+            var response = await _operatordEngage.SendMail(sendTemplatedEmailRequest.Email, null, null, null, contentInfo.publicId, sendTemplatedEmailRequest.TemplateParams, sendTemplatedEmailRequest.Attachments, sendTemplatedEmailRequest.Cc, sendTemplatedEmailRequest.Bcc);
 
             mailRequest.ResponseLogs.Add(response);
 
@@ -454,23 +444,14 @@ namespace bbt.gateway.messaging.Workers
             else
                 _operatordEngage.Type = OperatorType.dEngageBurgan;
 
-            var contentListByteArray = await _distributedCache.GetAsync(_operatordEngage.Type.ToString() + "_PushContents");
-            List<PushContentInfo> contentList = JsonConvert.DeserializeObject<List<PushContentInfo>>(
-                        Encoding.UTF8.GetString(contentListByteArray)
-                    );
+            var contentList = await GetContentList<PushContentInfo>(_operatordEngage.Type.ToString() + "_" + PUSH_CONTENTS_SUFFIX);
 
-            var templateInfo = contentList.Where(c => c.name.Trim() == $"{sendTemplatedPushNotificationRequest.Template.Trim()}_{_transactionManager.CustomerRequestInfo.PreferedLanguage}").FirstOrDefault();
-            if (templateInfo == null)
-            {
-                templateInfo = contentList.Where(c => c.name.Trim() == sendTemplatedPushNotificationRequest.Template.Trim()).FirstOrDefault();
-                if(templateInfo == null)
-                    throw new WorkflowException("Template Not Found", System.Net.HttpStatusCode.NotFound);
-            }
+            var contentInfo = GetContentInfo(contentList, sendTemplatedPushNotificationRequest.Template);
 
             var pushRequest = new PushNotificationRequestLog()
             {
                 Operator = _operatordEngage.Type,
-                TemplateId = templateInfo.id,
+                TemplateId = contentInfo.id,
                 TemplateParams = sendTemplatedPushNotificationRequest.TemplateParams?.MaskFields(),
                 ContactId = sendTemplatedPushNotificationRequest.ContactId,
                 CustomParameters = sendTemplatedPushNotificationRequest.CustomParameters?.MaskFields(),
@@ -480,7 +461,7 @@ namespace bbt.gateway.messaging.Workers
             await _repositoryManager.PushNotificationRequestLogs.AddAsync(pushRequest);
             _transactionManager.Transaction.PushNotificationRequestLog = pushRequest;
 
-            var response = await _operatordEngage.SendPush(sendTemplatedPushNotificationRequest.ContactId, templateInfo.id, sendTemplatedPushNotificationRequest.TemplateParams, sendTemplatedPushNotificationRequest.CustomParameters);
+            var response = await _operatordEngage.SendPush(sendTemplatedPushNotificationRequest.ContactId, contentInfo.id, sendTemplatedPushNotificationRequest.TemplateParams, sendTemplatedPushNotificationRequest.CustomParameters);
 
             pushRequest.ResponseLogs.Add(response);
 
@@ -505,16 +486,16 @@ namespace bbt.gateway.messaging.Workers
             else
                 _operatordEngage.Type = OperatorType.dEngageBurgan;
 
-            var contentList = await GetContentList<SmsContentInfo>(_operatordEngage.Type.ToString() + "_SmsContents");
+            var contentList = await GetContentList<SmsContentInfo>(_operatordEngage.Type.ToString() + "_" + SMS_CONTENTS_SUFFIX);
 
-            var templateInfo = GetContentInfo(contentList, templatedSmsRequest.Template);
+            var contentInfo = GetContentInfo(contentList, templatedSmsRequest.Template);
 
             var smsRequest = new SmsRequestLog()
             {
                 Operator = _operatordEngage.Type,
                 Phone = new() { CountryCode = templatedSmsRequest.Phone.CountryCode, Prefix = templatedSmsRequest.Phone.Prefix, Number = templatedSmsRequest.Phone.Number },
                 content = "",
-                TemplateId = templateInfo.publicId,
+                TemplateId = contentInfo.publicId,
                 TemplateParams = templatedSmsRequest.TemplateParams?.MaskFields(),
                 CreatedBy = templatedSmsRequest.Process.MapTo<Process>()
             };
@@ -523,7 +504,7 @@ namespace bbt.gateway.messaging.Workers
             smsRequest.PhoneConfiguration = _transactionManager.SmsRequestInfo.PhoneConfiguration;
             _transactionManager.Transaction.SmsRequestLog = smsRequest;
 
-            var response = await _operatordEngage.SendSms(templatedSmsRequest.Phone.MapTo<Phone>(), SmsTypes.Fast, null, templateInfo.publicId, templatedSmsRequest.TemplateParams);
+            var response = await _operatordEngage.SendSms(templatedSmsRequest.Phone.MapTo<Phone>(), SmsTypes.Fast, null, contentInfo.publicId, templatedSmsRequest.TemplateParams);
 
             smsRequest.ResponseLogs.Add(response);
 
@@ -640,16 +621,16 @@ namespace bbt.gateway.messaging.Workers
             else
                 _operatordEngage.Type = OperatorType.dEngageBurgan;
 
-            var contentList = await GetContentList<ContentInfo>(_operatordEngage.Type.ToString() + "_MailContents");
+            var contentList = await GetContentList<ContentInfo>(_operatordEngage.Type.ToString() + "_" + MAIL_CONTENTS_SUFFIX);
 
-            var templateInfo = GetContentInfo(contentList,templatedMailRequest.Template);
+            var contentInfo = GetContentInfo(contentList,templatedMailRequest.Template);
 
             var mailRequest = new MailRequestLog()
             {
                 Operator = _operatordEngage.Type,
                 content = "",
                 subject = "",
-                TemplateId = templateInfo.publicId,
+                TemplateId = contentInfo.publicId,
                 TemplateParams = templatedMailRequest.TemplateParams?.MaskFields(),
                 CreatedBy = templatedMailRequest.Process.MapTo<Process>()
             };
@@ -660,7 +641,7 @@ namespace bbt.gateway.messaging.Workers
 
             _transactionManager.Transaction.MailRequestLog = mailRequest;
 
-            var response = await _operatordEngage.SendMail(templatedMailRequest.Email, null, null, null, templateInfo.publicId, templatedMailRequest.TemplateParams, templatedMailRequest.Attachments.ListMapTo<common.Models.v2.Attachment, Attachment>(), templatedMailRequest.Cc, templatedMailRequest.Bcc);
+            var response = await _operatordEngage.SendMail(templatedMailRequest.Email, null, null, null, contentInfo.publicId, templatedMailRequest.TemplateParams, templatedMailRequest.Attachments.ListMapTo<common.Models.v2.Attachment, Attachment>(), templatedMailRequest.Cc, templatedMailRequest.Bcc);
 
             mailRequest.ResponseLogs.Add(response);
 
@@ -691,14 +672,14 @@ namespace bbt.gateway.messaging.Workers
                 _operatordEngage.Type = OperatorType.dEngageBurgan;
 
             
-            var contentList = await GetContentList<PushContentInfo>(_operatordEngage.Type.ToString() + "_PushContents");
+            var contentList = await GetContentList<PushContentInfo>(_operatordEngage.Type.ToString() + "_" + PUSH_CONTENTS_SUFFIX);
 
-            var templateInfo = GetContentInfo(contentList, sendTemplatedPushNotificationRequest.Template);
+            var contentInfo = GetContentInfo(contentList, sendTemplatedPushNotificationRequest.Template);
 
             var pushRequest = new PushNotificationRequestLog()
             {
                 Operator = _operatordEngage.Type,
-                TemplateId = templateInfo.id,
+                TemplateId = contentInfo.id,
                 TemplateParams = sendTemplatedPushNotificationRequest.TemplateParams?.MaskFields(),
                 ContactId = sendTemplatedPushNotificationRequest.CitizenshipNo,
                 CustomParameters = sendTemplatedPushNotificationRequest.CustomParameters?.MaskFields(),
@@ -708,7 +689,7 @@ namespace bbt.gateway.messaging.Workers
             await _repositoryManager.PushNotificationRequestLogs.AddAsync(pushRequest);
             _transactionManager.Transaction.PushNotificationRequestLog = pushRequest;
 
-            var response = await _operatordEngage.SendPush(sendTemplatedPushNotificationRequest.CitizenshipNo, templateInfo.id, sendTemplatedPushNotificationRequest.TemplateParams, sendTemplatedPushNotificationRequest.CustomParameters);
+            var response = await _operatordEngage.SendPush(sendTemplatedPushNotificationRequest.CitizenshipNo, contentInfo.id, sendTemplatedPushNotificationRequest.TemplateParams, sendTemplatedPushNotificationRequest.CustomParameters);
 
             pushRequest.ResponseLogs.Add(response);
 
@@ -740,16 +721,9 @@ namespace bbt.gateway.messaging.Workers
             else
                 _operatordEngage.Type = OperatorType.dEngageBurgan;
 
-            var contentListByteArray = await _distributedCache.GetAsync(_operatordEngage.Type.ToString() + "_PushContents");
-            List<PushContentInfo> contentList = JsonConvert.DeserializeObject<List<PushContentInfo>>(
-                        Encoding.UTF8.GetString(contentListByteArray)
-                    );
+            var contentList = await GetContentList<PushContentInfo>(_operatordEngage.Type.ToString() + "_" + PUSH_CONTENTS_SUFFIX);
 
-            var templateInfo = contentList.Where(c => c.name.Trim() == DEFAULT_TEMPLATE_NAME).FirstOrDefault();
-            if (templateInfo == null)
-            {
-                throw new WorkflowException("Template Not Found", System.Net.HttpStatusCode.NotFound);
-            }
+            var contentInfo = GetContentInfo(contentList, DEFAULT_TEMPLATE_NAME);
 
             var templateParams = JsonConvert.SerializeObject(new
             {
@@ -759,7 +733,7 @@ namespace bbt.gateway.messaging.Workers
             var pushRequest = new PushNotificationRequestLog()
             {
                 Operator = _operatordEngage.Type,
-                TemplateId = templateInfo.id,
+                TemplateId = contentInfo.id,
                 TemplateParams = templateParams.ToString().MaskFields(),
                 ContactId = sendPushNotificationRequest.CitizenshipNo,
                 CustomParameters = "",
@@ -769,7 +743,7 @@ namespace bbt.gateway.messaging.Workers
             await _repositoryManager.PushNotificationRequestLogs.AddAsync(pushRequest);
             _transactionManager.Transaction.PushNotificationRequestLog = pushRequest;
 
-            var response = await _operatordEngage.SendPush(sendPushNotificationRequest.CitizenshipNo, templateInfo.id, templateParams.ToString(), null);
+            var response = await _operatordEngage.SendPush(sendPushNotificationRequest.CitizenshipNo, contentInfo.id, templateParams.ToString(), null);
 
             pushRequest.ResponseLogs.Add(response);
 
@@ -809,7 +783,7 @@ namespace bbt.gateway.messaging.Workers
 
         public async Task<List<T>> GetContentList<T>(string templateListPath)
         {
-            var contentListByteArray = await _distributedCache.GetAsync(templateListPath);
+            var contentListByteArray = await _daprClient.GetStateAsync<byte[]>("messaginggateway-statestore", templateListPath);
             return JsonConvert.DeserializeObject<List<T>>(
                         Encoding.UTF8.GetString(contentListByteArray)
                     );
