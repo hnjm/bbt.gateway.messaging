@@ -65,7 +65,9 @@ namespace bbt.gateway.messaging.Workers
 
             if (mailContents.Count > 0)
             {
-                    await _distributedCache.SetAsync(_operatordEngage.Type.ToString() + "_MailContents", Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(mailContents)),
+                var daprClient = new DaprClientBuilder().Build();
+                await daprClient.SaveStateAsync("smsgateway-statestore", _operatordEngage.Type.ToString() + "_MailContents", Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(mailContents)));
+                await _distributedCache.SetAsync(_operatordEngage.Type.ToString() + "_MailContents", Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(mailContents)),
                     new DistributedCacheEntryOptions()
                     {
                         AbsoluteExpiration = DateTimeOffset.UtcNow.AddMonths(1)
