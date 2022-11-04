@@ -25,12 +25,14 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
         private string _authToken;
         private readonly IdEngageClient _dEngageClient;
         private IDistributedCache _distrubitedCache;
+        private IConfiguration _configuration;
         public OperatordEngage(IdEngageClient dEngageClient, IConfiguration configuration,
             ITransactionManager transactionManager,IDistributedCache distributedCache) : base(configuration,transactionManager)
         {
             _authTryCount = 0;
             _dEngageClient = dEngageClient;
             _distrubitedCache = distributedCache;
+            _configuration = configuration;
         }
 
         private async Task<OperatorApiAuthResponse> Auth()
@@ -605,7 +607,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             {
                 if (!string.IsNullOrEmpty(content))
                 {
-                    sendSmsRequest.content.smsFromId = _smsIds.data.smsFroms.Where(i => i.partnerName == Constant.smsTypes[smsType]).FirstOrDefault().id;
+                    sendSmsRequest.content.smsFromId = _smsIds.data.smsFroms.Where(i => i.partnerName == _configuration["dEngageSenders:"+smsType.ToString()]).FirstOrDefault().id;
                     sendSmsRequest.content.message = content.ClearMaskingFields();
                 }
                 else
