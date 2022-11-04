@@ -56,18 +56,18 @@ builder.Services.AddAuthentication(options =>
         options.CorrelationCookie.SameSite = SameSiteMode.Unspecified;
 
         options.Authority = $"{builder.Configuration["Okta:OktaDomain"]}";
-        options.SaveTokens = true;
+       // options.SaveTokens = true;
         // Configure the Auth0 Client ID and Client Secret
         options.ClientId = builder.Configuration["Okta:ClientId"];
         options.ClientSecret = builder.Configuration["Okta:ClientSecret"];
-        options.AuthenticationMethod = OpenIdConnectRedirectBehavior.RedirectGet;
+        options.AuthenticationMethod = OpenIdConnectRedirectBehavior.FormPost;
 
         options.Scope.Clear();
         options.Scope.Add("openid");
         options.Scope.Add("profile");
-        options.Scope.Add("offline_access");
-        options.Scope.Add("tckn");
-        options.Scope.Add("phone");
+       // options.Scope.Add("offline_access");
+        //options.Scope.Add("tckn");
+        //options.Scope.Add("phone");
         options.RequireHttpsMetadata = false;
         options.GetClaimsFromUserInfoEndpoint = true;
         // Use the authorization code flow.
@@ -77,6 +77,15 @@ builder.Services.AddAuthentication(options =>
         options.SignedOutCallbackPath = new PathString("/authorization-code/signout/callback");
         // Configure the Claims Issuer to be Auth0
         options.ClaimsIssuer = "Auth0";
+        //options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters()
+        //{
+        //    ValidateIssuer = true
+        //};
+        options.SecurityTokenValidator = new JwtSecurityTokenHandler
+        {
+            // Disable the built-in JWT claims mapping feature.
+            InboundClaimTypeMap = new Dictionary<string, string>()
+        };
 
         options.Events = new OpenIdConnectEvents
 
@@ -84,7 +93,11 @@ builder.Services.AddAuthentication(options =>
 
             OnRedirectToIdentityProvider = context =>
             {
+               // context.ProtocolMessage.RedirectUri = "https://test-messaginggateway-ui.burgan.com.tr/authorization-code/callback";
+               
                 var builder = new UriBuilder(context.ProtocolMessage.RedirectUri);
+             //   builder.Scheme = "https";
+               // builder.Port = -1;
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
                     builder.Scheme = "https";
