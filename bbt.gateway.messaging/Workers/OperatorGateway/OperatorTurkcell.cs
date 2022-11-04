@@ -256,6 +256,11 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             else
             {
                 request.PhoneNo = "00" + phone.CountryCode + phone.Prefix + (phone.CountryCode == 90 ? phone.Number.ToString().PadLeft(7, '0') : phone.Number);
+                //Spesific Case For This Number
+                if (phone.Prefix == 152 && phone.Number == 1010199)
+                {
+                    request.PhoneNo = "004915201010199";
+                }
             }
 
             request.SessionId = _authToken;
