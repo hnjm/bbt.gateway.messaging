@@ -1,23 +1,23 @@
-﻿using bbt.gateway.messaging.Api;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
+﻿using bbt.gateway.common.Models;
+using bbt.gateway.messaging.Api;
 using bbt.gateway.messaging.Api.dEngage;
+using bbt.gateway.messaging.Api.dEngage.Model.Contents;
 using bbt.gateway.messaging.Api.dEngage.Model.Login;
 using bbt.gateway.messaging.Api.dEngage.Model.Settings;
 using bbt.gateway.messaging.Api.dEngage.Model.Transactional;
-using bbt.gateway.common.Models;
-using Refit;
-using System.Collections.Generic;
-using bbt.gateway.messaging.Api.dEngage.Model.Contents;
-using Microsoft.Extensions.Caching.Distributed;
-using Newtonsoft.Json;
 using Dapr.Client;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
+using Refit;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace bbt.gateway.messaging.Workers.OperatorGateway
 {
-    public class OperatordEngage : OperatorGatewayBase,IOperatordEngage
+    public class OperatordEngage : OperatorGatewayBase, IOperatordEngage
     {
         private GetSmsFromsResponse _smsIds;
         private GetMailFromsResponse _mailIds;
@@ -30,7 +30,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
         private DaprClient _daprClient;
 
         public OperatordEngage(IdEngageClient dEngageClient, IConfiguration configuration,
-            ITransactionManager transactionManager,IDistributedCache distributedCache,DaprClient daprClient) : base(configuration,transactionManager)
+            ITransactionManager transactionManager, IDistributedCache distributedCache, DaprClient daprClient) : base(configuration, transactionManager)
         {
             _authTryCount = 0;
             _dEngageClient = dEngageClient;
@@ -63,8 +63,8 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 {
                     authResponse.ResponseCode = "99999";
                     authResponse.ResponseMessage = $"dEngage | Http Status Code : {ex.StatusCode} | Auth Failed";
-                }                   
-                
+                }
+
             }
             else
             {
@@ -111,7 +111,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                     {
                         trackingId = queryId,
                     };
-                    
+
                     var response = await _dEngageClient.GetSmsStatus(_authToken, smsStatusRequest);
                     return response;
                 }
@@ -121,8 +121,8 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 }
             }
             else
-            { 
-            
+            {
+
             }
             return null;
         }
@@ -133,7 +133,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             var authResponse = await Auth();
             if (authResponse.ResponseCode == "0")
             {
-                mailContentsResponse = await _dEngageClient.GetMailContents(_authToken,limit,offset);
+                mailContentsResponse = await _dEngageClient.GetMailContents(_authToken, limit, offset);
             }
             else
             {
@@ -143,7 +143,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             return mailContentsResponse;
         }
 
-        public async Task<SmsContentsResponse> GetSmsContents(int limit,string offset)
+        public async Task<SmsContentsResponse> GetSmsContents(int limit, string offset)
         {
             SmsContentsResponse smsContentsResponse = null;
             var authResponse = await Auth();
@@ -165,7 +165,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             var authResponse = await Auth();
             if (authResponse.ResponseCode == "0")
             {
-                pushContentsResponse = await _dEngageClient.GetPushContents(_authToken,limit,offset);
+                pushContentsResponse = await _dEngageClient.GetPushContents(_authToken, limit, offset);
             }
             else
             {
@@ -178,11 +178,11 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
         public async Task<(string, string)> SetMailFromsToCache()
         {
             try
-            {                
+            {
                 var res = await _dEngageClient.GetMailFroms(_authToken);
                 await _daprClient.SaveStateAsync("messaginggateway-statestore",
                     OperatorConfig.Type.ToString() + "_mailFroms",
-                    System.Text.Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(res)), metadata: new Dictionary<string, string>() { { "ttlInSeconds","3600" } }
+                    System.Text.Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(res)), metadata: new Dictionary<string, string>() { { "ttlInSeconds", "3600" } }
                 );
                 //await _distrubitedCache.SetAsync(OperatorConfig.Type.ToString() + "_mailFroms",
                 //    System.Text.Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(res)),
@@ -191,7 +191,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 //        AbsoluteExpiration = DateTimeOffset.UtcNow.AddHours(1)
                 //    }
                 //    );
-                _mailIds = res;   
+                _mailIds = res;
             }
             catch (ApiException ex)
             {
@@ -201,9 +201,10 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             return ("0", "");
         }
 
-        public async Task<MailResponseLog> SendMail(string to, string? from, string? subject, string? html, string? templateId, string? templateParams,List<common.Models.Attachment> attachments,string? cc,string? bcc)
+        public async Task<MailResponseLog> SendMail(string to, string? from, string? subject, string? html, string? templateId, string? templateParams, List<common.Models.Attachment> attachments, string? cc, string? bcc)
         {
-            var mailResponseLog = new MailResponseLog() { 
+            var mailResponseLog = new MailResponseLog()
+            {
                 Topic = "dEngage Mail Sending",
             };
 
@@ -230,7 +231,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                     }
 
                     mailFrom = _mailIds.data.emailFroms.Where(m => m.fromAddress == from).FirstOrDefault();
-                    if (mailFrom == null) 
+                    if (mailFrom == null)
                     {
                         var res = await SetMailFromsToCache();
                         if (res.Item1 != "0")
@@ -246,15 +247,15 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                             mailResponseLog.ResponseMessage = "Mail From is Not Found";
                         }
                     }
-                    
+
                 }
-               
+
                 try
                 {
-                    var req = CreateMailRequest(to,mailFrom.fromName,from, subject, html, templateId, templateParams,attachments,cc,bcc);
+                    var req = CreateMailRequest(to, mailFrom.fromName, from, subject, html, templateId, templateParams, attachments, cc, bcc);
                     try
                     {
-                        
+
                         var sendMailResponse = await _dEngageClient.SendMail(req, _authToken);
                         mailResponseLog.ResponseCode = sendMailResponse.code.ToString();
                         mailResponseLog.ResponseMessage = sendMailResponse.message;
@@ -271,7 +272,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                                 _authTryCount++;
                                 if (_authTryCount < 3)
                                 {
-                                    return await SendMail(to,from,subject,html,templateId,templateParams,attachments,cc,bcc);
+                                    return await SendMail(to, from, subject, html, templateId, templateParams, attachments, cc, bcc);
                                 }
                                 else
                                 {
@@ -298,7 +299,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                             mailResponseLog.ResponseCode = "-999";
                             mailResponseLog.ResponseMessage = "dEngage Internal Server Error";
                         }
-                    }                    
+                    }
 
 
                     return mailResponseLog;
@@ -335,7 +336,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             {
                 try
                 {
-                    var req = CreatePushRequest(contactId,template,templateParams,customParameters);
+                    var req = CreatePushRequest(contactId, template, templateParams, customParameters);
                     try
                     {
                         var sendPushResponse = await _dEngageClient.SendPush(req, _authToken);
@@ -359,7 +360,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                                     pushNotificationResponseLog.ResponseCode = "99999";
                                     pushNotificationResponseLog.ResponseMessage = "dEngage Auth Failed For 3 Times";
                                     return pushNotificationResponseLog;
-                                }   
+                                }
                             }
                             else
                             {
@@ -404,7 +405,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
         }
 
-        public async Task<SmsResponseLog> SendSms(Phone phone,SmsTypes smsType, string? content,string? templateId,string? templateParams)
+        public async Task<SmsResponseLog> SendSms(Phone phone, SmsTypes smsType, string? content, string? templateId, string? templateParams)
         {
             var smsLog = new SmsResponseLog()
             {
@@ -432,7 +433,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                             await _daprClient.SaveStateAsync("messaginggateway-statestore",
                                 OperatorConfig.Type.ToString() + "_smsFroms",
                                 System.Text.Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(res)),
-                                metadata:new Dictionary<string, string>() { { "ttlInSeconds","3600" } }
+                                metadata: new Dictionary<string, string>() { { "ttlInSeconds", "3600" } }
                                 );
                             //await _distrubitedCache.SetAsync(OperatorConfig.Type.ToString() + "_smsFroms",
                             //    System.Text.Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(res)),
@@ -443,7 +444,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                             //    );
                             _smsIds = res;
                         }
-                        
+
                     }
                     catch (ApiException ex)
                     {
@@ -503,7 +504,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                             smsLog.OperatorResponseMessage = "dEngage Internal Server Error";
                         }
                     }
-                    
+
                     return smsLog;
                 }
                 catch (Exception ex)
@@ -513,19 +514,19 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                     smsLog.OperatorResponseCode = -99999;
                     smsLog.OperatorResponseMessage = ex.ToString();
                     return smsLog;
-                }                 
-                
+                }
+
             }
             else
             {
                 smsLog.OperatorResponseCode = Convert.ToInt32(authResponse.ResponseCode);
-                smsLog.OperatorResponseMessage = authResponse.ResponseMessage;              
+                smsLog.OperatorResponseMessage = authResponse.ResponseMessage;
 
                 return smsLog;
             }
         }
 
-        private SendMailRequest CreateMailRequest(string to,string fromName,string from,string subject, string html, string templateId, string templateParams,List<common.Models.Attachment> attachments,string cc,string bcc)
+        private SendMailRequest CreateMailRequest(string to, string fromName, string from, string subject, string html, string templateId, string templateParams, List<common.Models.Attachment> attachments, string cc, string bcc)
         {
             SendMailRequest sendMailRequest = new();
             sendMailRequest.send.to = to;
@@ -541,7 +542,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                     sendMailRequest.attachments.Add(new()
                     {
                         fileName = attachment.Name,
-                        fileContent = attachment.Data 
+                        fileContent = attachment.Data
                     });
                 }
             }
@@ -571,7 +572,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             return sendMailRequest;
         }
 
-        private SendPushRequest CreatePushRequest(string contactId, string template, string templateParams,string customParameters)
+        private SendPushRequest CreatePushRequest(string contactId, string template, string templateParams, string customParameters)
         {
             SendPushRequest sendPushRequest = new();
             sendPushRequest.contactKey = contactId;
@@ -595,7 +596,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             return sendPushRequest;
         }
 
-        private Api.dEngage.Model.Transactional.SendSmsRequest CreateSmsRequest(Phone phone, SmsTypes smsType, string content = null,string templateId = null,string templateParams = null)
+        private Api.dEngage.Model.Transactional.SendSmsRequest CreateSmsRequest(Phone phone, SmsTypes smsType, string content = null, string templateId = null, string templateParams = null)
         {
             Api.dEngage.Model.Transactional.SendSmsRequest sendSmsRequest = new();
             if (TransactionManager.StringSend)
@@ -609,7 +610,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             //var now = DateTime.Now;
             //sendSmsRequest.earliestTime = now.ToString("HH:mm");
             //sendSmsRequest.latestTime = now.AddMinutes(3).ToString("HH:mm");
-            
+
             if (!string.IsNullOrEmpty(templateId))
             {
                 sendSmsRequest.content.templateId = templateId;
@@ -622,11 +623,11 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             {
                 if (!string.IsNullOrEmpty(content))
                 {
-                    sendSmsRequest.content.smsFromId = _smsIds.data.smsFroms.Where(i => i.partnerName == _configuration["dEngageSenders:"+smsType.ToString()]).FirstOrDefault().id;
+                    sendSmsRequest.content.smsFromId = _smsIds.data.smsFroms.Where(i => i.partnerName == _configuration["dEngageSenders:" + smsType.ToString()]).FirstOrDefault().id;
                     sendSmsRequest.content.message = content.ClearMaskingFields();
                 }
                 else
-                { 
+                {
                     //Critical Error
                 }
 
@@ -636,7 +637,8 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
         private LoginRequest CreateAuthRequest()
         {
-            return new LoginRequest() { 
+            return new LoginRequest()
+            {
                 userkey = OperatorConfig.User,
                 password = OperatorConfig.Password
             };

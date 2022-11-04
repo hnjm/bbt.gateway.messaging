@@ -139,7 +139,7 @@ namespace bbt.gateway.messaging.Workers
 
             if (smsContents.Count > 0)
             {
-                await _daprClient.SaveStateAsync("messaging-statestore", _operatordEngage.Type.ToString() + "_" + SMS_CONTENTS_SUFFIX, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(smsContents)));
+                await _daprClient.SaveStateAsync("messaginggateway-statestore", _operatordEngage.Type.ToString() + "_" + SMS_CONTENTS_SUFFIX, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(smsContents)));
 
                 //await _distributedCache.SetAsync(_operatordEngage.Type.ToString() + "_SmsContents", Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(smsContents)),
                 //    new DistributedCacheEntryOptions()
