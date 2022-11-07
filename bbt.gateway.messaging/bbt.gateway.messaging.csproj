@@ -36,10 +36,6 @@
 
   <PackageReference Include="Elastic.Apm.NetCoreAll" Version="1.16.1" />
 
-
-  <PackageReference Include="MediatR" Version="10.0.1" />
-
-
   <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.2" />
 
 
