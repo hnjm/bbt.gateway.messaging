@@ -127,7 +127,7 @@ namespace bbt.gateway.worker
                             }
                             catch (ApiException ex)
                             {
-                                _logManager.LogError($"Api Exception - Status Code:{(int)ex.StatusCode} | An Error Occured While Trying To Caching Mail Contents");
+                                _logManager.LogError($"Api Exception - Status Code:{(int)ex.StatusCode} | An Error Occured While Trying To Caching Sms Contents");
                             }
                         }
                     }
@@ -136,7 +136,7 @@ namespace bbt.gateway.worker
             catch (ApiException apiEx)
             {
                 span.CaptureException(apiEx);
-                _logManager.LogError($"Api Exception - Status Code:{(int)apiEx.StatusCode} | An Error Occured While Trying To Caching Mail Contents");
+                _logManager.LogError($"Api Exception - Status Code:{(int)apiEx.StatusCode} | An Error Occured While Trying To Caching Sms Contents");
             }
             catch (Exception ex)
             {
@@ -175,7 +175,8 @@ namespace bbt.gateway.worker
                             }
                             catch (ApiException ex)
                             {
-                                _logManager.LogError($"Api Exception - Status Code:{(int)ex.StatusCode} | An Error Occured While Trying To Caching Mail Contents");
+                                var error = await ex.GetContentAsAsync<common.Api.dEngage.Model.Transactional.SendSmsResponse>();
+                                _logManager.LogError($"Api Exception - Status Code:{(int)ex.StatusCode}:Message:{error.message} | An Error Occured While Trying To Caching Mail Contents");
                             }
                         }
                     }
@@ -223,7 +224,7 @@ namespace bbt.gateway.worker
                             }
                             catch (ApiException ex)
                             {
-                                _logManager.LogError($"Api Exception - Status Code:{(int)ex.StatusCode} | An Error Occured While Trying To Caching Mail Contents");
+                                _logManager.LogError($"Api Exception - Status Code:{(int)ex.StatusCode} | An Error Occured While Trying To Caching Push Contents");
                             }
                         }
                     }
@@ -232,7 +233,7 @@ namespace bbt.gateway.worker
             catch (ApiException apiEx)
             {
                 span.CaptureException(apiEx);
-                _logManager.LogError($"Api Exception - Status Code:{(int)apiEx.StatusCode} | An Error Occured While Trying To Caching Mail Contents");
+                _logManager.LogError($"Api Exception - Status Code:{(int)apiEx.StatusCode} | An Error Occured While Trying To Caching Push Contents");
             }
             catch (Exception ex)
             {
