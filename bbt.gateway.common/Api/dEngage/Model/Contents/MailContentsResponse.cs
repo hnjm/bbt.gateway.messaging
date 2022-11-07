@@ -1,33 +1,33 @@
 ﻿using System.Collections.Generic;
 
-namespace bbt.gateway.messaging.Api.dEngage.Model.Contents
+namespace bbt.gateway.common.Api.dEngage.Model.Contents
 {
-    public class SmsContentsResponse
+    public class MailContentsResponse
     {
         public int code { get; set; }
         public string message { get; set; }
-        public SmsResult data { get; set; }
-        
+        public Result data { get; set; }
     }
 
-    public class SmsResult
+    public class Result
     {
-        public List<SmsContentInfo> result { get; set; }
+        public List<ContentInfo> result { get; set; }
         public bool queryForNextPage { get; set; }
         public int totalRowCount { get; set; }
     }
 
-    public class SmsContentInfo : IContentReadeble
+    public class ContentInfo : IContentReadeble
     {
         public string contentName { get; set; }
         public string publicId { get; set; }
-
         public string location { get; set; }
+
         public string GetPath(bool isAbsolutePath)
         {
-            if (isAbsolutePath)
+            if(isAbsolutePath)
                 return $"{location}/{contentName}";
             return contentName;
         }
+
     }
 }

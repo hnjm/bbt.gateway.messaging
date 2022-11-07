@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace bbt.gateway.messaging.Api.dEngage.Model.Transactional
+namespace bbt.gateway.common.Api.dEngage.Model.Transactional
 {
     public class SendSmsRequest
     {

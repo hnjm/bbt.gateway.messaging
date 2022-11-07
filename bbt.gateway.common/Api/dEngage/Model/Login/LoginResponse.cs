@@ -1,4 +1,4 @@
-﻿namespace bbt.gateway.messaging.Api.dEngage.Model.Login
+﻿namespace bbt.gateway.common.Api.dEngage.Model.Login
 {
     public class LoginResponse
     {

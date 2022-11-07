@@ -37,14 +37,9 @@ namespace bbt.gateway.worker
                     {
                         try
                         {
-                            var otpResponseLogsAsc = await _dbContext.OtpResponseLog.Include(o => o.TrackingLogs).Where(
-                                o => o.ResponseCode == SendSmsResponseStatus.Success &&
-                                o.TrackingStatus == SmsTrackingStatus.Pending
-                                && o.CreatedAt < DateTime.Now.AddMinutes(-5)
-                                && o.TrackingLogs.Count <= 10
-                            )
-                            .OrderBy(o => o.CreatedAt)
-                            .Take(5)
+                            var otpResponseLogsAsc = await _dbContext.OtpResponseLog.
+                            FromSqlRaw("Select top 5 * from OtpResponseLog (NOLOCK)  as o WHERE o.ResponseCode = 200 AND o.TrackingStatus = 462" +
+                            "AND o.CreatedAt < {0} AND (Select count(*) from OtpTrackingLog as t (NOLOCK) WHERE t.LogId = o.Id) <= {1} Order By o.CreatedAt DESC",DateTime.Now.AddMinutes(-5),10)
                             .ToListAsync();
 
                             var otpResponseLogsDesc = await _dbContext.OtpResponseLog.Include(o => o.TrackingLogs).Where(

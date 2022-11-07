@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 using System;
 using bbt.gateway.messaging.Api.Codec.Model;
 using Newtonsoft.Json;
-using bbt.gateway.messaging.Api.dEngage.Model.Transactional;
+using bbt.gateway.common.Api.dEngage.Model.Transactional;
 
 namespace bbt.gateway.messaging
 {

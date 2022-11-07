@@ -1,7 +1,8 @@
 ﻿using bbt.gateway.common.Extensions;
 using bbt.gateway.common.Models;
 using bbt.gateway.common.Repositories;
-using bbt.gateway.messaging.Api.dEngage.Model.Contents;
+using bbt.gateway.common.Api.dEngage.Model.Contents;
+using bbt.gateway.common.GlobalConstants;
 using bbt.gateway.messaging.Exceptions;
 using bbt.gateway.messaging.Workers.OperatorGateway;
 using Dapr.Client;
@@ -23,10 +24,6 @@ namespace bbt.gateway.messaging.Workers
         private readonly IOperatordEngage _operatordEngage;
         private readonly IDistributedCache _distributedCache;
         private readonly DaprClient _daprClient;
-
-        private const string SMS_CONTENTS_SUFFIX = "SmsContents";
-        private const string MAIL_CONTENTS_SUFFIX = "MailContents";
-        private const string PUSH_CONTENTS_SUFFIX = "PushContents";
 
         private const string DEFAULT_TEMPLATE_NAME = "Default";
         private const string BURGAN_MAIL_SUFFIX = "@m.burgan.com.tr";
@@ -71,7 +68,7 @@ namespace bbt.gateway.messaging.Workers
 
             if (mailContents.Count > 0)
             {
-                await _daprClient.SaveStateAsync("messaginggateway-statestore", _operatordEngage.Type.ToString() + "_" + MAIL_CONTENTS_SUFFIX, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(mailContents)));
+                await _daprClient.SaveStateAsync("messaginggateway-statestore", _operatordEngage.Type.ToString() + "_" + GlobalConstants.MAIL_CONTENTS_SUFFIX, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(mailContents)));
                 //await _distributedCache.SetAsync(_operatordEngage.Type.ToString() + "_MailContents", Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(mailContents)),
                 //    new DistributedCacheEntryOptions()
                 //    {
@@ -105,7 +102,7 @@ namespace bbt.gateway.messaging.Workers
 
             if (pushContents.Count > 0)
             {
-                await _daprClient.SaveStateAsync("messaginggateway-statestore", _operatordEngage.Type.ToString() + "_" + PUSH_CONTENTS_SUFFIX, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(pushContents)));
+                await _daprClient.SaveStateAsync("messaginggateway-statestore", _operatordEngage.Type.ToString() + "_" + GlobalConstants.PUSH_CONTENTS_SUFFIX, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(pushContents)));
                 //await _distributedCache.SetAsync(_operatordEngage.Type.ToString() + "_PushContents", Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(pushContents)),
                 //    new DistributedCacheEntryOptions()
                 //    {
@@ -139,7 +136,7 @@ namespace bbt.gateway.messaging.Workers
 
             if (smsContents.Count > 0)
             {
-                await _daprClient.SaveStateAsync("messaginggateway-statestore", _operatordEngage.Type.ToString() + "_" + SMS_CONTENTS_SUFFIX, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(smsContents)));
+                await _daprClient.SaveStateAsync("messaginggateway-statestore", _operatordEngage.Type.ToString() + "_" + GlobalConstants.SMS_CONTENTS_SUFFIX, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(smsContents)));
 
                 //await _distributedCache.SetAsync(_operatordEngage.Type.ToString() + "_SmsContents", Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(smsContents)),
                 //    new DistributedCacheEntryOptions()
@@ -310,7 +307,7 @@ namespace bbt.gateway.messaging.Workers
             else
                 _operatordEngage.Type = OperatorType.dEngageBurgan;
 
-            var contentList = await GetContentList<SmsContentInfo>(_operatordEngage.Type.ToString() + "_" + SMS_CONTENTS_SUFFIX);
+            var contentList = await GetContentList<SmsContentInfo>(_operatordEngage.Type.ToString() + "_" + GlobalConstants.SMS_CONTENTS_SUFFIX);
 
             var contentInfo = GetContentInfo(contentList, sendTemplatedSmsRequest.Template);
 
@@ -388,7 +385,7 @@ namespace bbt.gateway.messaging.Workers
             else
                 _operatordEngage.Type = OperatorType.dEngageBurgan;
 
-            var contentList = await GetContentList<ContentInfo>(_operatordEngage.Type.ToString() + "_" + MAIL_CONTENTS_SUFFIX);
+            var contentList = await GetContentList<ContentInfo>(_operatordEngage.Type.ToString() + "_" + GlobalConstants.MAIL_CONTENTS_SUFFIX);
 
             var contentInfo = GetContentInfo(contentList, sendTemplatedEmailRequest.Template);
 
@@ -444,7 +441,7 @@ namespace bbt.gateway.messaging.Workers
             else
                 _operatordEngage.Type = OperatorType.dEngageBurgan;
 
-            var contentList = await GetContentList<PushContentInfo>(_operatordEngage.Type.ToString() + "_" + PUSH_CONTENTS_SUFFIX);
+            var contentList = await GetContentList<PushContentInfo>(_operatordEngage.Type.ToString() + "_" + GlobalConstants.PUSH_CONTENTS_SUFFIX);
 
             var contentInfo = GetContentInfo(contentList, sendTemplatedPushNotificationRequest.Template);
 
@@ -486,7 +483,7 @@ namespace bbt.gateway.messaging.Workers
             else
                 _operatordEngage.Type = OperatorType.dEngageBurgan;
 
-            var contentList = await GetContentList<SmsContentInfo>(_operatordEngage.Type.ToString() + "_" + SMS_CONTENTS_SUFFIX);
+            var contentList = await GetContentList<SmsContentInfo>(_operatordEngage.Type.ToString() + "_" + GlobalConstants.SMS_CONTENTS_SUFFIX);
 
             var contentInfo = GetContentInfo(contentList, templatedSmsRequest.Template);
 
@@ -621,7 +618,7 @@ namespace bbt.gateway.messaging.Workers
             else
                 _operatordEngage.Type = OperatorType.dEngageBurgan;
 
-            var contentList = await GetContentList<ContentInfo>(_operatordEngage.Type.ToString() + "_" + MAIL_CONTENTS_SUFFIX);
+            var contentList = await GetContentList<ContentInfo>(_operatordEngage.Type.ToString() + "_" + GlobalConstants.MAIL_CONTENTS_SUFFIX);
 
             var contentInfo = GetContentInfo(contentList,templatedMailRequest.Template);
 
@@ -672,7 +669,7 @@ namespace bbt.gateway.messaging.Workers
                 _operatordEngage.Type = OperatorType.dEngageBurgan;
 
             
-            var contentList = await GetContentList<PushContentInfo>(_operatordEngage.Type.ToString() + "_" + PUSH_CONTENTS_SUFFIX);
+            var contentList = await GetContentList<PushContentInfo>(_operatordEngage.Type.ToString() + "_" + GlobalConstants.PUSH_CONTENTS_SUFFIX);
 
             var contentInfo = GetContentInfo(contentList, sendTemplatedPushNotificationRequest.Template);
 
@@ -721,7 +718,7 @@ namespace bbt.gateway.messaging.Workers
             else
                 _operatordEngage.Type = OperatorType.dEngageBurgan;
 
-            var contentList = await GetContentList<PushContentInfo>(_operatordEngage.Type.ToString() + "_" + PUSH_CONTENTS_SUFFIX);
+            var contentList = await GetContentList<PushContentInfo>(_operatordEngage.Type.ToString() + "_" + GlobalConstants.PUSH_CONTENTS_SUFFIX);
 
             var contentInfo = GetContentInfo(contentList, DEFAULT_TEMPLATE_NAME);
 

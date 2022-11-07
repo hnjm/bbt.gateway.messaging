@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace bbt.gateway.messaging.Api.dEngage.Model.Contents
+namespace bbt.gateway.common.Api.dEngage.Model.Contents
 {
     public class SmsContentResponse
     {

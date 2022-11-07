@@ -17,5 +17,6 @@ namespace bbt.gateway.messaging.Api.Vodafone.Model
         public string ExpiryPeriod { get; set; }
 
         public string ControlHour { get; set; }
+        public bool IsAbroad { get; set; }
     }
 }

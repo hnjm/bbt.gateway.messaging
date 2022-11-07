@@ -148,8 +148,37 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
         public async Task<OtpResponseLog> SendOtpForeign(Phone phone, string content, Header header)
         {
-            await Task.CompletedTask;
-            return new OtpResponseLog();
+            var authResponse = await Auth();
+            if (authResponse.ResponseCode == "0")
+            {
+                var vodafoneResponse = await _vodafoneApi.SendSms(CreateSmsRequest(phone, content, header));
+                if (vodafoneResponse.ResponseCode.Trim().Equals("1008") ||
+                    vodafoneResponse.ResponseCode.Trim().Equals("1011") ||
+                    vodafoneResponse.ResponseCode.Trim().Equals("1016"))
+                {
+                    if (await RefreshToken())
+                        vodafoneResponse = await _vodafoneApi.SendSms(CreateSmsRequest(phone, content, header));
+                }
+
+                var response = vodafoneResponse.BuildOperatorApiResponse();
+
+                await ExtendToken();
+
+                return response;
+            }
+            else
+            {
+                var response = new OtpResponseLog
+                {
+                    Operator = OperatorType.Vodafone,
+                    Topic = "Vodafone otp sending",
+                    TrackingStatus = SmsTrackingStatus.SystemError
+                };
+                response.ResponseCode = SendSmsResponseStatus.ClientError;
+                response.ResponseMessage = authResponse.ResponseMessage;
+
+                return response;
+            }
         }
 
         public async Task<OtpTrackingLog> CheckMessageStatus(CheckSmsRequest checkSmsRequest)
@@ -166,7 +195,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             }
         }
 
-        private VodafoneSmsRequest CreateSmsRequest(Phone phone, string content, Header header)
+        private VodafoneSmsRequest CreateSmsRequest(Phone phone, string content, Header header,bool isAbroad = false)
         {
             double controlHour = (OperatorConfig.ControlDaysForOtp * 24 * 60);
 
@@ -226,10 +255,11 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                 AuthToken = _authToken,
                 User = OperatorConfig.User,
                 ExpiryPeriod = "60",
-                Header = Constant.OperatorSenders[header.SmsSender][OperatorType.Vodafone],
+                Header = isAbroad ? Configuration["Operators:Vodafone:SrcMsIsdn"] : Constant.OperatorSenders[header.SmsSender][OperatorType.Vodafone],
                 Message = content,
                 PhoneNo = phoneNo,
-                ControlHour = controlHour.ToString() + "M"
+                ControlHour = controlHour.ToString() + "M",
+                IsAbroad = isAbroad
             };
 
         }

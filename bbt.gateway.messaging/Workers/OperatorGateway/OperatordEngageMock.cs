@@ -1,9 +1,9 @@
 ﻿using bbt.gateway.common.Models;
 using bbt.gateway.messaging.Api;
-using bbt.gateway.messaging.Api.dEngage;
-using bbt.gateway.messaging.Api.dEngage.Model.Contents;
-using bbt.gateway.messaging.Api.dEngage.Model.Login;
-using bbt.gateway.messaging.Api.dEngage.Model.Transactional;
+using bbt.gateway.common.Api.dEngage;
+using bbt.gateway.common.Api.dEngage.Model.Contents;
+using bbt.gateway.common.Api.dEngage.Model.Login;
+using bbt.gateway.common.Api.dEngage.Model.Transactional;
 using bbt.gateway.messaging.Helpers;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;

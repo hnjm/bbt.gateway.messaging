@@ -1,10 +1,10 @@
 ﻿using bbt.gateway.common.Models;
 using bbt.gateway.messaging.Api;
-using bbt.gateway.messaging.Api.dEngage;
-using bbt.gateway.messaging.Api.dEngage.Model.Contents;
-using bbt.gateway.messaging.Api.dEngage.Model.Login;
-using bbt.gateway.messaging.Api.dEngage.Model.Settings;
-using bbt.gateway.messaging.Api.dEngage.Model.Transactional;
+using bbt.gateway.common.Api.dEngage;
+using bbt.gateway.common.Api.dEngage.Model.Contents;
+using bbt.gateway.common.Api.dEngage.Model.Login;
+using bbt.gateway.common.Api.dEngage.Model.Settings;
+using bbt.gateway.common.Api.dEngage.Model.Transactional;
 using Dapr.Client;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
@@ -290,7 +290,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                         }
                         if ((int)ex.StatusCode >= 400 && (int)ex.StatusCode < 500)
                         {
-                            var error = await ex.GetContentAsAsync<Api.dEngage.Model.Transactional.SendSmsResponse>();
+                            var error = await ex.GetContentAsAsync<common.Api.dEngage.Model.Transactional.SendSmsResponse>();
                             mailResponseLog.ResponseCode = error.code.ToString();
                             mailResponseLog.ResponseMessage = error.message;
                         }
@@ -371,7 +371,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                         }
                         if ((int)ex.StatusCode >= 400 && (int)ex.StatusCode < 500)
                         {
-                            var error = await ex.GetContentAsAsync<Api.dEngage.Model.Transactional.SendSmsResponse>();
+                            var error = await ex.GetContentAsAsync<common.Api.dEngage.Model.Transactional.SendSmsResponse>();
                             pushNotificationResponseLog.ResponseCode = error.code.ToString();
                             pushNotificationResponseLog.ResponseMessage = error.message;
                         }
@@ -493,7 +493,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                         }
                         if ((int)ex.StatusCode >= 400 && (int)ex.StatusCode < 500)
                         {
-                            var error = await ex.GetContentAsAsync<Api.dEngage.Model.Transactional.SendSmsResponse>();
+                            var error = await ex.GetContentAsAsync<common.Api.dEngage.Model.Transactional.SendSmsResponse>();
                             smsLog.OperatorResponseCode = error.code;
                             smsLog.OperatorResponseMessage = error.message;
                         }
@@ -596,9 +596,9 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             return sendPushRequest;
         }
 
-        private Api.dEngage.Model.Transactional.SendSmsRequest CreateSmsRequest(Phone phone, SmsTypes smsType, string content = null, string templateId = null, string templateParams = null)
+        private common.Api.dEngage.Model.Transactional.SendSmsRequest CreateSmsRequest(Phone phone, SmsTypes smsType, string content = null, string templateId = null, string templateParams = null)
         {
-            Api.dEngage.Model.Transactional.SendSmsRequest sendSmsRequest = new();
+            common.Api.dEngage.Model.Transactional.SendSmsRequest sendSmsRequest = new();
             if (TransactionManager.StringSend)
             {
                 sendSmsRequest.send.to = phone.CountryCode + phone.Prefix.ToString().PadLeft(TransactionManager.PrefixLength, '0') + phone.Number.ToString().PadLeft(TransactionManager.NumberLength, '0');

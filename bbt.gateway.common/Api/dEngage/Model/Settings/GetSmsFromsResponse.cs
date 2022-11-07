@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace bbt.gateway.messaging.Api.dEngage.Model.Settings
+namespace bbt.gateway.common.Api.dEngage.Model.Settings
 {
     public class GetSmsFromsResponse
     {
