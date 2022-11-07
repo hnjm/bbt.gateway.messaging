@@ -48,5 +48,101 @@
             <param name="indexFormat">Index Format for Elastic Search</param>
             <returns></returns>
         </member>
+        <member name="T:Refit.Implementation.Generated">
+            <inheritdoc />
+        </member>
+        <member name="T:Refit.Implementation.Generated.bbtgatewaycommonApidEngageIdEngageClient">
+            <inheritdoc />
+        </member>
+        <member name="P:Refit.Implementation.Generated.bbtgatewaycommonApidEngageIdEngageClient.Client">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApidEngageIdEngageClient.#ctor(System.Net.Http.HttpClient,Refit.IRequestBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApidEngageIdEngageClient.Login(bbt.gateway.common.Api.dEngage.Model.Login.LoginRequest)">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApidEngageIdEngageClient.GetSmsFroms(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApidEngageIdEngageClient.GetMailFroms(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApidEngageIdEngageClient.SendSms(bbt.gateway.common.Api.dEngage.Model.Transactional.SendSmsRequest,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApidEngageIdEngageClient.SendMail(bbt.gateway.common.Api.dEngage.Model.Transactional.SendMailRequest,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApidEngageIdEngageClient.SendPush(bbt.gateway.common.Api.dEngage.Model.Transactional.SendPushRequest,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApidEngageIdEngageClient.GetSmsStatus(System.String,bbt.gateway.common.Api.dEngage.Model.Transactional.SmsStatusRequest)">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApidEngageIdEngageClient.GetMailStatus(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApidEngageIdEngageClient.GetMailContents(System.String,System.Int32,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApidEngageIdEngageClient.GetSmsContents(System.String,System.Int32,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApidEngageIdEngageClient.GetPushContents(System.String,System.Int32,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApidEngageIdEngageClient.GetMailContent(System.String,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApidEngageIdEngageClient.GetSmsContent(System.String,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApidEngageIdEngageClient.GetPushContent(System.String,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApidEngageIdEngageClient.bbt#gateway#common#Api#dEngage#IdEngageClient#Login(bbt.gateway.common.Api.dEngage.Model.Login.LoginRequest)">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApidEngageIdEngageClient.bbt#gateway#common#Api#dEngage#IdEngageClient#GetSmsFroms(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApidEngageIdEngageClient.bbt#gateway#common#Api#dEngage#IdEngageClient#GetMailFroms(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApidEngageIdEngageClient.bbt#gateway#common#Api#dEngage#IdEngageClient#SendSms(bbt.gateway.common.Api.dEngage.Model.Transactional.SendSmsRequest,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApidEngageIdEngageClient.bbt#gateway#common#Api#dEngage#IdEngageClient#SendMail(bbt.gateway.common.Api.dEngage.Model.Transactional.SendMailRequest,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApidEngageIdEngageClient.bbt#gateway#common#Api#dEngage#IdEngageClient#SendPush(bbt.gateway.common.Api.dEngage.Model.Transactional.SendPushRequest,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApidEngageIdEngageClient.bbt#gateway#common#Api#dEngage#IdEngageClient#GetSmsStatus(System.String,bbt.gateway.common.Api.dEngage.Model.Transactional.SmsStatusRequest)">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApidEngageIdEngageClient.bbt#gateway#common#Api#dEngage#IdEngageClient#GetMailStatus(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApidEngageIdEngageClient.bbt#gateway#common#Api#dEngage#IdEngageClient#GetMailContents(System.String,System.Int32,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApidEngageIdEngageClient.bbt#gateway#common#Api#dEngage#IdEngageClient#GetSmsContents(System.String,System.Int32,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApidEngageIdEngageClient.bbt#gateway#common#Api#dEngage#IdEngageClient#GetPushContents(System.String,System.Int32,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApidEngageIdEngageClient.bbt#gateway#common#Api#dEngage#IdEngageClient#GetMailContent(System.String,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApidEngageIdEngageClient.bbt#gateway#common#Api#dEngage#IdEngageClient#GetSmsContent(System.String,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApidEngageIdEngageClient.bbt#gateway#common#Api#dEngage#IdEngageClient#GetPushContent(System.String,System.String)">
+            <inheritdoc />
+        </member>
     </members>
 </doc>

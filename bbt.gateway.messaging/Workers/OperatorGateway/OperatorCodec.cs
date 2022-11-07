@@ -1,6 +1,5 @@
 ﻿using bbt.gateway.common.Models;
 using bbt.gateway.messaging.Api.Codec.Model;
-using bbt.gateway.messaging.Api.dEngage.Model.Transactional;
 using CodecFastApi;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
@@ -28,18 +27,18 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
         public async Task<CodecSmsStatusResponse> CheckSms(string refId)
         {
             var serializeSettings = new JsonSerializerSettings();
-            serializeSettings.Converters.Add(new IsoDateTimeConverter(){ DateTimeFormat = "ddMMyyHHmmss" });
+            serializeSettings.Converters.Add(new IsoDateTimeConverter() { DateTimeFormat = "ddMMyyHHmmss" });
             try
             {
                 var res = await _codecClient.GetStatusAsync(OperatorConfig.User, OperatorConfig.Password, refId, 3, String.Empty);
-                return JsonConvert.DeserializeObject<CodecSmsStatusResponse>(res,serializeSettings);
+                return JsonConvert.DeserializeObject<CodecSmsStatusResponse>(res, serializeSettings);
             }
             catch (Exception ex)
             {
                 TransactionManager.LogError($"Couldn't get Codec Sms Status  | Exception : {ex}");
                 return null;
             }
-            
+
         }
 
 
@@ -71,7 +70,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                       smsLog.StatusQueryId = parsedResponse.ResultList.FirstOrDefault()?.SmsRefId ?? String.Empty;
                       smsLog.Status = String.Empty;
                   });
-                
+
             }
             catch (Exception ex)
             {

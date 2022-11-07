@@ -1,7 +1,7 @@
 ﻿using bbt.gateway.common.Models;
 using bbt.gateway.common.Models.v1;
 using bbt.gateway.common.Repositories;
-using bbt.gateway.messaging.Api.dEngage.Model.Contents;
+using bbt.gateway.common.Api.dEngage.Model.Contents;
 using bbt.gateway.messaging.Workers;
 using Dapr.Client;
 using Microsoft.AspNetCore.Mvc;
