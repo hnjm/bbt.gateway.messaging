@@ -12,6 +12,7 @@ IHost host = Host.CreateDefaultBuilder(args)
     .UseSeriLog("entegrasyon")
     .ConfigureServices((context, services) =>
     {
+        Console.WriteLine($"dEngage Base Address : {context.Configuration["Api:dEngage:BaseAddress"]}");
         services.AddDaprClient(builder =>
                    builder.UseJsonSerializationOptions(
                        new JsonSerializerOptions()
