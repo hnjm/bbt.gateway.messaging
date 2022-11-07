@@ -107,7 +107,7 @@ namespace bbt.gateway.worker
 
             try
             {
-                var smsContents = await _dEngageClient.GetSmsContents(@operator.AuthToken, int.MaxValue, "0");
+                var smsContents = await _dEngageClient.GetSmsContents(@operator.AuthToken, 5000, "0");
 
                 if (smsContents != null)
                 {
