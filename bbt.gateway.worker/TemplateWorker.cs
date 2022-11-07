@@ -107,7 +107,7 @@ namespace bbt.gateway.worker
 
             try
             {
-                var smsContents = await _dEngageClient.GetSmsContents(@operator.AuthToken, 5000, "0");
+                var smsContents = await _dEngageClient.GetSmsContents(@operator.AuthToken, 1000, "0");
 
                 if (smsContents != null)
                 {
@@ -155,7 +155,7 @@ namespace bbt.gateway.worker
 
             try
             {
-                var smsContents = await _dEngageClient.GetMailContents(@operator.AuthToken, 5000, "0");
+                var smsContents = await _dEngageClient.GetMailContents(@operator.AuthToken, 1000, "0");
 
                 if (smsContents != null)
                 {
@@ -206,7 +206,7 @@ namespace bbt.gateway.worker
 
             try
             {
-                var smsContents = await _dEngageClient.GetPushContents(@operator.AuthToken, 5000, "0");
+                var smsContents = await _dEngageClient.GetPushContents(@operator.AuthToken, 1000, "0");
 
                 if (smsContents != null)
                 {
