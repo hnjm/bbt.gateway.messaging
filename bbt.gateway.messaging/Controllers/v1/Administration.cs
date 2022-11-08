@@ -1,21 +1,18 @@
-﻿using bbt.gateway.common.Models;
+﻿using bbt.gateway.common.Api.dEngage.Model.Contents;
+using bbt.gateway.common.Models;
 using bbt.gateway.common.Models.v1;
 using bbt.gateway.common.Repositories;
-using bbt.gateway.common.Api.dEngage.Model.Contents;
 using bbt.gateway.messaging.Workers;
 using Dapr.Client;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Swashbuckle.AspNetCore.Annotations;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.DirectoryServices.Protocols;
 using System.Linq;
-using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -84,7 +81,7 @@ namespace bbt.gateway.messaging.Controllers.v1
         [SwaggerResponse(200, "Templates returned successfully")]
         public async Task<IActionResult> GetBurganSmsTemplates()
         {
-            var data = await _daprClient.GetStateAsync<byte[]>("messaginggateway-statestore","dEngageBurgan_SmsContents");
+            var data = await _daprClient.GetStateAsync<byte[]>("messaginggateway-statestore", "dEngageBurgan_SmsContents");
             return Ok(JsonConvert.DeserializeObject<List<SmsContentInfo>>(
                         Encoding.UTF8.GetString(data)
                     ));
@@ -466,7 +463,7 @@ namespace bbt.gateway.messaging.Controllers.v1
             else
             {
                 return Ok(true);
-       
+
             }
 
         }
