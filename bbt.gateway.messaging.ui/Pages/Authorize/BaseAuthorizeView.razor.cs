@@ -6,6 +6,9 @@ using Auth0.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Components.Authorization;
 using Okta.AspNetCore;
+using bbt.gateway.messaging.ui.Data;
+using Newtonsoft.Json;
+using System.Security.Claims;
 
 namespace bbt.gateway.messaging.ui.Pages.Authorize
 {
@@ -23,39 +26,67 @@ namespace bbt.gateway.messaging.ui.Pages.Authorize
         Task<AuthenticationState> AuthenticationStated { get; set; }
         [Inject]
         public NavigationManager navigationManager { get; set; }
+        [Inject]
+        public bbt.gateway.messaging.ui.Data.HttpContextAccessor httpContext { get; set; }
         protected override async  Task OnAfterRenderAsync(bool firstRender)
         {
             if (firstRender)
             {
                 try
                 {
+                    string accessToken = string.Empty;
+                    string responseContent = string.Empty; 
+                    string sicil=string.Empty;
+                    var user = (await AuthenticationStated).User;
+                    sicil = user.Claims.Where(c => c.Type == "sicil")
+                             .Select(c => c.Value).SingleOrDefault();
+                    if (string.IsNullOrEmpty(sicil))
+                    {
+                        using (var client = new HttpClient())
+                        {
+
+                            accessToken = user.Claims.Where(c => c.Type == "access_token")
+                                 .Select(c => c.Value).SingleOrDefault();
+
+                            client.BaseAddress = new Uri("https://atlas-apigateway.burgan.com.tr");
+                            var content = new FormUrlEncodedContent(new[]
+                            {
+                        new KeyValuePair<string, string>("access_token", accessToken),
+                    });
+                            var result = await client.PostAsync("/ib/Resource", content);
+                            responseContent = result.Content.ReadAsStringAsync().Result;
+                            AccessTokenResources? accessTokenResources =
+              JsonConvert.DeserializeObject<AccessTokenResources>(responseContent);
+                            if (accessTokenResources != null && !string.IsNullOrEmpty(accessTokenResources.sicil))
+                                sicil = accessTokenResources.sicil;
+
+                        }
+                    }
+                       
                   
-                    //Challenge(OktaDefaults.MvcAuthenticationScheme);
-                    //var authste = await AuthenticationStated;
-                    //var user = authste.User;
-                    //string Name = user.Identity.Name;
-                    //var res = await MessagingGateway.GetUserControl(Name);
-                    //if (res != null && res)
-                    //{
-                    //    IsAuthorized = true;
-                    //}
-                    //else
-                    //{
-                    //    IsAuthorized = false;
-                    //}
-                    //if (IsAuthorized)
-                    //    Display = AuthorizedControl;
-                    //else
-                    //    Display = NotAuthorizedControl;
-                    //StateHasChanged();
-
-
+                    if (!string.IsNullOrEmpty(sicil))
+                    {
+                        var res = await MessagingGateway.GetUserControl(sicil);
+                        if (res != null && res)
+                        {
+                            Display = AuthorizedControl;
+                        }
+                        else
+                        {
+                            Display = NotAuthorizedControl;
+                        }
+                    }
+                    else
+                    {
+                        Display = NotAuthorizedControl;
+                    }
+                    StateHasChanged();
 
                 }
                 catch (Exception ex)
                 {
                     Display = NotAuthorizedControl;
-                    //StateHasChanged();
+                    StateHasChanged();
                 }
 
             }

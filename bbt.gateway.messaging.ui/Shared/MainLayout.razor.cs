@@ -4,7 +4,8 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using System.Globalization;
-
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace bbt.gateway.messaging.ui.Shared
 {
@@ -18,21 +19,22 @@ namespace bbt.gateway.messaging.ui.Shared
         [Inject]
         public NavigationManager navigationManager { get; set; }
         protected override async Task OnParametersSetAsync()
-        {
-            var user = (await AuthenticationState).User;
-            string accessToken = await httpContext.Context.GetTokenAsync("access_token");
-            string idToken = await httpContext.Context.GetTokenAsync("id_token");
-            if (!string.IsNullOrEmpty(accessToken))
             {
-                DateTime accessTokenExpiresAt = DateTime.Parse(
-   await httpContext.Context.GetTokenAsync("expires_at"),
-   CultureInfo.InvariantCulture,
-   DateTimeStyles.RoundtripKind);
-                string accessTokenExpiresAta =
-         await httpContext.Context.GetTokenAsync("tckn");
-                
-            }
-         
+            var user = (await AuthenticationState).User;
+            string access_token = user.Claims.Where(c => c.Type == "access_token")
+                  .Select(c => c.Value).SingleOrDefault();
+            //if (!string.IsNullOrEmpty(access_token))
+            //{
+            //    string sicil = user.Claims.Where(c => c.Type == "sicil")
+            //                 .Select(c => c.Value).SingleOrDefault();
+            //    if(string.IsNullOrEmpty(sicil))
+            //    {
+            //        var identity = (ClaimsIdentity)httpContext.Context.User.Identity;
+
+            //    }
+            //}
+           
+
 
         }
         protected override void OnInitialized()
@@ -44,6 +46,9 @@ namespace bbt.gateway.messaging.ui.Shared
         {
             navigationManager.NavigateTo($"login?redirectUri=/", forceLoad: true);
         }
-
+        public void LogoutSite()
+        {
+            navigationManager.NavigateTo($"logoutPage?redirectUri=/", forceLoad: true);
+        }
     }
 }

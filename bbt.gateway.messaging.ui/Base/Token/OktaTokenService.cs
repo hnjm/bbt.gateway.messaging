@@ -61,7 +61,7 @@ namespace bbt.gateway.messaging.ui.Base.Token
                 
                 var postMessage = new Dictionary<string, string>();
                 postMessage.Add("grant_type", "refresh_token");
-                postMessage.Add("scope", "openid offline_access tckn profile");
+                postMessage.Add("scope", "openid profile");
                 postMessage.Add("redirect_uri", "http://localhost:5066/authorization-code/callback");
                 postMessage.Add("refresh_token", refreshtoken);
                 postMessage.Add("client_id", this.oktaSettings.Value.ClientId);

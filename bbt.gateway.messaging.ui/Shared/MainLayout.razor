@@ -5,8 +5,8 @@
 <AuthorizeView>
     <Authorized>
         <div class="page">
-           @*    <BaseAuthorizeView>
-            <AuthorizedControl>*@
+              <BaseAuthorizeView>
+            <AuthorizedControl>
     <RadzenDialog />
     <div class="sidebar">
         <NavMenu />
@@ -26,24 +26,26 @@
              
        
     </main>
-    @*  </AuthorizedControl>
-       <NotAuthorizedControl>*@
-       @*     <div class="sidebar">
+      </AuthorizedControl>
+       <NotAuthorizedControl>
+           <div class="sidebar">
                  </div>
                   <main>
                        <article class="content px-4">
            <p>
              <h3 class="ml-md-auto">Bu sayfaya erişim için yetkiniz bulunmamaktadır</h3>
              <br />
+
              </p>
              <p>
+                     <RadzenButton Click="@(args => LogoutSite())" Text="Logout" class="col-4" />
                  <br />
              </p>
               </article>
-                 </main>*@
-      @* </NotAuthorizedControl>
+                 </main>
+       </NotAuthorizedControl>
 
-        </BaseAuthorizeView>*@
+        </BaseAuthorizeView>
 </div>
 </Authorized><NotAuthorized><p></p><br />    
     <div class="row">

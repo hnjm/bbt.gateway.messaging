@@ -22,6 +22,8 @@ using bbt.gateway.messaging.ui.Pages.Authorize;
 using bbt.gateway.messaging.ui.Base.Administration;
 using bbt.gateway.messaging.ui.Base.Token;
 using bbt.gateway.messaging.ui.Base;
+using Microsoft.AspNetCore.Authentication;
+using Newtonsoft.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseConsulSettings(typeof(Program));
@@ -93,11 +95,8 @@ builder.Services.AddAuthentication(options =>
 
             OnRedirectToIdentityProvider = context =>
             {
-               // context.ProtocolMessage.RedirectUri = "https://test-messaginggateway-ui.burgan.com.tr/authorization-code/callback";
-               
+
                 var builder = new UriBuilder(context.ProtocolMessage.RedirectUri);
-             //   builder.Scheme = "https";
-               // builder.Port = -1;
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
                     builder.Scheme = "https";
@@ -119,6 +118,24 @@ builder.Services.AddAuthentication(options =>
                         if (context?.TokenEndpointResponse is not null && context?.TokenEndpointResponse?.AccessToken is not null)
                         {
                             addToken.Add(new Claim("access_token", context?.TokenEndpointResponse?.AccessToken));
+                            using (var client = new HttpClient())
+                            {
+                                client.BaseAddress = new Uri("https://atlas-apigateway.burgan.com.tr");
+                                var content = new FormUrlEncodedContent(new[]
+                                {
+                        new KeyValuePair<string, string>("access_token",  context?.TokenEndpointResponse?.AccessToken),
+                    });
+                                var result = client.PostAsync("/ib/Resource", content);
+                                string responseContent = result.Result.Content.ReadAsStringAsync().Result;
+                                AccessTokenResources? accessTokenResources =
+                           JsonConvert.DeserializeObject<AccessTokenResources>(responseContent);
+                                if (accessTokenResources != null && !string.IsNullOrEmpty(accessTokenResources.sicil))
+                                    addToken.Add(new Claim("sicil", accessTokenResources.sicil));
+                            }
+                        }
+                        if (context?.TokenEndpointResponse is not null && context?.TokenEndpointResponse?.IdToken is not null)
+                        {
+                            addToken.Add(new Claim("id_token", context?.TokenEndpointResponse?.IdToken));
                         }
                         if (context?.TokenEndpointResponse is not null && context?.TokenEndpointResponse?.RefreshToken is not null)
                         {
@@ -151,6 +168,11 @@ builder.Services.AddAuthentication(options =>
 
                 return Task.CompletedTask;
             },
+            OnMessageReceived = context =>
+            {
+            // If your authentication logic is based on users then add your logic here
+            return Task.CompletedTask;
+        },
             OnTicketReceived = context =>
             {
                             // If your authentication logic is based on users then add your logic here
@@ -176,7 +198,7 @@ builder.Services.AddAuthentication(options =>
     });
 //);
 builder.Services.Configure<OktaSettings>(builder.Configuration.GetSection("Okta"));
-
+//builder.Services.AddTransient<IClaimsTransformation, ExtraClaimTypes>();
 builder.Services.AddSingleton<HttpClient>();
 builder.Services.AddHttpClient();
 builder.Services.AddRazorPages();
