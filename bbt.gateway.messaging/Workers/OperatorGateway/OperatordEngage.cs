@@ -14,6 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using bbt.gateway.common.GlobalConstants;
 
 namespace bbt.gateway.messaging.Workers.OperatorGateway
 {
@@ -180,7 +181,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             try
             {
                 var res = await _dEngageClient.GetMailFroms(_authToken);
-                await _daprClient.SaveStateAsync(Constant.DaprStateStoreName,
+                await _daprClient.SaveStateAsync(GlobalConstants.DAPR_STATE_STORE,
                     OperatorConfig.Type.ToString() + "_mailFroms",
                     System.Text.Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(res)), metadata: new Dictionary<string, string>() { { "ttlInSeconds", "3600" } }
                 );
@@ -422,7 +423,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                     try
                     {
                         //var smsFromsByteArray = await _distrubitedCache.GetAsync(OperatorConfig.Type.ToString() + "_smsFroms");
-                        var smsFromsByteArray = await _daprClient.GetStateAsync<byte[]>(Constant.DaprStateStoreName, OperatorConfig.Type.ToString() + "_smsFroms");
+                        var smsFromsByteArray = await _daprClient.GetStateAsync<byte[]>(GlobalConstants.DAPR_STATE_STORE, OperatorConfig.Type.ToString() + "_smsFroms");
                         if (smsFromsByteArray != null)
                         {
                             _smsIds = JsonConvert.DeserializeObject<GetSmsFromsResponse>(System.Text.Encoding.UTF8.GetString(smsFromsByteArray));
@@ -430,7 +431,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                         else
                         {
                             var res = await _dEngageClient.GetSmsFroms(_authToken);
-                            await _daprClient.SaveStateAsync(Constant.DaprStateStoreName,
+                            await _daprClient.SaveStateAsync(GlobalConstants.DAPR_STATE_STORE,
                                 OperatorConfig.Type.ToString() + "_smsFroms",
                                 System.Text.Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(res)),
                                 metadata: new Dictionary<string, string>() { { "ttlInSeconds", "3600" } }

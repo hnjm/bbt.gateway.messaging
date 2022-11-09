@@ -68,7 +68,7 @@ namespace bbt.gateway.messaging.Workers
 
             if (mailContents.Count > 0)
             {
-                await _daprClient.SaveStateAsync(Constant.DaprStateStoreName, _operatordEngage.Type.ToString() + "_" + GlobalConstants.MAIL_CONTENTS_SUFFIX, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(mailContents)));
+                await _daprClient.SaveStateAsync(GlobalConstants.DAPR_STATE_STORE, _operatordEngage.Type.ToString() + "_" + GlobalConstants.MAIL_CONTENTS_SUFFIX, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(mailContents)));
                 //await _distributedCache.SetAsync(_operatordEngage.Type.ToString() + "_MailContents", Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(mailContents)),
                 //    new DistributedCacheEntryOptions()
                 //    {
@@ -102,7 +102,7 @@ namespace bbt.gateway.messaging.Workers
 
             if (pushContents.Count > 0)
             {
-                await _daprClient.SaveStateAsync(Constant.DaprStateStoreName, _operatordEngage.Type.ToString() + "_" + GlobalConstants.PUSH_CONTENTS_SUFFIX, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(pushContents)));
+                await _daprClient.SaveStateAsync(GlobalConstants.DAPR_STATE_STORE, _operatordEngage.Type.ToString() + "_" + GlobalConstants.PUSH_CONTENTS_SUFFIX, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(pushContents)));
                 //await _distributedCache.SetAsync(_operatordEngage.Type.ToString() + "_PushContents", Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(pushContents)),
                 //    new DistributedCacheEntryOptions()
                 //    {
@@ -136,7 +136,7 @@ namespace bbt.gateway.messaging.Workers
 
             if (smsContents.Count > 0)
             {
-                await _daprClient.SaveStateAsync(Constant.DaprStateStoreName, _operatordEngage.Type.ToString() + "_" + GlobalConstants.SMS_CONTENTS_SUFFIX, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(smsContents)));
+                await _daprClient.SaveStateAsync(GlobalConstants.DAPR_STATE_STORE, _operatordEngage.Type.ToString() + "_" + GlobalConstants.SMS_CONTENTS_SUFFIX, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(smsContents)));
 
                 //await _distributedCache.SetAsync(_operatordEngage.Type.ToString() + "_SmsContents", Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(smsContents)),
                 //    new DistributedCacheEntryOptions()
@@ -780,7 +780,7 @@ namespace bbt.gateway.messaging.Workers
 
         public async Task<List<T>> GetContentList<T>(string templateListPath)
         {
-            var contentListByteArray = await _daprClient.GetStateAsync<byte[]>(Constant.DaprStateStoreName, templateListPath);
+            var contentListByteArray = await _daprClient.GetStateAsync<byte[]>(GlobalConstants.DAPR_STATE_STORE, templateListPath);
             return JsonConvert.DeserializeObject<List<T>>(
                         Encoding.UTF8.GetString(contentListByteArray)
                     );

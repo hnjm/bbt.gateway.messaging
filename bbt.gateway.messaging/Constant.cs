@@ -5,7 +5,6 @@ namespace bbt.gateway.messaging
 {
     public class Constant
     {
-        public static readonly string DaprStateStoreName = "smsgateway-statestore";
         public static readonly Dictionary<string, dEngageResponseCodes> dEngageStatusCodes = new()
         {
             { "0", dEngageResponseCodes.Success },

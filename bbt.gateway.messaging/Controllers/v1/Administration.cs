@@ -1,4 +1,5 @@
 ﻿using bbt.gateway.common.Api.dEngage.Model.Contents;
+using bbt.gateway.common.GlobalConstants;
 using bbt.gateway.common.Models;
 using bbt.gateway.common.Models.v1;
 using bbt.gateway.common.Repositories;
@@ -81,7 +82,7 @@ namespace bbt.gateway.messaging.Controllers.v1
         [SwaggerResponse(200, "Templates returned successfully")]
         public async Task<IActionResult> GetBurganSmsTemplates()
         {
-            var data = await _daprClient.GetStateAsync<byte[]>(Constant.DaprStateStoreName, "dEngageBurgan_SmsContents");
+            var data = await _daprClient.GetStateAsync<byte[]>(GlobalConstants.DAPR_STATE_STORE, "dEngageBurgan_SmsContents");
             return Ok(JsonConvert.DeserializeObject<List<SmsContentInfo>>(
                         Encoding.UTF8.GetString(data)
                     ));
@@ -92,7 +93,7 @@ namespace bbt.gateway.messaging.Controllers.v1
         [SwaggerResponse(200, "Templates returned successfully")]
         public async Task<IActionResult> GetOnSmsTemplates()
         {
-            var data = await _daprClient.GetStateAsync<byte[]>(Constant.DaprStateStoreName, "dEngageOn_SmsContents");
+            var data = await _daprClient.GetStateAsync<byte[]>(GlobalConstants.DAPR_STATE_STORE, "dEngageOn_SmsContents");
             return Ok(JsonConvert.DeserializeObject<List<SmsContentInfo>>(
                         Encoding.UTF8.GetString(data)
                     ));
@@ -103,7 +104,7 @@ namespace bbt.gateway.messaging.Controllers.v1
         [SwaggerResponse(200, "Templates returned successfully")]
         public async Task<IActionResult> GetBurganMailTemplates()
         {
-            var data = await _daprClient.GetStateAsync<byte[]>(Constant.DaprStateStoreName, "dEngageBurgan_MailContents");
+            var data = await _daprClient.GetStateAsync<byte[]>(GlobalConstants.DAPR_STATE_STORE, "dEngageBurgan_MailContents");
             return Ok(JsonConvert.DeserializeObject<List<ContentInfo>>(
                         Encoding.UTF8.GetString(data)
                     ));
@@ -114,7 +115,7 @@ namespace bbt.gateway.messaging.Controllers.v1
         [SwaggerResponse(200, "Templates returned successfully")]
         public async Task<IActionResult> GetOnMailTemplates()
         {
-            var data = await _daprClient.GetStateAsync<byte[]>(Constant.DaprStateStoreName, "dEngageOn_MailContents");
+            var data = await _daprClient.GetStateAsync<byte[]>(GlobalConstants.DAPR_STATE_STORE, "dEngageOn_MailContents");
             return Ok(JsonConvert.DeserializeObject<List<ContentInfo>>(
                         Encoding.UTF8.GetString(data)
                     ));
@@ -125,7 +126,7 @@ namespace bbt.gateway.messaging.Controllers.v1
         [SwaggerResponse(200, "Templates returned successfully")]
         public async Task<IActionResult> GetBurganPushTemplates()
         {
-            var data = await _daprClient.GetStateAsync<byte[]>(Constant.DaprStateStoreName, "dEngageBurgan_PushContents");
+            var data = await _daprClient.GetStateAsync<byte[]>(GlobalConstants.DAPR_STATE_STORE, "dEngageBurgan_PushContents");
             return Ok(JsonConvert.DeserializeObject<List<PushContentInfo>>(
                         Encoding.UTF8.GetString(data)
                     ));
@@ -136,7 +137,7 @@ namespace bbt.gateway.messaging.Controllers.v1
         [SwaggerResponse(200, "Templates returned successfully")]
         public async Task<IActionResult> GetOnPushTemplates()
         {
-            var data = await _daprClient.GetStateAsync<byte[]>(Constant.DaprStateStoreName, "dEngageOn_PushContents");
+            var data = await _daprClient.GetStateAsync<byte[]>(GlobalConstants.DAPR_STATE_STORE, "dEngageOn_PushContents");
             return Ok(JsonConvert.DeserializeObject<List<PushContentInfo>>(
                         Encoding.UTF8.GetString(data)
                     ));

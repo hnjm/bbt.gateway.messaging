@@ -15,7 +15,6 @@ namespace bbt.gateway.worker
 {
     public class TemplateWorker : BackgroundService
     {
-        private const string STATE_STORE_NAME = "smsgateway-worker-statestore";
         private readonly LogManager _logManager;
         private readonly ITracer _tracer;
         private readonly DatabaseContext _dbContext;
@@ -115,7 +114,7 @@ namespace bbt.gateway.worker
                 {
                     if (smsContents.data?.result.Count > 0)
                     {
-                        await _daprClient.SaveStateAsync(STATE_STORE_NAME,
+                        await _daprClient.SaveStateAsync(GlobalConstants.DAPR_STATE_STORE,
                             @operator.Type.ToString() + "_" + GlobalConstants.SMS_CONTENTS_SUFFIX,
                             Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(smsContents.data.result)));
                         foreach (SmsContentInfo content in smsContents.data.result)
@@ -123,7 +122,7 @@ namespace bbt.gateway.worker
                             try
                             {
                                 var smsContent = await _dEngageClient.GetSmsContent(@operator.AuthToken, content.publicId);
-                                await _daprClient.SaveStateAsync(STATE_STORE_NAME,
+                                await _daprClient.SaveStateAsync(GlobalConstants.DAPR_STATE_STORE,
                                     @operator.Type.ToString() + "_" + GlobalConstants.SMS_CONTENTS_SUFFIX + "_" + content.publicId,
                                     Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(smsContent.data.contentDetail)));
                             }
@@ -163,7 +162,7 @@ namespace bbt.gateway.worker
                 {
                     if (smsContents.data?.result.Count > 0)
                     {
-                        await _daprClient.SaveStateAsync(STATE_STORE_NAME,
+                        await _daprClient.SaveStateAsync(GlobalConstants.DAPR_STATE_STORE,
                             @operator.Type.ToString() + "_" + GlobalConstants.MAIL_CONTENTS_SUFFIX,
                             Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(smsContents.data.result)));
                         foreach (ContentInfo content in smsContents.data.result)
@@ -171,7 +170,7 @@ namespace bbt.gateway.worker
                             try
                             {
                                 var smsContent = await _dEngageClient.GetMailContent(@operator.AuthToken, content.publicId);
-                                await _daprClient.SaveStateAsync(STATE_STORE_NAME,
+                                await _daprClient.SaveStateAsync(GlobalConstants.DAPR_STATE_STORE,
                                     @operator.Type.ToString() + "_" + GlobalConstants.MAIL_CONTENTS_SUFFIX + "_" + content.publicId,
                                     Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(smsContent.data.contentDetail)));
                             }
@@ -214,7 +213,7 @@ namespace bbt.gateway.worker
                 {
                     if (smsContents.data?.result.Count > 0)
                     {
-                        await _daprClient.SaveStateAsync(STATE_STORE_NAME,
+                        await _daprClient.SaveStateAsync(GlobalConstants.DAPR_STATE_STORE,
                             @operator.Type.ToString() + "_" + GlobalConstants.PUSH_CONTENTS_SUFFIX,
                             Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(smsContents.data.result)));
                         foreach (PushContentInfo content in smsContents.data.result)
@@ -222,7 +221,7 @@ namespace bbt.gateway.worker
                             try
                             {
                                 var smsContent = await _dEngageClient.GetPushContent(@operator.AuthToken, content.id);
-                                await _daprClient.SaveStateAsync(STATE_STORE_NAME,
+                                await _daprClient.SaveStateAsync(GlobalConstants.DAPR_STATE_STORE,
                                     @operator.Type.ToString() + "_" + GlobalConstants.PUSH_CONTENTS_SUFFIX + "_" + content.id,
                                     Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(smsContent.data.contentDetail)));
                             }
