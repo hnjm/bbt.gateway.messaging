@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
 namespace bbt.gateway.messaging.Workers
 {
@@ -497,6 +498,16 @@ namespace bbt.gateway.messaging.Workers
                 CreatedBy = templatedSmsRequest.Process.MapTo<Process>()
             };
 
+            var templateDetail = await GetContentDetail<SmsContentDetail>(_operatordEngage.Type.ToString()+"_"+
+                GlobalConstants.SMS_CONTENTS_SUFFIX+"_"+contentInfo.publicId);
+            var templateContent = templateDetail.contents.FirstOrDefault();
+            var templateParamsJson = JsonConvert.DeserializeObject<JObject>(smsRequest.TemplateParams);
+            var templateParamsList = templateContent?.message.GetWithRegexMultiple("({%=)(.*?)(%})", 2);
+            foreach (string templateParam in templateParamsList)
+            {
+                smsRequest.content = smsRequest.content.Replace("{%=" + templateParam + "%}", (string)templateParamsJson[templateParam.Split(".")[1]]);
+            }
+
             await _repositoryManager.SmsRequestLogs.AddAsync(smsRequest);
             smsRequest.PhoneConfiguration = _transactionManager.SmsRequestInfo.PhoneConfiguration;
             _transactionManager.Transaction.SmsRequestLog = smsRequest;
@@ -632,6 +643,16 @@ namespace bbt.gateway.messaging.Workers
                 CreatedBy = templatedMailRequest.Process.MapTo<Process>()
             };
 
+            var templateDetail = await GetContentDetail<MailContentDetail>(_operatordEngage.Type.ToString() + "_" +
+                GlobalConstants.MAIL_CONTENTS_SUFFIX + "_" + contentInfo.publicId);
+            var templateContent = templateDetail.contents.FirstOrDefault();
+            var templateParamsJson = JsonConvert.DeserializeObject<JObject>(mailRequest.TemplateParams);
+            var templateParamsList = templateContent?.content.GetWithRegexMultiple("({%=)(.*?)(%})", 2);
+            foreach (string templateParam in templateParamsList)
+            {
+                mailRequest.content = mailRequest.content.Replace("{%=" + templateParam + "%}", (string)templateParamsJson[templateParam.Split(".")[1]]);
+            }
+
             mailRequest.MailConfiguration = _transactionManager.MailRequestInfo.MailConfiguration;
 
             await _repositoryManager.MailRequestLogs.AddAsync(mailRequest);
@@ -676,12 +697,23 @@ namespace bbt.gateway.messaging.Workers
             var pushRequest = new PushNotificationRequestLog()
             {
                 Operator = _operatordEngage.Type,
+                Content = "",
                 TemplateId = contentInfo.id,
                 TemplateParams = sendTemplatedPushNotificationRequest.TemplateParams?.MaskFields(),
                 ContactId = sendTemplatedPushNotificationRequest.CitizenshipNo,
                 CustomParameters = sendTemplatedPushNotificationRequest.CustomParameters?.MaskFields(),
                 CreatedBy = sendTemplatedPushNotificationRequest.Process.MapTo<Process>()
             };
+
+            var templateDetail = await GetContentDetail<PushContentDetail>(_operatordEngage.Type.ToString() + "_" +
+                GlobalConstants.PUSH_CONTENTS_SUFFIX + "_" + contentInfo.id);
+            var templateContent = templateDetail.contents.FirstOrDefault();
+            var templateParamsJson = JsonConvert.DeserializeObject<JObject>(pushRequest.TemplateParams);
+            var templateParamsList = templateContent?.message.GetWithRegexMultiple("({%=)(.*?)(%})", 2);
+            foreach (string templateParam in templateParamsList)
+            {
+                pushRequest.Content = pushRequest.Content.Replace("{%=" + templateParam + "%}", (string)templateParamsJson[templateParam.Split(".")[1]]);
+            }
 
             await _repositoryManager.PushNotificationRequestLogs.AddAsync(pushRequest);
             _transactionManager.Transaction.PushNotificationRequestLog = pushRequest;
@@ -782,6 +814,14 @@ namespace bbt.gateway.messaging.Workers
         {
             var contentListByteArray = await _daprClient.GetStateAsync<byte[]>(GlobalConstants.DAPR_STATE_STORE, templateListPath);
             return JsonConvert.DeserializeObject<List<T>>(
+                        Encoding.UTF8.GetString(contentListByteArray)
+                    );
+        }
+
+        public async Task<T> GetContentDetail<T>(string templateSelector)
+        {
+            var contentListByteArray = await _daprClient.GetStateAsync<byte[]>(GlobalConstants.DAPR_STATE_STORE,templateSelector);
+            return JsonConvert.DeserializeObject<T>(
                         Encoding.UTF8.GetString(contentListByteArray)
                     );
         }

@@ -9,6 +9,7 @@ namespace bbt.gateway.common.Models
         public string ContactId { get; set; }
         public string TemplateId { get; set; }
         public string TemplateParams { get; set; }
+        public string Content { get; set; }
         public string CustomParameters { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public Process CreatedBy { get; set; }
