@@ -820,6 +820,7 @@ namespace bbt.gateway.messaging.Workers
 
         public async Task<T> GetContentDetail<T>(string templateSelector)
         {
+            _transactionManager.LogInformation("Content Detail Template Selector : "+ templateSelector);
             var contentListByteArray = await _daprClient.GetStateAsync<byte[]>(GlobalConstants.DAPR_STATE_STORE,templateSelector);
             return JsonConvert.DeserializeObject<T>(
                         Encoding.UTF8.GetString(contentListByteArray)
