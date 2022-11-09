@@ -215,7 +215,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             {
                 if (html != null)
                 {
-                    var mailFromsByteArray = await _daprClient.GetStateAsync<byte[]>("messagingateway-statestore", OperatorConfig.Type.ToString() + "_mailFroms");
+                    var mailFromsByteArray = await _daprClient.GetStateAsync<byte[]>(GlobalConstants.DAPR_STATE_STORE, OperatorConfig.Type.ToString() + "_mailFroms");
                     //var mailFromsByteArray = await _distrubitedCache.GetAsync(OperatorConfig.Type.ToString() + "_mailFroms");
                     if (mailFromsByteArray != null)
                     {

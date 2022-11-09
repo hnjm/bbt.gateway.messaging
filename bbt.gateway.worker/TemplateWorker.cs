@@ -117,6 +117,7 @@ namespace bbt.gateway.worker
                         await _daprClient.SaveStateAsync(GlobalConstants.DAPR_STATE_STORE,
                             @operator.Type.ToString() + "_" + GlobalConstants.SMS_CONTENTS_SUFFIX,
                             Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(smsContents.data.result)));
+                        _logManager.LogInformation("Sms Templates Are Set");
                         foreach (SmsContentInfo content in smsContents.data.result)
                         {
                             try
@@ -125,6 +126,7 @@ namespace bbt.gateway.worker
                                 await _daprClient.SaveStateAsync(GlobalConstants.DAPR_STATE_STORE,
                                     @operator.Type.ToString() + "_" + GlobalConstants.SMS_CONTENTS_SUFFIX + "_" + content.publicId,
                                     Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(smsContent.data.contentDetail)));
+                                _logManager.LogInformation(@operator.Type.ToString() + "_" + GlobalConstants.SMS_CONTENTS_SUFFIX + "_" + content.publicId+" is Set With Detail");
                             }
                             catch (ApiException ex)
                             {
