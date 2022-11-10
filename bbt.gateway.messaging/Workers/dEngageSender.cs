@@ -498,7 +498,7 @@ namespace bbt.gateway.messaging.Workers
                 CreatedBy = templatedSmsRequest.Process.MapTo<Process>()
             };
 
-            var templateDetail = await GetContentDetail<SmsContentDetail>(_operatordEngage.Type.ToString()+"_"+
+            var templateDetail = await GetContentDetail<SmsContentDetail>(
                 GlobalConstants.SMS_CONTENTS_SUFFIX+"_"+contentInfo.publicId);
             var templateContent = templateDetail.contents.FirstOrDefault();
             var templateParamsJson = JsonConvert.DeserializeObject<JObject>(smsRequest.TemplateParams);
@@ -643,7 +643,7 @@ namespace bbt.gateway.messaging.Workers
                 CreatedBy = templatedMailRequest.Process.MapTo<Process>()
             };
 
-            var templateDetail = await GetContentDetail<MailContentDetail>(_operatordEngage.Type.ToString() + "_" +
+            var templateDetail = await GetContentDetail<MailContentDetail>(
                 GlobalConstants.MAIL_CONTENTS_SUFFIX + "_" + contentInfo.publicId);
             var templateContent = templateDetail.contents.FirstOrDefault();
             var templateParamsJson = JsonConvert.DeserializeObject<JObject>(mailRequest.TemplateParams);
@@ -705,7 +705,7 @@ namespace bbt.gateway.messaging.Workers
                 CreatedBy = sendTemplatedPushNotificationRequest.Process.MapTo<Process>()
             };
 
-            var templateDetail = await GetContentDetail<PushContentDetail>(_operatordEngage.Type.ToString() + "_" +
+            var templateDetail = await GetContentDetail<PushContentDetail>(
                 GlobalConstants.PUSH_CONTENTS_SUFFIX + "_" + contentInfo.id);
             var templateContent = templateDetail.contents.FirstOrDefault();
             var templateParamsJson = JsonConvert.DeserializeObject<JObject>(pushRequest.TemplateParams);
