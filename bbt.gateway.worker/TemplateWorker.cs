@@ -126,7 +126,7 @@ namespace bbt.gateway.worker
                                 await _daprClient.SaveStateAsync(GlobalConstants.DAPR_STATE_STORE,
                                     GlobalConstants.SMS_CONTENTS_SUFFIX + "_" + content.publicId,
                                     Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(smsContent.data.contentDetail)));
-                                _logManager.LogInformation(@operator.Type.ToString() + "_" + GlobalConstants.SMS_CONTENTS_SUFFIX + "_" + content.publicId+" is Set With Detail");
+                                _logManager.LogInformation(GlobalConstants.SMS_CONTENTS_SUFFIX + "_" + content.publicId+" is Set With Detail");
                             }
                             catch (ApiException ex)
                             {

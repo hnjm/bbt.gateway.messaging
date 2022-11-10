@@ -500,12 +500,15 @@ namespace bbt.gateway.messaging.Workers
 
             var templateDetail = await GetContentDetail<SmsContentDetail>(
                 GlobalConstants.SMS_CONTENTS_SUFFIX+"_"+contentInfo.publicId);
-            var templateContent = templateDetail.contents.FirstOrDefault();
-            var templateParamsJson = JsonConvert.DeserializeObject<JObject>(smsRequest.TemplateParams);
-            var templateParamsList = templateContent?.message.GetWithRegexMultiple("({%=)(.*?)(%})", 2);
-            foreach (string templateParam in templateParamsList)
+            if (templateDetail != null)
             {
-                smsRequest.content = smsRequest.content.Replace("{%=" + templateParam + "%}", (string)templateParamsJson[templateParam.Split(".")[1]]);
+                var templateContent = templateDetail.contents.FirstOrDefault();
+                var templateParamsJson = JsonConvert.DeserializeObject<JObject>(smsRequest.TemplateParams);
+                var templateParamsList = templateContent?.message.GetWithRegexMultiple("({%=)(.*?)(%})", 2);
+                foreach (string templateParam in templateParamsList)
+                {
+                    smsRequest.content = smsRequest.content.Replace("{%=" + templateParam + "%}", (string)templateParamsJson[templateParam.Split(".")[1]]);
+                }
             }
 
             await _repositoryManager.SmsRequestLogs.AddAsync(smsRequest);
@@ -645,12 +648,15 @@ namespace bbt.gateway.messaging.Workers
 
             var templateDetail = await GetContentDetail<MailContentDetail>(
                 GlobalConstants.MAIL_CONTENTS_SUFFIX + "_" + contentInfo.publicId);
-            var templateContent = templateDetail.contents.FirstOrDefault();
-            var templateParamsJson = JsonConvert.DeserializeObject<JObject>(mailRequest.TemplateParams);
-            var templateParamsList = templateContent?.content.GetWithRegexMultiple("({%=)(.*?)(%})", 2);
-            foreach (string templateParam in templateParamsList)
+            if (templateDetail != null)
             {
-                mailRequest.content = mailRequest.content.Replace("{%=" + templateParam + "%}", (string)templateParamsJson[templateParam.Split(".")[1]]);
+                var templateContent = templateDetail.contents.FirstOrDefault();
+                var templateParamsJson = JsonConvert.DeserializeObject<JObject>(mailRequest.TemplateParams);
+                var templateParamsList = templateContent?.content.GetWithRegexMultiple("({%=)(.*?)(%})", 2);
+                foreach (string templateParam in templateParamsList)
+                {
+                    mailRequest.content = mailRequest.content.Replace("{%=" + templateParam + "%}", (string)templateParamsJson[templateParam.Split(".")[1]]);
+                }
             }
 
             mailRequest.MailConfiguration = _transactionManager.MailRequestInfo.MailConfiguration;
@@ -707,12 +713,15 @@ namespace bbt.gateway.messaging.Workers
 
             var templateDetail = await GetContentDetail<PushContentDetail>(
                 GlobalConstants.PUSH_CONTENTS_SUFFIX + "_" + contentInfo.id);
-            var templateContent = templateDetail.contents.FirstOrDefault();
-            var templateParamsJson = JsonConvert.DeserializeObject<JObject>(pushRequest.TemplateParams);
-            var templateParamsList = templateContent?.message.GetWithRegexMultiple("({%=)(.*?)(%})", 2);
-            foreach (string templateParam in templateParamsList)
+            if (templateDetail != null)
             {
-                pushRequest.Content = pushRequest.Content.Replace("{%=" + templateParam + "%}", (string)templateParamsJson[templateParam.Split(".")[1]]);
+                var templateContent = templateDetail.contents.FirstOrDefault();
+                var templateParamsJson = JsonConvert.DeserializeObject<JObject>(pushRequest.TemplateParams);
+                var templateParamsList = templateContent?.message.GetWithRegexMultiple("({%=)(.*?)(%})", 2);
+                foreach (string templateParam in templateParamsList)
+                {
+                    pushRequest.Content = pushRequest.Content.Replace("{%=" + templateParam + "%}", (string)templateParamsJson[templateParam.Split(".")[1]]);
+                }
             }
 
             await _repositoryManager.PushNotificationRequestLogs.AddAsync(pushRequest);
@@ -818,14 +827,22 @@ namespace bbt.gateway.messaging.Workers
                     );
         }
 
-        public async Task<T> GetContentDetail<T>(string templateSelector)
+        public async Task<T> GetContentDetail<T>(string templateSelector) where T:new()
         {
-            _transactionManager.LogInformation("Content Detail Template Selector : "+ templateSelector);
-            var contentDetailByteArray = await _daprClient.GetStateAsync<byte[]>(GlobalConstants.DAPR_STATE_STORE,templateSelector.Trim());
-            _transactionManager.LogInformation("Content Detail Byte Array : "+contentDetailByteArray);
-            return JsonConvert.DeserializeObject<T>(
-                        Encoding.UTF8.GetString(contentDetailByteArray)
-                    );
+            try
+            {
+                _transactionManager.LogInformation("Content Detail Template Selector : " + templateSelector);
+                var contentDetailByteArray = await _daprClient.GetStateAsync<byte[]>(GlobalConstants.DAPR_STATE_STORE, templateSelector.Trim());
+                _transactionManager.LogInformation("Content Detail Byte Array : " + contentDetailByteArray);
+                return JsonConvert.DeserializeObject<T>(
+                            Encoding.UTF8.GetString(contentDetailByteArray)
+                        );
+            }
+            catch (Exception ex)
+            {
+                return new T();
+            }
+            
         }
         
     }
