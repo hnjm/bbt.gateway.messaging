@@ -17,5 +17,6 @@ namespace bbt.gateway.common.Repositories
         public Task<(IEnumerable<Transaction>, int)> GetPushMessagesWithCitizenshipNoAsync(string citizenshipNo, DateTime startDate, DateTime endDate, int page, int pageSize);
 
         public Task<Transaction> GetWithIdAsync(Guid TxnId);
+        public Task<Transaction> GetWithIdAsNoTrackingAsync(Guid TxnId);
     }
 }
