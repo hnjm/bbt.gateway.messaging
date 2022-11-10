@@ -473,7 +473,7 @@ namespace bbt.gateway.messaging.Controllers.v2
 
         [SwaggerOperation(Summary = "Returns Generated Template Message Associated With Transaction",
             Tags = new[] { "Transaction Management" })]
-        [HttpGet("transaction/{txnId}")]
+        [HttpGet("transaction/{txnId}/generatedMessage")]
         [SwaggerResponse(200, "Records was returned successfully", typeof(GeneratedMessage))]
 
         public async Task<IActionResult> GetPhoneBlacklistRecords(Guid txnId)
@@ -487,13 +487,13 @@ namespace bbt.gateway.messaging.Controllers.v2
                transaction.TransactionType != TransactionType.TransactionalTemplatedPush)
                 return BadRequest("Transaction Type is Not Templated");
 
-            if (transaction.TransactionType == TransactionType.TransactionalSms)
+            if (transaction.TransactionType == TransactionType.TransactionalTemplatedSms)
                 return Ok(new GeneratedMessage { Content = transaction.SmsRequestLog.content });
 
-            if (transaction.TransactionType == TransactionType.TransactionalMail)
+            if (transaction.TransactionType == TransactionType.TransactionalTemplatedMail)
                 return Ok(new GeneratedMessage { Content = transaction.MailRequestLog.content });
 
-            if (transaction.TransactionType == TransactionType.TransactionalPush)
+            if (transaction.TransactionType == TransactionType.TransactionalTemplatedPush)
                 return Ok(new GeneratedMessage { Content = transaction.PushNotificationRequestLog.Content });
 
             return BadRequest();
