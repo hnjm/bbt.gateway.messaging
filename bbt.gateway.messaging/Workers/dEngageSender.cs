@@ -827,7 +827,7 @@ namespace bbt.gateway.messaging.Workers
                     );
         }
 
-        public async Task<T> GetContentDetail<T>(string templateSelector) where T:new()
+        public async Task<T> GetContentDetail<T>(string templateSelector)
         {
             try
             {
@@ -840,7 +840,7 @@ namespace bbt.gateway.messaging.Workers
             }
             catch (Exception ex)
             {
-                return new T();
+                return default;
             }
             
         }
