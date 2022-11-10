@@ -7,8 +7,10 @@ using bbt.gateway.messaging.Workers;
 using Dapr.Client;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using StackExchange.Redis;
 using Swashbuckle.AspNetCore.Annotations;
 using System;
 using System.Collections.Generic;
@@ -32,10 +34,11 @@ namespace bbt.gateway.messaging.Controllers.v1
         private readonly IDistributedCache _distributedCache;
         private readonly UserSettings _userSettings;
         private readonly DaprClient _daprClient;
+        private readonly IConfiguration _configuration;
         public Administration(HeaderManager headerManager, OperatorManager operatorManager,
             IRepositoryManager repositoryManager, ITransactionManager transactionManager,
             dEngageSender dEngageSender, IDistributedCache distributedCache, IOptions<UserSettings> userSettings,
-            DaprClient daprClient)
+            DaprClient daprClient, IConfiguration configuration)
         {
             _headerManager = headerManager;
             _operatorManager = operatorManager;
@@ -45,6 +48,7 @@ namespace bbt.gateway.messaging.Controllers.v1
             _distributedCache = distributedCache;
             _userSettings = userSettings.Value;
             _daprClient = daprClient;
+            _configuration = configuration;
         }
 
         [SwaggerOperation(Summary = "Write Templates To Cache")]
@@ -141,6 +145,22 @@ namespace bbt.gateway.messaging.Controllers.v1
             return Ok(JsonConvert.DeserializeObject<List<PushContentInfo>>(
                         Encoding.UTF8.GetString(data)
                     ));
+        }
+
+        [SwaggerOperation(Summary = "Get All Key/Value Pairs From Cache")]
+        [HttpGet("caches")]
+        [SwaggerResponse(200, "Pairs returned successfully")]
+        public async Task<IActionResult> GetAllPairs()
+        {
+            List<string> listKeys = new List<string>();
+            using (ConnectionMultiplexer redis = ConnectionMultiplexer.Connect($"{_configuration["Redis:Host"]}:{_configuration["Redis:Port"]},password={_configuration["Redis:Password"]}"))
+            {
+                var keys = redis.GetServer(_configuration["Redis:Host"]+":"+_configuration["Redis:Port"]).Keys();
+                listKeys.AddRange(keys.Select(key => (string)key).ToList());
+
+            }
+
+            return Ok(listKeys);
         }
 
         [SwaggerOperation(Summary = "Returns content headers configuration")]
