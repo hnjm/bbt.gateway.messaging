@@ -505,7 +505,7 @@ namespace bbt.gateway.messaging.Workers
                 var templateContent = templateDetail.contents.FirstOrDefault();
                 var templateParamsJson = JsonConvert.DeserializeObject<JObject>(smsRequest.TemplateParams);
                 var templateParamsList = templateContent?.message.GetWithRegexMultiple("({%=)(.*?)(%})", 2);
-                smsRequest.content = templateContent;
+                smsRequest.content = templateContent.message;
                 foreach (string templateParam in templateParamsList)
                 {
                     smsRequest.content = smsRequest.content.Replace("{%=" + templateParam + "%}", (string)templateParamsJson[templateParam.Split(".")[1]]);
