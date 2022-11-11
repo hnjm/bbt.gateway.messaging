@@ -178,9 +178,6 @@ namespace bbt.gateway.messaging.Controllers.v1
         [SwaggerResponse(200, "Headers is returned successfully", typeof(Header[]))]
         public async Task<IActionResult> GetHeaders([FromQuery][Range(0, 100)] int page = 0, [FromQuery][Range(1, 100)] int pageSize = 20)
         {
-            var secrets = await _daprClient.GetBulkSecretAsync(GlobalConstants.DAPR_SECRET_STORE);
-            secrets.Keys.ToList().ForEach(k => WriteKey(k));
-            
             return Ok(await _headerManager.Get(page, pageSize));
         }
 

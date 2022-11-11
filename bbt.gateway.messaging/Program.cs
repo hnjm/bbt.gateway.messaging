@@ -1,5 +1,6 @@
 
 using bbt.gateway.common;
+using bbt.gateway.common.GlobalConstants;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
@@ -13,6 +14,7 @@ namespace bbt.gateway.messaging
         public static void Main(string[] args)
         {
             Host.CreateDefaultBuilder(args)
+            .UseVaultSecrets(GlobalConstants.DAPR_SECRET_STORE)
             .UseConsulSettings(typeof(Program))
             .UseSeriLog("entegrasyon")
             .ConfigureWebHostDefaults(webBuilder =>
