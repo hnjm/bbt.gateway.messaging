@@ -832,9 +832,7 @@ namespace bbt.gateway.messaging.Workers
         {
             try
             {
-                _transactionManager.LogInformation("Content Detail Template Selector : " + templateSelector);
                 var contentDetailByteArray = await _daprClient.GetStateAsync<byte[]>(GlobalConstants.DAPR_STATE_STORE, templateSelector.Trim());
-                _transactionManager.LogInformation("Content Detail Byte Array : " + contentDetailByteArray);
                 return JsonConvert.DeserializeObject<T>(
                             Encoding.UTF8.GetString(contentDetailByteArray)
                         );

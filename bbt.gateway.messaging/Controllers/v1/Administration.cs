@@ -163,12 +163,24 @@ namespace bbt.gateway.messaging.Controllers.v1
             return Ok(listKeys);
         }
 
+        private void WriteKey(string item)
+        {
+            _transactionManager.LogInformation($"Vault Key : {item}");
+        }
+
+        private void WriteValue(string item)
+        {
+            _transactionManager.LogInformation($"Vault Value : {item}");
+        }
+
         [SwaggerOperation(Summary = "Returns content headers configuration")]
         [HttpGet("headers")]
         [SwaggerResponse(200, "Headers is returned successfully", typeof(Header[]))]
         public async Task<IActionResult> GetHeaders([FromQuery][Range(0, 100)] int page = 0, [FromQuery][Range(1, 100)] int pageSize = 20)
         {
-            _transactionManager.LogError("Hata oluştu ErrorCode:499");
+            var secrets = await _daprClient.GetSecretAsync(GlobalConstants.DAPR_SECRET_STORE, "bbt.gateway.messaging/appsettings.Test.json");
+            secrets.Keys.ToList().ForEach(k => WriteKey(k));
+            secrets.Values.ToList().ForEach(k => WriteKey(k));
             return Ok(await _headerManager.Get(page, pageSize));
         }
 
