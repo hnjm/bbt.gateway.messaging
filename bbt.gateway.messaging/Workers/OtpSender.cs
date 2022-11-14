@@ -611,7 +611,7 @@ namespace bbt.gateway.messaging.Workers
                     gateway = _operatorRepository(OperatorType.Turkcell);
                     break;
                 case OperatorType.ForeignVodafone:
-                    gateway = _operatorRepository(OperatorType.Turkcell);
+                    gateway = _operatorRepository(OperatorType.Vodafone);
                     break;
                 default:
                     // Serious Exception
