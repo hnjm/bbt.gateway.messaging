@@ -610,21 +610,23 @@ namespace bbt.gateway.messaging.Workers
                 case OperatorType.Foreign:
                     gateway = _operatorRepository(OperatorType.Turkcell);
                     break;
+                case OperatorType.ForeignVodafone:
+                    gateway = _operatorRepository(OperatorType.Vodafone);
+                    break;
                 default:
                     // Serious Exception
                     break;
             }
 
-            if (phoneConfiguration.Operator != OperatorType.Foreign)
+            if (phoneConfiguration.Operator == OperatorType.Foreign
+                || phoneConfiguration.Operator == OperatorType.ForeignVodafone)
             {
-                var result = await gateway.SendOtp(_dataV2.Phone.MapTo<Phone>(), header.BuildContentForSms(_dataV2.Content), header);
-                return result;
+                var resultForeign = await gateway.SendOtpForeign(_dataV2.Phone.MapTo<Phone>(), header.BuildContentForSms(_dataV2.Content), header);
+                return resultForeign;
             }
-            else
-            {
-                var result = await gateway.SendOtpForeign(_dataV2.Phone.MapTo<Phone>(), header.BuildContentForSms(_dataV2.Content), header);
-                return result;
-            }
+
+            var result = await gateway.SendOtp(_dataV2.Phone.MapTo<Phone>(), header.BuildContentForSms(_dataV2.Content), header);
+            return result;
         }
 
         private PhoneConfiguration createNewPhoneConfiguration()

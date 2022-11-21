@@ -15,6 +15,7 @@ namespace bbt.gateway.common.Models
         dEngageBurgan = 6,
         dEngageOn = 7,
         Codec = 8,
-        Foreign = 9
+        Foreign = 9,
+        ForeignVodafone = 10
     }
 }

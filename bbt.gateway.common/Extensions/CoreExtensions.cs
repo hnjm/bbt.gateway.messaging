@@ -5,6 +5,8 @@ using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Sinks.Elasticsearch;
 using Winton.Extensions.Configuration.Consul;
+using Dapr.Client;
+using Dapr.Extensions.Configuration;
 
 namespace bbt.gateway.common
 {
@@ -91,6 +93,28 @@ namespace bbt.gateway.common
                 .ReadFrom.Configuration(configuration)
                 .CreateLogger();
             }).UseSerilog();
+
+        }
+
+        /// <summary>
+        /// Read Appsettings/Secret From Vault<br />
+        /// </summary>
+        /// <param name="string">Dapr Secret Store Component Name</param>
+        /// <returns></returns>
+        public static IHostBuilder UseVaultSecrets(this IHostBuilder host, string secretStoreName)
+        {
+            return host.ConfigureAppConfiguration((context, builder) =>
+            {
+                string applicationName = context.HostingEnvironment.ApplicationName;
+                string environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+
+                var daprClient = new DaprClientBuilder().Build();
+                var secretDescriptors = new List<DaprSecretDescriptor>
+                    {
+                        new DaprSecretDescriptor($"{applicationName}/appsettings.{environmentName}.json")
+                    };
+                builder.AddDaprSecretStore(secretStoreName, secretDescriptors, daprClient);
+            });
 
         }
     }

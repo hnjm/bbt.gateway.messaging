@@ -15,7 +15,6 @@ namespace bbt.gateway.worker
 {
     public class TemplateWorker : BackgroundService
     {
-        private const string STATE_STORE_NAME = "smsgateway-worker-statestore";
         private readonly LogManager _logManager;
         private readonly ITracer _tracer;
         private readonly DatabaseContext _dbContext;
@@ -115,17 +114,19 @@ namespace bbt.gateway.worker
                 {
                     if (smsContents.data?.result.Count > 0)
                     {
-                        await _daprClient.SaveStateAsync(STATE_STORE_NAME,
+                        await _daprClient.SaveStateAsync(GlobalConstants.DAPR_STATE_STORE,
                             @operator.Type.ToString() + "_" + GlobalConstants.SMS_CONTENTS_SUFFIX,
                             Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(smsContents.data.result)));
+                        _logManager.LogInformation($"{@operator.Type} sms content count : {smsContents.data.result.Count}");
                         foreach (SmsContentInfo content in smsContents.data.result)
                         {
                             try
                             {
                                 var smsContent = await _dEngageClient.GetSmsContent(@operator.AuthToken, content.publicId);
-                                await _daprClient.SaveStateAsync(STATE_STORE_NAME,
-                                    @operator.Type.ToString() + "_" + GlobalConstants.SMS_CONTENTS_SUFFIX + "_" + content.publicId,
+                                await _daprClient.SaveStateAsync(GlobalConstants.DAPR_STATE_STORE,
+                                    GlobalConstants.SMS_CONTENTS_SUFFIX + "_" + content.publicId,
                                     Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(smsContent.data.contentDetail)));
+                                _logManager.LogInformation(GlobalConstants.SMS_CONTENTS_SUFFIX + "_" + content.publicId+" is Set With Detail");
                             }
                             catch (ApiException ex)
                             {
@@ -157,27 +158,28 @@ namespace bbt.gateway.worker
 
             try
             {
-                var smsContents = await _dEngageClient.GetMailContents(@operator.AuthToken, 500, "0");
+                var mailContents = await _dEngageClient.GetMailContents(@operator.AuthToken, 500, "0");
 
-                if (smsContents != null)
+                if (mailContents != null)
                 {
-                    if (smsContents.data?.result.Count > 0)
+                    if (mailContents.data?.result.Count > 0)
                     {
-                        await _daprClient.SaveStateAsync(STATE_STORE_NAME,
+                        await _daprClient.SaveStateAsync(GlobalConstants.DAPR_STATE_STORE,
                             @operator.Type.ToString() + "_" + GlobalConstants.MAIL_CONTENTS_SUFFIX,
-                            Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(smsContents.data.result)));
-                        foreach (ContentInfo content in smsContents.data.result)
+                            Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(mailContents.data.result)));
+                        _logManager.LogInformation($"{@operator.Type} mail content count : {mailContents.data.result.Count}");
+                        foreach (ContentInfo content in mailContents.data.result)
                         {
                             try
                             {
-                                var smsContent = await _dEngageClient.GetMailContent(@operator.AuthToken, content.publicId);
-                                await _daprClient.SaveStateAsync(STATE_STORE_NAME,
-                                    @operator.Type.ToString() + "_" + GlobalConstants.MAIL_CONTENTS_SUFFIX + "_" + content.publicId,
-                                    Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(smsContent.data.contentDetail)));
+                                var mailContent = await _dEngageClient.GetMailContent(@operator.AuthToken, content.publicId);
+                                await _daprClient.SaveStateAsync(GlobalConstants.DAPR_STATE_STORE,
+                                    GlobalConstants.MAIL_CONTENTS_SUFFIX + "_" + content.publicId,
+                                    Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(mailContent.data.contentDetail)));
                             }
                             catch (ApiException ex)
                             {
-                                var error = await ex.GetContentAsAsync<common.Api.dEngage.Model.Transactional.SendSmsResponse>();
+                                var error = await ex.GetContentAsAsync<MailContentResponse>();
                                 _logManager.LogError($"Api Exception - Status Code:{(int)ex.StatusCode}:Message:{error.message} | An Error Occured While Trying To Caching Mail Content");
                             }
                         }
@@ -187,7 +189,7 @@ namespace bbt.gateway.worker
             catch (ApiException apiEx)
             {
                 span.CaptureException(apiEx);
-                var error = await apiEx.GetContentAsAsync<common.Api.dEngage.Model.Transactional.SendSmsResponse>();
+                var error = await apiEx.GetContentAsAsync<MailContentsResponse>();
 
                 _logManager.LogError($"Api Exception - Status Code:{(int)apiEx.StatusCode}:Message:{error.message} | An Error Occured While Trying To Caching Mail Contents");
             }
@@ -208,23 +210,24 @@ namespace bbt.gateway.worker
 
             try
             {
-                var smsContents = await _dEngageClient.GetPushContents(@operator.AuthToken, 500, "0");
+                var pushContents = await _dEngageClient.GetPushContents(@operator.AuthToken, 500, "0");
 
-                if (smsContents != null)
+                if (pushContents != null)
                 {
-                    if (smsContents.data?.result.Count > 0)
+                    if (pushContents.data?.result.Count > 0)
                     {
-                        await _daprClient.SaveStateAsync(STATE_STORE_NAME,
+                        await _daprClient.SaveStateAsync(GlobalConstants.DAPR_STATE_STORE,
                             @operator.Type.ToString() + "_" + GlobalConstants.PUSH_CONTENTS_SUFFIX,
-                            Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(smsContents.data.result)));
-                        foreach (PushContentInfo content in smsContents.data.result)
+                            Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(pushContents.data.result)));
+                        _logManager.LogInformation($"{@operator.Type} push content count : {pushContents.data.result.Count}");
+                        foreach (PushContentInfo content in pushContents.data.result)
                         {
                             try
                             {
-                                var smsContent = await _dEngageClient.GetPushContent(@operator.AuthToken, content.id);
-                                await _daprClient.SaveStateAsync(STATE_STORE_NAME,
-                                    @operator.Type.ToString() + "_" + GlobalConstants.PUSH_CONTENTS_SUFFIX + "_" + content.id,
-                                    Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(smsContent.data.contentDetail)));
+                                var pushContent = await _dEngageClient.GetPushContent(@operator.AuthToken, content.id);
+                                await _daprClient.SaveStateAsync(GlobalConstants.DAPR_STATE_STORE,
+                                    GlobalConstants.PUSH_CONTENTS_SUFFIX + "_" + content.id,
+                                    Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(pushContent.data.contentDetail)));
                             }
                             catch (ApiException ex)
                             {

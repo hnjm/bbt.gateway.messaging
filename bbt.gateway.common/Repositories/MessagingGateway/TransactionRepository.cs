@@ -19,6 +19,17 @@ namespace bbt.gateway.common.Repositories
                 .SingleOrDefaultAsync();
         }
 
+        public async Task<Transaction> GetWithIdAsNoTrackingAsync(Guid TxnId)
+        {
+            return await Context.Transactions.AsNoTracking()
+                .Where(t => t.Id == TxnId)
+                .Include(t => t.OtpRequestLog).ThenInclude(o => o.ResponseLogs).ThenInclude(o => o.TrackingLogs)
+                .Include(t => t.SmsRequestLog).ThenInclude(s => s.ResponseLogs)
+                .Include(t => t.MailRequestLog).ThenInclude(m => m.ResponseLogs)
+                .Include(t => t.PushNotificationRequestLog).ThenInclude(p => p.ResponseLogs)
+                .SingleOrDefaultAsync();
+        }
+
         public async Task<(IEnumerable<Transaction>,int)> GetOtpMessagesWithPhoneAsync(int countryCode, int prefix, int number, DateTime startDate, DateTime endDate, int page, int pageSize)
         {
             IEnumerable<Transaction> list = await Context.Transactions
