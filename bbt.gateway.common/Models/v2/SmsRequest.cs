@@ -13,6 +13,8 @@ namespace bbt.gateway.common.Models.v2
         [Required]
         public SenderType Sender { get; set; }
         [Required]
+        public SenderType SenderOpt { get; set; }
+        [Required]
         public SmsTypes SmsType { get; set; }
         public Phone Phone { get; set; }
         [Required(AllowEmptyStrings = false)]

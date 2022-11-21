@@ -48,6 +48,13 @@
             <param name="indexFormat">Index Format for Elastic Search</param>
             <returns></returns>
         </member>
+        <member name="M:bbt.gateway.common.CoreExtensions.UseVaultSecrets(Microsoft.Extensions.Hosting.IHostBuilder,System.String)">
+            <summary>
+            Read Appsettings/Secret From Vault<br />
+            </summary>
+            <param name="string">Dapr Secret Store Component Name</param>
+            <returns></returns>
+        </member>
         <member name="T:Refit.Implementation.Generated">
             <inheritdoc />
         </member>
