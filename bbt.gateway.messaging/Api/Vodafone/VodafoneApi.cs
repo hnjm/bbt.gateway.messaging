@@ -188,7 +188,7 @@ namespace bbt.gateway.messaging.Api.Vodafone
             + "<smsParameters>"
             + "<sender>"+(vodafoneSmsRequest.IsAbroad ? string.Empty : vodafoneSmsRequest.Header)+"</sender>"
             + "<shortCode xsi:nil=\"true\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"/>"
-            + "<sourceMsisdn xsi:nil=\"true\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">" + (vodafoneSmsRequest.IsAbroad ? vodafoneSmsRequest.Header : string.Empty) + "<sourceMsisdn>"
+            + "<sourceMsisdn xsi:nil=\"true\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">" + (vodafoneSmsRequest.IsAbroad ? vodafoneSmsRequest.Header : string.Empty) + "</sourceMsisdn>"
             + "                  <startDate xsi:nil=\"true\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"/>               </smsParameters>"
             + "<unifier xsi:nil=\"true\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"/>            </sms>"
             + "</smsPacket>"
