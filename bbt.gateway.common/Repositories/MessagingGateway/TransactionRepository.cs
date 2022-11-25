@@ -1,5 +1,6 @@
 ﻿using bbt.gateway.common.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace bbt.gateway.common.Repositories
 {
@@ -262,6 +263,20 @@ namespace bbt.gateway.common.Repositories
 
             return (list, count);
 
+        }
+
+        public async Task<IEnumerable<Transaction>> GetReportTransaction(int phoneNumber, string date, string message)
+        {
+            var transactions = await Context.Transactions.AsNoTracking().Where(t =>
+                t.Phone.Number == phoneNumber &&
+                    t.CreatedAt >= DateTime.ParseExact(date + " 00:00:00.000000", "dd/MM/yyyy HH:mm:ss.ffffff", null) &&
+                    t.CreatedAt <= DateTime.ParseExact(date + " 23:59:59.999999", "dd/MM/yyyy HH:mm:ss.ffffff", null) &&
+                    t.Request.Contains(message)
+                )
+                .Include(t => t.SmsRequestLog).ThenInclude(s => s.ResponseLogs)
+                .OrderBy(t => t.CreatedAt).ToListAsync();
+
+            return transactions;
         }
     }
 }

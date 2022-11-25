@@ -3,13 +3,16 @@ using bbt.gateway.common.Models;
 using bbt.gateway.common.Models.v2;
 using bbt.gateway.common.Repositories;
 using bbt.gateway.messaging.Workers;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using Swashbuckle.AspNetCore.Filters;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace bbt.gateway.messaging.Controllers.v2
@@ -246,6 +249,33 @@ namespace bbt.gateway.messaging.Controllers.v2
             await _repositoryManager.SaveChangesAsync();
 
             return StatusCode(201);
+        }
+
+        [SwaggerOperation(Summary = "Deletes phone activities",
+            Tags = new[] { "Phone Management" })]
+        [HttpDelete("phone-monitor/{countryCode}/{prefix}/{number}")]
+        [SwaggerResponse(204, "Records was deleted successfully", typeof(void))]
+
+        public async Task<IActionResult> GetPhoneMonitorRecords(int countryCode, int prefix, int number)
+        {
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "Prod" &&
+                Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "Production")
+            {
+                var phoneConfigurations = await _repositoryManager.PhoneConfigurations.FindAsync(p =>
+                p.Phone.CountryCode == countryCode &&
+                p.Phone.Prefix == prefix &&
+                p.Phone.Number == number
+            );
+
+                foreach (var phoneConfiguration in phoneConfigurations)
+                {
+                    await _repositoryManager.PhoneConfigurations.DeletePhoneConfiguration(phoneConfiguration.Id);
+                }
+
+
+                return NoContent();
+            }
+            return Forbid();   
         }
 
         [SwaggerOperation(Summary = "Adds phone to whitelist",
@@ -597,6 +627,139 @@ namespace bbt.gateway.messaging.Controllers.v2
             }
 
             return Ok(new List<Transaction>());
+        }
+
+        [SwaggerOperation(Summary = "Returns report for CreditReport",
+            Tags = new[] { "Report Management" })]
+        [HttpPost("CreditReport")]
+        [SwaggerResponse(200, "Report is returned successfully", typeof(FileContentResult))]
+        public async Task<FileContentResult> GetReport(IFormFile file)
+        {
+            using var reader = new StreamReader(file.OpenReadStream());
+            string fileContent = await reader.ReadToEndAsync();
+            using var stringReader = new StringReader(fileContent);
+            using var stringReader2 = new StringReader(fileContent);
+            var reportDate = await stringReader.ReadLineAsync();
+            reportDate = reportDate.Trim();
+
+            Dictionary<string, int> repeatedLinesOrder = new();
+
+            string resultContent = String.Empty;
+            resultContent += reportDate + "\r\n";
+            
+            string? line = await stringReader.ReadLineAsync();
+            while (line != null)
+            {
+                var lineArray = line.Trim().Split("|");
+                if (repeatedLinesOrder.ContainsKey(GetKeyName(lineArray)))
+                {
+                    repeatedLinesOrder[GetKeyName(lineArray)]++;
+                }
+                else
+                {
+                    repeatedLinesOrder.Add(
+                            GetKeyName(lineArray),
+                            0);
+                }
+                line = await stringReader.ReadLineAsync();
+            }
+
+            await stringReader2.ReadLineAsync();
+            line = await stringReader2.ReadLineAsync();
+            while (line != null)
+            {
+                var lineArray = line.Trim().Split("|");
+
+                DateTime dt = DateTime.Now;
+                var transactions = await _repositoryManager.Transactions.GetReportTransaction(
+                    Convert.ToInt32(lineArray[1].Substring(5)),
+                    reportDate,
+                    lineArray[2]
+                );
+                Console.WriteLine("Sql Execution Time : " + (DateTime.Now - dt).TotalMilliseconds);
+                
+                if (transactions == null || transactions?.Count() == 0)
+                {
+                    resultContent += line+"|Rapor Bulunamadı\r\n";
+                }
+                if (transactions?.Count() == 1)
+                {
+                    var smsResponseLog = GetSmsResponseLog(transactions.FirstOrDefault());
+                    
+                    resultContent += line+
+                        await GetReportLine(
+                            GetSmsResponseLog(transactions.FirstOrDefault()),
+                            transactions.FirstOrDefault().SmsRequestLog);
+                }
+                if (transactions?.Count() > 1)
+                {
+                    resultContent += line +
+                        await GetReportLine(
+                            GetSmsResponseLog(
+                                transactions.OrderByDescending(t => t.CreatedAt).ElementAt(repeatedLinesOrder[GetKeyName(lineArray)]--)),
+                                transactions.FirstOrDefault().SmsRequestLog);
+                }
+
+                line = await stringReader2.ReadLineAsync();
+            }
+
+
+            return File(Encoding.UTF8.GetBytes(resultContent), "application/octet-stream","rapor.csv");
+        }
+
+        private SmsResponseLog? GetSmsResponseLog(Transaction transaction)
+        {
+            if (transaction.SmsRequestLog == null)
+                return null;
+            if (transaction.SmsRequestLog.ResponseLogs == null)
+                return null;
+            if (transaction.SmsRequestLog.ResponseLogs.Count() == 0)
+                return null;
+            return transaction.SmsRequestLog.ResponseLogs.FirstOrDefault();
+        }
+
+        private string GetKeyName(string[] array)
+        {
+            return $"{array[1].Trim()}_{array[2].Trim()}".Trim();
+        }
+
+        private async Task<string> GetReportLine(SmsResponseLog smsResponseLog,SmsRequestLog smsRequestLog)
+        {
+            if (smsResponseLog != null)
+            {
+                Console.WriteLine($"CreatedAt : {smsResponseLog.CreatedAt} | StatusQueryId : {smsResponseLog.StatusQueryId}");
+                SmsTrackingLog? trackingLog  = null;
+                if (smsResponseLog.Operator == OperatorType.Codec)
+                {
+                    trackingLog = await _codecSender.CheckSms(new CheckFastSmsRequest
+                    {
+                        Operator = smsResponseLog.Operator,
+                        SmsRequestLogId = smsRequestLog.Id,
+                        StatusQueryId = smsResponseLog.StatusQueryId
+                    });
+                }
+                if (smsResponseLog.Operator == OperatorType.dEngageOn ||
+                    smsResponseLog.Operator == OperatorType.dEngageBurgan)
+                {
+                    trackingLog = await _dEngageSender.CheckSms(new CheckFastSmsRequest
+                    {
+                        Operator = smsResponseLog.Operator,
+                        SmsRequestLogId = smsRequestLog.Id,
+                        StatusQueryId = smsResponseLog.StatusQueryId
+                    });
+                }
+
+                if (trackingLog != null)
+                {
+                        return $"|{trackingLog.Status}|{trackingLog.StatusReason}\r\n";
+
+                }
+                
+                return "|Rapor Bulunamadı\r\n";
+            }
+
+            return "|Rapor Bulunamadı\r\n";
+            
         }
 
     }

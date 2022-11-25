@@ -8,5 +8,7 @@ namespace bbt.gateway.common.Repositories
     {
         Task<IEnumerable<PhoneConfiguration>> GetWithRelatedLogsAndBlacklistEntriesAsync(int countryCode, int prefix, int number, int count);
         Task<PhoneConfiguration> GetWithBlacklistEntriesAsync(int countryCode, int prefix, int number,DateTime blackListValidDate);
+
+        Task DeletePhoneConfiguration(Guid id);
     }
 }
