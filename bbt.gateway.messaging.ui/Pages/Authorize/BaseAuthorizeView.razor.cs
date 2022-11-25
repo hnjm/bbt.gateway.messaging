@@ -57,7 +57,7 @@ namespace bbt.gateway.messaging.ui.Pages.Authorize
                             responseContent = result.Content.ReadAsStringAsync().Result;
                             AccessTokenResources? accessTokenResources =
               JsonConvert.DeserializeObject<AccessTokenResources>(responseContent);
-                            if (accessTokenResources != null && !string.IsNullOrEmpty(accessTokenResources.sicil))
+                            if (accessTokenResources != null && !string.IsNullOrEmpty(accessTokenResources.sicil) && accessTokenResources.sicil.Length < 12)
                                 sicil = accessTokenResources.sicil;
 
                         }

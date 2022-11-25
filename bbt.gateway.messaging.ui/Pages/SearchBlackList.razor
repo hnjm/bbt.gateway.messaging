@@ -19,7 +19,7 @@
         </RadzenCard>
     </div>
 </div>
-<button type="button" class="btn btn-success" @onclick="Save">Save</button>
+@*<button type="button" class="btn btn-success" @onclick="Save">Save</button>*@
 @foreach (var choice in Constants.FiltersBlackList)
 {
     @if (searchModel.SelectedSearchType == choice.Key)
@@ -32,7 +32,7 @@
                 </RadzenCard>    
             </div>
 
-            <div class="col-2">
+         @*   <div class="col-2">
                 <RadzenCard class="p-3">
                     <h6 class="mb-1">Başlangıç Tarihi</h6>
                     <RadzenDatePicker @bind-Value=@searchModel.StartDate DateFormat="d"  Class="w-100" />
@@ -43,7 +43,7 @@
                     <h6 class="mb-1">Bitiş Tarihi</h6>
                     <RadzenDatePicker @bind-Value=@searchModel.EndDate DateFormat="d" Class="w-100" />
                 </RadzenCard>
-            </div>
+            </div>*@
         </div>
     }
 }

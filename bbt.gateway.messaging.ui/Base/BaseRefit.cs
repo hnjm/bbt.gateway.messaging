@@ -52,45 +52,9 @@ namespace bbt.gateway.messaging.ui.Base
                   {
                       if (exception.Message.Contains("401 (Unauthorized)"))
                       {
-                          ITokenService tokenService = FrameworkDependencyHelper.Instance.Get<ITokenService>();
-                          string token = tokenService.GetToken().Result;
-                          if (!string.IsNullOrEmpty(token))
-                          {
-                              var identity = (ClaimsIdentity)_httpContextAccessor.HttpContext.User.Identity;
-                            
-                                   var existingClaim= identity.Claims.Where(c => c.Type == "access_token").FirstOrDefault();
-                              if (existingClaim != null)
-                                  identity.RemoveClaim(existingClaim);
-                              identity.AddClaim(new Claim("access_token", token));
-                              api = RestClient.For<TInterface>(_baseURL, async (request, cancellationToken) =>
-                              {
-                                  // See if the request has an authorize header
-                                  var auth = request.Headers.Authorization;
+                       
 
-                                  if (auth != null && !string.IsNullOrEmpty(token))
-                                  {
-                                      request.Headers.Authorization = new AuthenticationHeaderValue(auth.Scheme, token);
-                                  }
-                              });
-
-                          }
-                          else
-                          {
-                              _navigationManager.NavigateTo($"logoutPage?redirectUri=/", forceLoad: true);
-                              //
-                          }
-
-                          ////TokenRefreshRequestModel request = new TokenRefreshRequestModel();
-                          ////request.token = baseSessionState.Token().Result;
-                          ////request.refresh_token = baseSessionState.RefreshToken().Result;
-
-
-                          ////TokenResponseModel tokenResponseModel = tokenService.RefreshToken(request).Result;
-
-                          ////if (tokenResponseModel.Result == ResultEnum.Success)
-                          ////{
-                          ////    await baseSessionState.SetToken(tokenResponseModel);
-                          ////}
+                        
                       }
                       else
                       {
