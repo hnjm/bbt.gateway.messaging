@@ -66,11 +66,8 @@ builder.Services.AddAuthentication(options =>
 
         options.Scope.Clear();
         options.Scope.Add("openid");
-       // options.Scope.Add("profile");
-        
-         options.Scope.Add("offline_access");
-        //options.Scope.Add("tckn");
-        //options.Scope.Add("phone");
+        options.Scope.Add("profile");
+
         options.RequireHttpsMetadata = false;
         options.GetClaimsFromUserInfoEndpoint = true;
         // Use the authorization code flow.
@@ -130,13 +127,9 @@ builder.Services.AddAuthentication(options =>
                                 string responseContent = result.Result.Content.ReadAsStringAsync().Result;
                                 AccessTokenResources? accessTokenResources =
                            JsonConvert.DeserializeObject<AccessTokenResources>(responseContent);
-                                if (accessTokenResources != null && !string.IsNullOrEmpty(accessTokenResources.sicil))
+                                if (accessTokenResources != null && !string.IsNullOrEmpty(accessTokenResources.sicil)&& accessTokenResources.sicil.Length < 12)
                                     addToken.Add(new Claim("sicil", accessTokenResources.sicil));
-                                else if(string.IsNullOrEmpty(accessTokenResources.sicil))
-                                {
-                                    addToken.Add(new Claim("sicil", "U09988"));
-                                    
-                                }
+                              
                             }
                         }
                         if (context?.TokenEndpointResponse is not null && context?.TokenEndpointResponse?.IdToken is not null)
