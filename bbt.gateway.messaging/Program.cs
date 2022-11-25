@@ -14,7 +14,7 @@ namespace bbt.gateway.messaging
         public static void Main(string[] args)
         {
             Host.CreateDefaultBuilder(args)
-            .UseVaultSecrets(GlobalConstants.DAPR_SECRET_STORE)
+            //.UseVaultSecrets(GlobalConstants.DAPR_SECRET_STORE)
             .UseConsulSettings(typeof(Program))
             .UseSeriLog("entegrasyon")
             .ConfigureWebHostDefaults(webBuilder =>

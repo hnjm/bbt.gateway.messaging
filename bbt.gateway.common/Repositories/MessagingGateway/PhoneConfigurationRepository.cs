@@ -13,6 +13,11 @@ namespace bbt.gateway.common.Repositories
         
         }
 
+        public async Task DeletePhoneConfiguration(Guid id)
+        {
+            await Context.Database.ExecuteSqlRawAsync("deletePhoneConfiguration @p0",parameters: new[] {id.ToString()});
+        }
+
         public async Task<PhoneConfiguration> GetWithBlacklistEntriesAsync(int countryCode, int prefix, int number, DateTime blackListValidDate)
         {
             return await Context.PhoneConfigurations.Where(i =>
