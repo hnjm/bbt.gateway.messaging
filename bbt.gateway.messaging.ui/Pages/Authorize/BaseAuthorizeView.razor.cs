@@ -66,15 +66,15 @@ namespace bbt.gateway.messaging.ui.Pages.Authorize
                   
                     if (!string.IsNullOrEmpty(sicil))
                     {
-                        //var res = await MessagingGateway.GetUserControl(sicil);
-                        //if (res != null && res)
-                        //{
+                        var res = await MessagingGateway.GetUserControl(sicil);
+                        if (res != null && res)
+                        {
                             Display = AuthorizedControl;
-                        //}
-                        //else
-                        //{
-                        //    Display = NotAuthorizedControl;
-                        //}
+                        }
+                        else
+                        {
+                            Display = NotAuthorizedControl;
+                        }
                     }
                     else
                     {
