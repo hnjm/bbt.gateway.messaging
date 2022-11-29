@@ -17,7 +17,7 @@ namespace bbt.gateway.messaging.ui.Base.Token
     public class OktaTokenService : ITokenService
     {
         private OktaToken token = new OktaToken();
-        private readonly IOptions<OktaSettings> oktaSettings;
+        public readonly IOptions<OktaSettings> oktaSettings;
         private IHttpContextAccessor httpContextAccessor;
         private IHttpClientFactory ClientFactory;
         public OktaTokenService(IOptions<OktaSettings> _oktaSettings, IHttpContextAccessor _httpContextAccessor, IHttpClientFactory _ClientFactory)
@@ -113,6 +113,11 @@ namespace bbt.gateway.messaging.ui.Base.Token
         
 
             return token;
+        }
+
+        public OktaSettings GetOktaSettings()
+        {
+            return oktaSettings.Value;
         }
     }
 }

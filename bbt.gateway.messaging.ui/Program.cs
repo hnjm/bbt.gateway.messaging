@@ -118,7 +118,8 @@ builder.Services.AddAuthentication(options =>
                             addToken.Add(new Claim("access_token", context?.TokenEndpointResponse?.AccessToken));
                             using (var client = new HttpClient())
                             {
-                                client.BaseAddress = new Uri("https://atlas-apigateway.burgan.com.tr");
+                                string clientid=builder.Configuration["Okta:OktaDomain"];
+                                client.BaseAddress = new Uri(clientid);
                                 var content = new FormUrlEncodedContent(new[]
                                 {
                         new KeyValuePair<string, string>("access_token",  context?.TokenEndpointResponse?.AccessToken),

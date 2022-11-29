@@ -9,6 +9,8 @@ using Okta.AspNetCore;
 using bbt.gateway.messaging.ui.Data;
 using Newtonsoft.Json;
 using System.Security.Claims;
+using bbt.gateway.messaging.ui.Base;
+using bbt.gateway.messaging.ui.Base.Token;
 
 namespace bbt.gateway.messaging.ui.Pages.Authorize
 {
@@ -47,8 +49,9 @@ namespace bbt.gateway.messaging.ui.Pages.Authorize
 
                             accessToken = user.Claims.Where(c => c.Type == "access_token")
                                  .Select(c => c.Value).SingleOrDefault();
-
-                            client.BaseAddress = new Uri("https://atlas-apigateway.burgan.com.tr");
+                            ITokenService tokenService = FrameworkDependencyHelper.Instance.Get<ITokenService>();
+                            string clientBase= tokenService.GetOktaSettings().OktaDomain;
+                            client.BaseAddress = new Uri(clientBase);
                             var content = new FormUrlEncodedContent(new[]
                             {
                         new KeyValuePair<string, string>("access_token", accessToken),
