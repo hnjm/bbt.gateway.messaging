@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using System.Security.Claims;
 using bbt.gateway.messaging.ui.Base;
 using bbt.gateway.messaging.ui.Base.Token;
+using Microsoft.JSInterop;
 
 namespace bbt.gateway.messaging.ui.Pages.Authorize
 {
@@ -28,6 +29,8 @@ namespace bbt.gateway.messaging.ui.Pages.Authorize
         Task<AuthenticationState> AuthenticationStated { get; set; }
         [Inject]
         public NavigationManager navigationManager { get; set; }
+        [Inject]
+        public IJSRuntime JS { get; set; }
         [Inject]
         public bbt.gateway.messaging.ui.Data.HttpContextAccessor httpContext { get; set; }
         protected override async  Task OnAfterRenderAsync(bool firstRender)
@@ -56,8 +59,11 @@ namespace bbt.gateway.messaging.ui.Pages.Authorize
                             {
                         new KeyValuePair<string, string>("access_token", accessToken),
                     });
+
+
                             var result = await client.PostAsync("/ib/Resource", content);
                             responseContent = result.Content.ReadAsStringAsync().Result;
+                            await JS.InvokeVoidAsync("console.log", responseContent);
                             AccessTokenResources? accessTokenResources =
               JsonConvert.DeserializeObject<AccessTokenResources>(responseContent);
                             if (accessTokenResources != null && !string.IsNullOrEmpty(accessTokenResources.sicil) && accessTokenResources.sicil.Length < 12)
