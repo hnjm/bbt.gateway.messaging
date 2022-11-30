@@ -53,7 +53,7 @@ namespace bbt.gateway.messaging.ui.Pages.Authorize
                             accessToken = user.Claims.Where(c => c.Type == "access_token")
                                  .Select(c => c.Value).SingleOrDefault();
                             ITokenService tokenService = FrameworkDependencyHelper.Instance.Get<ITokenService>();
-                            string clientBase= tokenService.GetOktaSettings().OktaDomain;
+                            string clientBase= tokenService.GetOktaSettings().TokenUrl;
                             client.BaseAddress = new Uri(clientBase);
                             var content = new FormUrlEncodedContent(new[]
                             {
@@ -75,6 +75,7 @@ namespace bbt.gateway.messaging.ui.Pages.Authorize
                   
                     if (!string.IsNullOrEmpty(sicil))
                     {
+                        await JS.InvokeVoidAsync("console.log", sicil);
                         var res = await MessagingGateway.GetUserControl(sicil);
                         if (res != null && res)
                         {
