@@ -109,11 +109,11 @@ namespace bbt.gateway.worker
             try
             {
                 var smsContentList = new List<SmsContentInfo>();
+                int limit = 500;
+                int offsetMultiplexer = 0;
+
                 while (true)
                 {
-                    int limit = 500;
-                    int offsetMultiplexer = 0;
-
                     var smsContents = await _dEngageClient.GetSmsContents(@operator.AuthToken, limit, (limit * offsetMultiplexer).ToString());
 
                     if (smsContents.data?.result.Count > 0)
@@ -177,11 +177,11 @@ namespace bbt.gateway.worker
             try
             {
                 var mailContentList = new List<ContentInfo>();
+                int limit = 500;
+                int offsetMultiplexer = 0;
+
                 while (true)
                 {
-                    int limit = 500;
-                    int offsetMultiplexer = 0;
-
                     var mailContents = await _dEngageClient.GetMailContents(@operator.AuthToken, limit, (limit*offsetMultiplexer).ToString());
 
                     if (mailContents.data?.result.Count > 0)
@@ -247,11 +247,11 @@ namespace bbt.gateway.worker
             try
             {
                 var pushContentList = new List<PushContentInfo>();
+                int limit = 500;
+                int offsetMultiplexer = 0;
+
                 while (true)
                 {
-                    int limit = 500;
-                    int offsetMultiplexer = 0;
-
                     var pushContents = await _dEngageClient.GetPushContents(@operator.AuthToken, limit, (limit*offsetMultiplexer).ToString());
 
                     if (pushContents.data?.result.Count > 0)
