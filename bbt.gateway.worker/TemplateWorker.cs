@@ -108,17 +108,36 @@ namespace bbt.gateway.worker
 
             try
             {
-                var smsContents = await _dEngageClient.GetSmsContents(@operator.AuthToken, 500, "0");
-
-                if (smsContents != null)
+                var smsContentList = new List<SmsContentInfo>();
+                while (true)
                 {
+                    int limit = 500;
+                    int offsetMultiplexer = 0;
+
+                    var smsContents = await _dEngageClient.GetSmsContents(@operator.AuthToken, limit, (limit * offsetMultiplexer).ToString());
+
                     if (smsContents.data?.result.Count > 0)
                     {
+                        smsContentList.AddRange(smsContents.data.result);
+                    }
+
+                    if (smsContents.data.queryForNextPage)
+                    {
+                        offsetMultiplexer++;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                if (smsContentList != null && smsContentList.Count > 0)
+                {
                         await _daprClient.SaveStateAsync(GlobalConstants.DAPR_STATE_STORE,
                             @operator.Type.ToString() + "_" + GlobalConstants.SMS_CONTENTS_SUFFIX,
-                            Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(smsContents.data.result)));
-                        _logManager.LogInformation($"{@operator.Type} sms content count : {smsContents.data.result.Count}");
-                        foreach (SmsContentInfo content in smsContents.data.result)
+                            Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(smsContentList)));
+                        _logManager.LogInformation($"{@operator.Type} sms content count : {smsContentList.Count}");
+                        foreach (SmsContentInfo content in smsContentList)
                         {
                             try
                             {
@@ -126,15 +145,14 @@ namespace bbt.gateway.worker
                                 await _daprClient.SaveStateAsync(GlobalConstants.DAPR_STATE_STORE,
                                     GlobalConstants.SMS_CONTENTS_SUFFIX + "_" + content.publicId,
                                     Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(smsContent.data.contentDetail)));
-                                _logManager.LogInformation(GlobalConstants.SMS_CONTENTS_SUFFIX + "_" + content.publicId+" is Set With Detail");
+                                _logManager.LogInformation(GlobalConstants.SMS_CONTENTS_SUFFIX + "_" + content.publicId + " is Set With Detail");
                             }
                             catch (ApiException ex)
                             {
                                 _logManager.LogError($"Api Exception - Status Code:{(int)ex.StatusCode} | An Error Occured While Trying To Caching Sms Contents");
                             }
                         }
-                    }
-                }
+                    }                
             }
             catch (ApiException apiEx)
             {
@@ -158,17 +176,36 @@ namespace bbt.gateway.worker
 
             try
             {
-                var mailContents = await _dEngageClient.GetMailContents(@operator.AuthToken, 500, "0");
-
-                if (mailContents != null)
+                var mailContentList = new List<ContentInfo>();
+                while (true)
                 {
+                    int limit = 500;
+                    int offsetMultiplexer = 0;
+
+                    var mailContents = await _dEngageClient.GetMailContents(@operator.AuthToken, limit, (limit*offsetMultiplexer).ToString());
+
                     if (mailContents.data?.result.Count > 0)
                     {
+                        mailContentList.AddRange(mailContents.data.result);
+                    }
+
+                    if (mailContents.data.queryForNextPage)
+                    {
+                        offsetMultiplexer++;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                if (mailContentList != null && mailContentList.Count > 0)
+                {
                         await _daprClient.SaveStateAsync(GlobalConstants.DAPR_STATE_STORE,
                             @operator.Type.ToString() + "_" + GlobalConstants.MAIL_CONTENTS_SUFFIX,
-                            Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(mailContents.data.result)));
-                        _logManager.LogInformation($"{@operator.Type} mail content count : {mailContents.data.result.Count}");
-                        foreach (ContentInfo content in mailContents.data.result)
+                            Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(mailContentList)));
+                        _logManager.LogInformation($"{@operator.Type} mail content count : {mailContentList.Count}");
+                        foreach (ContentInfo content in mailContentList)
                         {
                             try
                             {
@@ -183,7 +220,6 @@ namespace bbt.gateway.worker
                                 _logManager.LogError($"Api Exception - Status Code:{(int)ex.StatusCode}:Message:{error.message} | An Error Occured While Trying To Caching Mail Content");
                             }
                         }
-                    }
                 }
             }
             catch (ApiException apiEx)
@@ -210,17 +246,36 @@ namespace bbt.gateway.worker
 
             try
             {
-                var pushContents = await _dEngageClient.GetPushContents(@operator.AuthToken, 500, "0");
-
-                if (pushContents != null)
+                var pushContentList = new List<PushContentInfo>();
+                while (true)
                 {
+                    int limit = 500;
+                    int offsetMultiplexer = 0;
+
+                    var pushContents = await _dEngageClient.GetPushContents(@operator.AuthToken, limit, (limit*offsetMultiplexer).ToString());
+
                     if (pushContents.data?.result.Count > 0)
                     {
+                        pushContentList.AddRange(pushContents.data.result);
+                    }
+
+                    if (pushContents.data.queryForNextPage)
+                    {
+                        offsetMultiplexer++;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                if (pushContentList != null)
+                {
                         await _daprClient.SaveStateAsync(GlobalConstants.DAPR_STATE_STORE,
                             @operator.Type.ToString() + "_" + GlobalConstants.PUSH_CONTENTS_SUFFIX,
-                            Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(pushContents.data.result)));
-                        _logManager.LogInformation($"{@operator.Type} push content count : {pushContents.data.result.Count}");
-                        foreach (PushContentInfo content in pushContents.data.result)
+                            Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(pushContentList)));
+                        _logManager.LogInformation($"{@operator.Type} push content count : {pushContentList.Count}");
+                        foreach (PushContentInfo content in pushContentList)
                         {
                             try
                             {
@@ -234,7 +289,6 @@ namespace bbt.gateway.worker
                                 _logManager.LogError($"Api Exception - Status Code:{(int)ex.StatusCode} | An Error Occured While Trying To Caching Push Contents");
                             }
                         }
-                    }
                 }
             }
             catch (ApiException apiEx)
