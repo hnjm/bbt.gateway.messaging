@@ -118,7 +118,7 @@ builder.Services.AddAuthentication(options =>
                             addToken.Add(new Claim("access_token", context?.TokenEndpointResponse?.AccessToken));
                             using (var client = new HttpClient())
                             {
-                                string clientid=builder.Configuration["Okta:OktaDomain"];
+                                string clientid=builder.Configuration["Okta:TokenUrl"];
                                 client.BaseAddress = new Uri(clientid);
                                 var content = new FormUrlEncodedContent(new[]
                                 {
