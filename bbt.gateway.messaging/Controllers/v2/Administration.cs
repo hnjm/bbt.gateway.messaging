@@ -751,7 +751,7 @@ namespace bbt.gateway.messaging.Controllers.v2
 
                 if (trackingLog != null)
                 {
-                        return $"|{trackingLog.Status}|{trackingLog.StatusReason}\r\n";
+                        return $"|{smsResponseLog.CreatedAt.ToString(new System.Globalization.CultureInfo("tr-TR"))}|{trackingLog.Status}|{trackingLog.StatusReason}\r\n";
 
                 }
                 

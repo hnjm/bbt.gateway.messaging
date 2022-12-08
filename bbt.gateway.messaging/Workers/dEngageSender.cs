@@ -503,12 +503,27 @@ namespace bbt.gateway.messaging.Workers
             if (templateDetail != null)
             {
                 var templateContent = templateDetail.contents.FirstOrDefault();
-                var templateParamsJson = JsonConvert.DeserializeObject<JObject>(smsRequest.TemplateParams);
-                var templateParamsList = templateContent?.message.GetWithRegexMultiple("({%=)(.*?)(%})", 2);
-                smsRequest.content = templateContent.message;
-                foreach (string templateParam in templateParamsList)
+                if (!string.IsNullOrEmpty(smsRequest.TemplateParams))
                 {
-                    smsRequest.content = smsRequest.content.Replace("{%=" + templateParam + "%}", (string)templateParamsJson[templateParam.Split(".")[1]]);
+                    var templateParamsJson = JsonConvert.DeserializeObject<JObject>(smsRequest.TemplateParams);
+                    var templateParamsList = templateContent?.message.GetWithRegexMultiple("({%=)(.*?)(%})", 2);
+                    smsRequest.content = templateContent.message;
+
+                    foreach (var element in templateParamsJson)
+                    {
+                        _transactionManager.LogInformation($"templateParamsJson Key:{element.Key} | Value :{element.Value} ");
+                    }
+                    _transactionManager.LogInformation("Parameters");
+                    templateParamsList.ForEach(e => _transactionManager.LogInformation(e));
+
+                    foreach (string templateParam in templateParamsList)
+                    {
+                        smsRequest.content = smsRequest.content.Replace("{%=" + templateParam + "%}", (string)templateParamsJson[templateParam.Split(".")[1]]);
+                    }
+                }
+                else
+                {
+                    smsRequest.content = templateContent.message;
                 }
             }
 
@@ -652,11 +667,27 @@ namespace bbt.gateway.messaging.Workers
             if (templateDetail != null)
             {
                 var templateContent = templateDetail.contents.FirstOrDefault();
-                var templateParamsJson = JsonConvert.DeserializeObject<JObject>(mailRequest.TemplateParams);
-                var templateParamsList = templateContent?.content.GetWithRegexMultiple("({%=)(.*?)(%})", 2);
-                foreach (string templateParam in templateParamsList)
+                if (!string.IsNullOrWhiteSpace(mailRequest.TemplateParams))
                 {
-                    mailRequest.content = mailRequest.content.Replace("{%=" + templateParam + "%}", (string)templateParamsJson[templateParam.Split(".")[1]]);
+                    mailRequest.content = templateContent.content;
+                    var templateParamsJson = JsonConvert.DeserializeObject<JObject>(mailRequest.TemplateParams);
+                    var templateParamsList = templateContent?.content.GetWithRegexMultiple("({%=)(.*?)(%})", 2);
+
+                    foreach (var element in templateParamsJson)
+                    {
+                        _transactionManager.LogInformation($"templateParamsJson Key:{element.Key} | Value :{element.Value} ");
+                    }
+                    _transactionManager.LogInformation("Parameters");
+                    templateParamsList.ForEach(e => _transactionManager.LogInformation(e));
+
+                    foreach (string templateParam in templateParamsList)
+                    {
+                        mailRequest.content = mailRequest.content.Replace("{%=" + templateParam + "%}", (string)templateParamsJson[templateParam.Split(".")[1]]);
+                    }
+                }
+                else
+                {
+                    mailRequest.content = templateContent.content;
                 }
             }
 
@@ -717,11 +748,27 @@ namespace bbt.gateway.messaging.Workers
             if (templateDetail != null)
             {
                 var templateContent = templateDetail.contents.FirstOrDefault();
-                var templateParamsJson = JsonConvert.DeserializeObject<JObject>(pushRequest.TemplateParams);
-                var templateParamsList = templateContent?.message.GetWithRegexMultiple("({%=)(.*?)(%})", 2);
-                foreach (string templateParam in templateParamsList)
+                if (!string.IsNullOrWhiteSpace(pushRequest.TemplateParams))
                 {
-                    pushRequest.Content = pushRequest.Content.Replace("{%=" + templateParam + "%}", (string)templateParamsJson[templateParam.Split(".")[1]]);
+                    pushRequest.Content = templateContent.message;
+                    var templateParamsJson = JsonConvert.DeserializeObject<JObject>(pushRequest.TemplateParams);
+                    var templateParamsList = templateContent?.message.GetWithRegexMultiple("({%=)(.*?)(%})", 2);
+
+                    foreach (var element in templateParamsJson)
+                    {
+                        _transactionManager.LogInformation($"templateParamsJson Key:{element.Key} | Value :{element.Value} ");
+                    }
+                    _transactionManager.LogInformation("Parameters");
+                    templateParamsList.ForEach(e => _transactionManager.LogInformation(e));
+
+                    foreach (string templateParam in templateParamsList)
+                    {
+                        pushRequest.Content = pushRequest.Content.Replace("{%=" + templateParam + "%}", (string)templateParamsJson[templateParam.Split(".")[1]]);
+                    }
+                }
+                else
+                {
+                    pushRequest.Content = templateContent.message;
                 }
             }
 
