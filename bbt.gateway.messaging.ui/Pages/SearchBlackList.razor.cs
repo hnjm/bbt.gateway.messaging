@@ -1,6 +1,7 @@
 ﻿
 using bbt.gateway.common.Models;
 using bbt.gateway.messaging.ui.Data;
+using bbt.gateway.messaging.ui.Pages.Base;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Radzen;
@@ -9,8 +10,8 @@ using System.DirectoryServices;
 
 namespace bbt.gateway.messaging.ui.Pages
 {
-    [Authorize]
-    public partial class SearchBlackList:ComponentBase
+
+    public partial class SearchBlackList:BaseComponent
     {
  
         [Inject]
@@ -96,6 +97,11 @@ namespace bbt.gateway.messaging.ui.Pages
                 }
                
             }
+            else
+            {
+                if (!IsFirstLoad)
+                    OpenModal("Lütfen telefon bilgisini doldurunuz.");
+            }
             
         }
         async Task SearchWithCustomerNo()
@@ -115,6 +121,11 @@ namespace bbt.gateway.messaging.ui.Pages
 
                 }
 
+            }
+            else
+            {
+                if (!IsFirstLoad)
+                    OpenModal("Lütfen müşteri no bilgisini doldurunuz.");
             }
 
         }
