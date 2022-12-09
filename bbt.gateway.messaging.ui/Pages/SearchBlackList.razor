@@ -2,8 +2,9 @@
 @using bbt.gateway.common.Models
 @using bbt.gateway.messaging.ui.Data
 @inject IMessagingGatewayService MessagingGateway
-@inject Radzen.DialogService dialogService
+@inherits bbt.gateway.messaging.ui.Pages.Base.BaseComponent
 
+<PageTitle>Blacklist Sorgulama</PageTitle>
 <div class="row align-items-center mb-2">
     <div class="col-12">
         <RadzenCard class="w-100 p-3">

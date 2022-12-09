@@ -1,5 +1,6 @@
 ﻿using bbt.gateway.common.Models;
 using bbt.gateway.messaging.ui.Data;
+using bbt.gateway.messaging.ui.Pages.Base;
 using Microsoft.AspNetCore.Components;
 using Radzen;
 using Radzen.Blazor;
@@ -7,7 +8,7 @@ using Radzen.Blazor;
 
 namespace bbt.gateway.messaging.ui.Pages
 {
-    public partial class SearchMessages : ComponentBase
+    public partial class SearchMessages : BaseComponent
     {
         private IEnumerable<Transaction>? transactions;
         private SearchModel searchModel = new SearchModel();
@@ -15,7 +16,7 @@ namespace bbt.gateway.messaging.ui.Pages
         private int rowsCount = 0;
         private bool useSpinner;
         private RadzenDataGrid<Transaction> grid;
-
+        Transaction transactionFirst = new Transaction();
         void SelectionChanged(int i)
         {
             searchModel.SelectedSearchType = i;
@@ -37,18 +38,18 @@ namespace bbt.gateway.messaging.ui.Pages
 
         void Open(string title, Type type, Dictionary<string, object> parameters, DialogOptions options)
         {
-            
+
         }
 
         void Close(dynamic result)
         {
-            
+
         }
 
         public async Task OpenSmsDetails(Transaction txn)
         {
 
-            await dialogService.OpenAsync<MessageDetails>("title", new Dictionary<string, object>() { { "Txn", txn} }, new DialogOptions() { ShowTitle = false, Style = "min-height:auto;min-width:auto;max-height:600px;width:60%", CloseDialogOnEsc = false });
+            await dialogService.OpenAsync<MessageDetails>("title", new Dictionary<string, object>() { { "Txn", txn } }, new DialogOptions() { ShowTitle = false, Style = "min-height:auto;min-width:auto;max-height:600px;width:60%", CloseDialogOnEsc = false });
 
         }
 
@@ -57,8 +58,8 @@ namespace bbt.gateway.messaging.ui.Pages
             if (txn.TransactionType == TransactionType.Otp)
             {
                 if (txn.OtpRequestLog != null)
-                { 
-                    if(txn.OtpRequestLog.ResponseLogs != null)
+                {
+                    if (txn.OtpRequestLog.ResponseLogs != null)
                     {
                         return txn.OtpRequestLog.ResponseLogs.Any(l => l.TrackingStatus == SmsTrackingStatus.Delivered);
                     }
@@ -121,38 +122,76 @@ namespace bbt.gateway.messaging.ui.Pages
                 searchModel.Skip = skip / top;
                 searchModel.Take = top;
             }
-            switch (searchModel.SelectedSearchType)
+            if (string.IsNullOrEmpty(searchModel.FilterValue) || (searchModel.StartDate == null && searchModel.StartDate.Year < 2000) || (searchModel.EndDate == null && searchModel.StartDate.Year < 2000))
             {
-                case 1:
-                    await SearchWithCustomerNo();
-                    break;
-                case 2:
-                    await SearchWithCitizenshipNo();
-                    break;
-                case 3:
-                    await SearchWithPhone();
-                    break;
-                case 4:
-                    await SearchWithMail();
-                    break;
-                default:
-                    throw new Exception();
+                useSpinner = false;
+                if (!IsFirstLoad)
+                    OpenModal("Lütfen alanları doldurunuz.");
             }
-            useSpinner = false;
+            else
+            {
+                if ((searchModel.SelectedSearchType != 4&&searchModel.SelectedSearchType != 3 && searchModel.MessageType == MessageTypeEnum.Sms) || searchModel.SelectedSearchType == 3)
+                {
+                    useSpinner = false;
+                    if (!IsFirstLoad)
+                        OpenModal("Lütfen Sms türünü seçiniz.");
+                }
+                else
+                {
+                    useSpinner = true;
+                    switch (searchModel.SelectedSearchType)
+                    {
+                        case 1:
+                            await SearchWithCustomerNo();
+                            break;
+                        case 2:
+                            await SearchWithCitizenshipNo();
+                            break;
+                        case 3:
+                            await SearchWithPhone();
+                            break;
+                        case 4:
+                            await SearchWithMail();
+                            break;
+                        default:
+                            throw new Exception();
+                    }
+                    useSpinner = false;
+                }
+              
+            }
+
+
         }
 
         async Task SearchWithPhone()
         {
-            var res  = await MessagingGateway.GetTransactionsByPhone(new Phone(searchModel.FilterValue), CreateQueryParams());
+            var res = await MessagingGateway.GetTransactionsByPhone(new Phone(searchModel.FilterValue), CreateQueryParams());
             transactions = res.Transactions.AsODataEnumerable();
             rowsCount = res.Count;
+            if (rowsCount > 0)
+            {
+                transactionFirst = transactions.FirstOrDefault();
+            }
+            else
+            {
+                transactionFirst = new Transaction();
+            }
         }
 
         async Task SearchWithMail()
         {
-            var res = await MessagingGateway.GetTransactionsByMail(searchModel.FilterValue,CreateQueryParams());
+            var res = await MessagingGateway.GetTransactionsByMail(searchModel.FilterValue, CreateQueryParams());
             transactions = res.Transactions;
             rowsCount = res.Count;
+            if (rowsCount > 0)
+            {
+                transactionFirst = transactions.FirstOrDefault();
+            }
+            else
+            {
+                transactionFirst = new Transaction();
+            }
         }
 
         async Task SearchWithCustomerNo()
@@ -162,10 +201,19 @@ namespace bbt.gateway.messaging.ui.Pages
                 var res = await MessagingGateway.GetTransactionsByCustomerNo(Convert.ToUInt64(searchModel.FilterValue), Constants.MessageTypeMap[searchModel.MessageType], CreateQueryParams());
                 transactions = res.Transactions;
                 rowsCount = res.Count;
+                if (rowsCount > 0)
+                {
+                    transactionFirst = transactions.FirstOrDefault();
+                }
+                else
+                {
+                    transactionFirst = new Transaction();
+                }
             }
             catch (Exception ex)
-            { 
+            {
                 transactions = new List<Transaction>();
+                transactionFirst = new Transaction();
                 rowsCount = 0;
             }
         }
@@ -175,11 +223,19 @@ namespace bbt.gateway.messaging.ui.Pages
             var res = await MessagingGateway.GetTransactionsByCitizenshipNo(searchModel.FilterValue, Constants.MessageTypeMap[searchModel.MessageType], CreateQueryParams());
             transactions = res.Transactions;
             rowsCount = res.Count;
+            if (rowsCount > 0)
+            {
+                transactionFirst = transactions.FirstOrDefault();
+            }
+            else
+            {
+                transactionFirst = new Transaction();
+            }
         }
 
         void OnChange(DateTime? value, string name, string format)
         {
-            
+
         }
 
         void SelectMessageType(object value, string name)
@@ -197,8 +253,8 @@ namespace bbt.gateway.messaging.ui.Pages
         void MessageTableSort(DataGridColumnSortEventArgs<Transaction> args)
         {
             //PropertyDescriptor? prop = TypeDescriptor.GetProperties(typeof(Transaction)).Find(args.Column.Property,true);
-            
-            
+
+
         }
 
         QueryParams CreateQueryParams()
@@ -214,5 +270,5 @@ namespace bbt.gateway.messaging.ui.Pages
         }
     }
 
-    
+
 }

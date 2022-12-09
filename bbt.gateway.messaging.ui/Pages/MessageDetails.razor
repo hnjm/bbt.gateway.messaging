@@ -33,16 +33,22 @@
             @foreach (var responseLog in responseLogs)
             {
                 <div class="row">
-                    <div class="col-6">
+                    <div class="col-4">
                         <RadzenCard>
                             <span>Operator Cevap Kodu</span>
-                            <RadzenTextBox Disabled Value="@responseLog.ResponseCode.ToString()" />
+                            <RadzenTextBox ReadOnly Value="@responseLog.ResponseCode.ToString()" />
                         </RadzenCard>
                     </div>
-                    <div class="col-6">
+                    <div class="col-4">
                         <RadzenCard>
                             <span>Operator Cevap Açıklama</span>
-                            <RadzenTextBox Disabled Value="@responseLog.ResponseMessage" />
+                            <RadzenTextBox ReadOnly Value="@responseLog.ResponseMessage" />
+                        </RadzenCard>
+                    </div>
+                     <div class="col-4">
+                        <RadzenCard>
+                            <span>Response ID</span>
+                            <RadzenTextBox ReadOnly Value="@responseLog.StatusQueryId" />
                         </RadzenCard>
                     </div>
                 </div>
@@ -79,13 +85,13 @@
                         <div class="col-6">
                             <RadzenCard>
                                     <span>Tracking Response</span>
-                                    <RadzenTextBox Disabled Value="@trackingLog.Status.ToString()" />
+                                    <RadzenTextBox ReadOnly Value="@trackingLog.Status.ToString()" />
                             </RadzenCard>
                         </div>
                         <div class="col-6">
                             <RadzenCard>
                                     <span>Tracking Response Message</span>
-                                    <RadzenTextBox Disabled Value="@trackingLog.ResponseMessage" />
+                                    <RadzenTextBox ReadOnly Value="@trackingLog.ResponseMessage" />
                             </RadzenCard>
                         </div>
                     </div>
@@ -120,7 +126,7 @@
                 <div class="col-12">
                     <RadzenCard>
                         <span>Mesaj</span>
-                        <RadzenTextBox Disabled Value="@message"></RadzenTextBox>
+                        <RadzenTextBox ReadOnly Value="@message"></RadzenTextBox>
                     </RadzenCard>
                 </div>
             </div>
@@ -131,13 +137,13 @@
                 <div class="col-6">
                     <RadzenCard>
                         <span>Template</span>
-                        <RadzenTextBox Disabled Value="@GetTemplate()"></RadzenTextBox>
+                        <RadzenTextBox ReadOnly Value="@GetTemplate()"></RadzenTextBox>
                     </RadzenCard>
                 </div>
                 <div class="col-6">
                     <RadzenCard>
                         <span>Template Params</span>
-                        <RadzenTextBox Disabled Value="@GetTemplateParams()"></RadzenTextBox>
+                        <RadzenTextBox ReadOnly Value="@GetTemplateParams()"></RadzenTextBox>
                     </RadzenCard>
                 </div>
             </div>
