@@ -163,15 +163,6 @@ namespace bbt.gateway.messaging.Controllers.v1
             return Ok(listKeys);
         }
 
-        private void WriteKey(string item)
-        {
-            _transactionManager.LogInformation($"Vault Key : {item}");
-        }
-
-        private void WriteValue(string item)
-        {
-            _transactionManager.LogInformation($"Vault Value : {item}");
-        }
 
         [SwaggerOperation(Summary = "Returns content headers configuration")]
         [HttpGet("headers")]
