@@ -751,14 +751,14 @@ namespace bbt.gateway.messaging.Controllers.v2
 
                 if (trackingLog != null)
                 {
-                        return $"|{smsResponseLog.CreatedAt.ToString(new System.Globalization.CultureInfo("tr-TR"))}|{trackingLog.Status}|{trackingLog.StatusReason}\r\n";
+                        return $"|{smsResponseLog?.CreatedAt.ToString(new System.Globalization.CultureInfo("tr-TR"))}|{trackingLog.Status}|{trackingLog.StatusReason}\r\n";
 
                 }
                 
-                return "|Rapor Bulunamadı\r\n";
+                return $"|{smsResponseLog?.CreatedAt.ToString(new System.Globalization.CultureInfo("tr-TR"))}|Rapor Bulunamadı\r\n";
             }
 
-            return "|Rapor Bulunamadı\r\n";
+            return $"|{smsResponseLog?.CreatedAt.ToString(new System.Globalization.CultureInfo("tr-TR"))}|Rapor Bulunamadı\r\n";
             
         }
 
