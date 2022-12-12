@@ -130,7 +130,7 @@ namespace bbt.gateway.messaging.ui.Pages
             }
             else
             {
-                if ((searchModel.SelectedSearchType != 4&&searchModel.SelectedSearchType != 3 && searchModel.MessageType == MessageTypeEnum.Sms) || searchModel.SelectedSearchType == 3)
+                if (((searchModel.SelectedSearchType != 4 && searchModel.MessageType == MessageTypeEnum.Sms) || searchModel.SelectedSearchType == 3)&&searchModel.SmsType == SmsTypeEnum.Unselected)
                 {
                     useSpinner = false;
                     if (!IsFirstLoad)
@@ -138,25 +138,35 @@ namespace bbt.gateway.messaging.ui.Pages
                 }
                 else
                 {
-                    useSpinner = true;
-                    switch (searchModel.SelectedSearchType)
+                    if((searchModel.SelectedSearchType==1|| searchModel.SelectedSearchType == 2)&&searchModel.MessageType == MessageTypeEnum.Unselected)
                     {
-                        case 1:
-                            await SearchWithCustomerNo();
-                            break;
-                        case 2:
-                            await SearchWithCitizenshipNo();
-                            break;
-                        case 3:
-                            await SearchWithPhone();
-                            break;
-                        case 4:
-                            await SearchWithMail();
-                            break;
-                        default:
-                            throw new Exception();
+                        useSpinner = false;
+                        if (!IsFirstLoad)
+                            OpenModal("Lütfen Mesaj türünü seçiniz.");
                     }
-                    useSpinner = false;
+                    else
+                    {
+                        useSpinner = true;
+                        switch (searchModel.SelectedSearchType)
+                        {
+                            case 1:
+                                await SearchWithCustomerNo();
+                                break;
+                            case 2:
+                                await SearchWithCitizenshipNo();
+                                break;
+                            case 3:
+                                await SearchWithPhone();
+                                break;
+                            case 4:
+                                await SearchWithMail();
+                                break;
+                            default:
+                                throw new Exception();
+                        }
+                        useSpinner = false;
+                    }
+                   
                 }
               
             }
@@ -240,13 +250,26 @@ namespace bbt.gateway.messaging.ui.Pages
 
         void SelectMessageType(object value, string name)
         {
-            searchModel.MessageType = Enum.Parse<MessageTypeEnum>(value.ToString());
+            if (value == null)
+                searchModel.MessageType = MessageTypeEnum.Unselected;
+            else
+            {
+                searchModel.MessageType = Enum.Parse<MessageTypeEnum>(value.ToString());
+               
+            }
+            searchModel.SmsType = SmsTypeEnum.Unselected;
 
         }
 
         void SelectSmsType(object value, string name)
         {
-            searchModel.SmsType = Enum.Parse<SmsTypeEnum>(value.ToString());
+            if(value==null)
+                searchModel.SmsType = SmsTypeEnum.Unselected;
+            else
+            {
+                searchModel.SmsType = Enum.Parse<SmsTypeEnum>(value.ToString());
+            }
+           
 
         }
 
