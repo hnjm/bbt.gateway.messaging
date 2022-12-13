@@ -676,7 +676,6 @@ namespace bbt.gateway.messaging.Controllers.v2
                     reportDate,
                     lineArray[2]
                 );
-                Console.WriteLine("Sql Execution Time : " + (DateTime.Now - dt).TotalMilliseconds);
                 
                 if (transactions == null || transactions?.Count() == 0)
                 {
@@ -727,7 +726,6 @@ namespace bbt.gateway.messaging.Controllers.v2
         {
             if (smsResponseLog != null)
             {
-                Console.WriteLine($"CreatedAt : {smsResponseLog.CreatedAt} | StatusQueryId : {smsResponseLog.StatusQueryId}");
                 SmsTrackingLog? trackingLog  = null;
                 if (smsResponseLog.Operator == OperatorType.Codec)
                 {
