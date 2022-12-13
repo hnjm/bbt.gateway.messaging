@@ -12,6 +12,7 @@ namespace bbt.gateway.common.Models.v2
         public string Content { get; set; }
         public long? CustomerNo { get; set; }
         public string[] Tags { get; set; }
+        public common.Models.v2.InboxParams? inboxParams { get; set; }
         public Process Process { get; set; }
     }
 }

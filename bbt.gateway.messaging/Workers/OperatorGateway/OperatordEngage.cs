@@ -16,6 +16,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using bbt.gateway.common.GlobalConstants;
 
+
 namespace bbt.gateway.messaging.Workers.OperatorGateway
 {
     public class OperatordEngage : OperatorGatewayBase, IOperatordEngage
@@ -325,7 +326,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
         }
 
-        public async Task<PushNotificationResponseLog> SendPush(string contactId, string template, string templateParams, string customParameters)
+        public async Task<PushNotificationResponseLog> SendPush(string contactId, string template, string templateParams, string customParameters, common.Models.v2.InboxParams? inboxParams,string[] tags)
         {
             var pushNotificationResponseLog = new PushNotificationResponseLog()
             {
@@ -337,7 +338,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             {
                 try
                 {
-                    var req = CreatePushRequest(contactId, template, templateParams, customParameters);
+                    var req = CreatePushRequest(contactId, template, templateParams, customParameters, inboxParams,tags);
                     try
                     {
                         var sendPushResponse = await _dEngageClient.SendPush(req, _authToken);
@@ -354,7 +355,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                                 _authTryCount++;
                                 if (_authTryCount < 3)
                                 {
-                                    return await SendPush(contactId, template, templateParams, customParameters);
+                                    return await SendPush(contactId, template, templateParams, customParameters,inboxParams,tags);
                                 }
                                 else
                                 {
@@ -573,11 +574,13 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             return sendMailRequest;
         }
 
-        private SendPushRequest CreatePushRequest(string contactId, string template, string templateParams, string customParameters)
+        private SendPushRequest CreatePushRequest(string contactId, string template, string templateParams, string customParameters, common.Models.v2.InboxParams? inboxParams,string[] tags)
         {
             SendPushRequest sendPushRequest = new();
             sendPushRequest.contactKey = contactId;
             sendPushRequest.contentId = template;
+            sendPushRequest.inboxParams= inboxParams;
+            sendPushRequest.Tags = tags;
             if (string.IsNullOrEmpty(templateParams))
             {
                 sendPushRequest.current = null;
@@ -594,6 +597,9 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             {
                 sendPushRequest.customParameters = customParameters?.ClearMaskingFields();
             }
+           
+              
+            
             return sendPushRequest;
         }
 
