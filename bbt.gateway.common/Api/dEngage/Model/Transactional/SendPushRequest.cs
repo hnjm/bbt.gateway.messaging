@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace bbt.gateway.common.Api.dEngage.Model.Transactional
 {
@@ -7,8 +8,11 @@ namespace bbt.gateway.common.Api.dEngage.Model.Transactional
         public string contactKey { get; set; }
         public string contentId { get; set; }   
         public string current { get; set; }
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string customParameters { get; set; }
-        public string[] Tags { get; set; }
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public string[]? Tags { get; set; }
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public common.Models.v2.InboxParams? inboxParams { get; set; }
     }
 
