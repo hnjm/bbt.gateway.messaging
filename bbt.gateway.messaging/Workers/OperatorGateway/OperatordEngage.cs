@@ -579,8 +579,18 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             SendPushRequest sendPushRequest = new();
             sendPushRequest.contactKey = contactId;
             sendPushRequest.contentId = template;
-            sendPushRequest.inboxParams= inboxParams;
-            sendPushRequest.Tags = tags;
+            if (inboxParams != null && inboxParams.expire != null)
+                sendPushRequest.inboxParams = inboxParams;
+            else
+            {
+                sendPushRequest.inboxParams = null;
+            }
+            if (tags != null && tags.Count() > 0)
+                sendPushRequest.Tags = tags;
+            else
+            {
+                sendPushRequest.Tags = null;
+            }
             if (string.IsNullOrEmpty(templateParams))
             {
                 sendPushRequest.current = null;
@@ -597,9 +607,9 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             {
                 sendPushRequest.customParameters = customParameters?.ClearMaskingFields();
             }
-           
-              
-            
+
+
+
             return sendPushRequest;
         }
 
