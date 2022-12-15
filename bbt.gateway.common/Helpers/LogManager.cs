@@ -1,6 +1,6 @@
 ﻿using Serilog;
 
-namespace bbt.gateway.worker
+namespace bbt.gateway.common.Helpers
 {
     public class LogManager
     {
