@@ -15,7 +15,7 @@ namespace bbt.gateway.common.Models.v2
         public long? CustomerNo { get; set; }
         public string CustomParameters { get; set; }
         public string[] Tags { get; set; }
-        public InboxParams? inboxParams { get; set; }
+        public bool? saveInbox { get; set; }
         public Process Process { get; set; }
     }
 }

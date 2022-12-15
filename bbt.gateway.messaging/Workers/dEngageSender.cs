@@ -775,7 +775,7 @@ namespace bbt.gateway.messaging.Workers
             await _repositoryManager.PushNotificationRequestLogs.AddAsync(pushRequest);
             _transactionManager.Transaction.PushNotificationRequestLog = pushRequest;
 
-            var response = await _operatordEngage.SendPush(sendTemplatedPushNotificationRequest.CitizenshipNo, contentInfo.id, sendTemplatedPushNotificationRequest.TemplateParams, sendTemplatedPushNotificationRequest.CustomParameters,sendTemplatedPushNotificationRequest.inboxParams,sendTemplatedPushNotificationRequest.Tags);
+            var response = await _operatordEngage.SendPush(sendTemplatedPushNotificationRequest.CitizenshipNo, contentInfo.id, sendTemplatedPushNotificationRequest.TemplateParams, sendTemplatedPushNotificationRequest.CustomParameters,sendTemplatedPushNotificationRequest.saveInbox,sendTemplatedPushNotificationRequest.Tags);
 
             pushRequest.ResponseLogs.Add(response);
 
@@ -829,7 +829,7 @@ namespace bbt.gateway.messaging.Workers
             await _repositoryManager.PushNotificationRequestLogs.AddAsync(pushRequest);
             _transactionManager.Transaction.PushNotificationRequestLog = pushRequest;
 
-            var response = await _operatordEngage.SendPush(sendPushNotificationRequest.CitizenshipNo, contentInfo.id, templateParams.ToString(), null,sendPushNotificationRequest.inboxParams,sendPushNotificationRequest.Tags);
+            var response = await _operatordEngage.SendPush(sendPushNotificationRequest.CitizenshipNo, contentInfo.id, templateParams.ToString(), null,sendPushNotificationRequest.saveInbox,sendPushNotificationRequest.Tags);
 
             pushRequest.ResponseLogs.Add(response);
 

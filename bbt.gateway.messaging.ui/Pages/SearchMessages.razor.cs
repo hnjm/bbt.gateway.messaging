@@ -144,7 +144,13 @@ namespace bbt.gateway.messaging.ui.Pages
                         if (!IsFirstLoad)
                             OpenModal("Lütfen Mesaj türünü seçiniz.");
                     }
-                    else
+                    else  if (searchModel.StartDate.Date>searchModel.EndDate.Date)
+                        {
+                            useSpinner = false;
+                            if (!IsFirstLoad)
+                                OpenModal("Başlangıç Tarihi Bitiş tarihinden büyük veya eşit olamaz");
+                        }
+                        else
                     {
                         useSpinner = true;
                         switch (searchModel.SelectedSearchType)

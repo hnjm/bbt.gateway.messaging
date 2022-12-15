@@ -326,7 +326,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
 
         }
 
-        public async Task<PushNotificationResponseLog> SendPush(string contactId, string template, string templateParams, string customParameters, common.Models.v2.InboxParams? inboxParams,string[] tags)
+        public async Task<PushNotificationResponseLog> SendPush(string contactId, string template, string templateParams, string customParameters, bool? saveInbox,string[] tags)
         {
             var pushNotificationResponseLog = new PushNotificationResponseLog()
             {
@@ -338,7 +338,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             {
                 try
                 {
-                    var req = CreatePushRequest(contactId, template, templateParams, customParameters, inboxParams,tags);
+                    var req = CreatePushRequest(contactId, template, templateParams, customParameters, saveInbox,tags);
                     try
                     {
                         var sendPushResponse = await _dEngageClient.SendPush(req, _authToken);
@@ -355,7 +355,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
                                 _authTryCount++;
                                 if (_authTryCount < 3)
                                 {
-                                    return await SendPush(contactId, template, templateParams, customParameters,inboxParams,tags);
+                                    return await SendPush(contactId, template, templateParams, customParameters,saveInbox,tags);
                                 }
                                 else
                                 {
@@ -574,13 +574,23 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             return sendMailRequest;
         }
 
-        private SendPushRequest CreatePushRequest(string contactId, string template, string templateParams, string customParameters, common.Models.v2.InboxParams? inboxParams,string[] tags)
+        private SendPushRequest CreatePushRequest(string contactId, string template, string templateParams, string customParameters, bool?  saveInbox,string[] tags)
         {
             SendPushRequest sendPushRequest = new();
             sendPushRequest.contactKey = contactId;
             sendPushRequest.contentId = template;
-            if (inboxParams != null && inboxParams.expire != null)
+            if (saveInbox != null && saveInbox != null)
+            {
+                common.Models.v2.InboxParams inboxParams = new common.Models.v2.InboxParams();
+                inboxParams.enabled = true;
+                inboxParams.expire = new common.Models.v2.Expire();
+                inboxParams.expire.date = DateTime.Now.ToString("yyyy - MM - ddThh:mm: ss.fffZ");
+                inboxParams.expire.type = "PERIOD";
+                inboxParams.expire.period = Convert.ToInt32(_configuration["InboxExpireSettings:period"].ToString());
+                inboxParams.expire.periodType = _configuration["InboxExpireSettings:periodType"].ToString();
                 sendPushRequest.inboxParams = inboxParams;
+            }
+               
             else
             {
                 sendPushRequest.inboxParams = null;
