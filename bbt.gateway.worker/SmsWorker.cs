@@ -28,79 +28,79 @@ namespace bbt.gateway.worker
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                _logManager.LogInformation("Sms Tracking Triggered");
-                try
+                if (DateTime.Now.Minute == 0)
                 {
-                    await _tracer.CaptureTransaction("Sms Tracking", ApiConstants.TypeRequest, async () =>
+                    _logManager.LogInformation("Sms Tracking Triggered");
+                    try
                     {
-                        try
+                        await _tracer.CaptureTransaction("Sms Tracking", ApiConstants.TypeRequest, async () =>
                         {
-                            var smsResponseLogsAsc = await _dbContext.SmsResponseLog.Include(s => s.TrackingLogs).Where(
-                                    o => o.OperatorResponseCode == 0 &&
-                                    o.Operator != 0 &&
-                                    (o.Status == null || String.IsNullOrWhiteSpace(o.Status))
-                                    && o.CreatedAt < DateTime.Now.AddMinutes(-10)
-                                    && o.TrackingLogs.Count <= 10
-                                )
-                                .OrderBy(s => s.CreatedAt)
-                                .Take(5)
-                                .ToListAsync();
-
-                            var smsResponseLogsDesc = await _dbContext.SmsResponseLog.Include(s => s.TrackingLogs).Where(
-                                        o => o.OperatorResponseCode == 0 &&
-                                        o.Operator != 0 &&
-                                        (o.Status == null || String.IsNullOrWhiteSpace(o.Status))
-                                        && o.CreatedAt < DateTime.Now.AddMinutes(-10)
-                                        && o.TrackingLogs.Count <= 10
-                                    )
-                                    .OrderByDescending(s => s.CreatedAt)
-                                    .Take(5)
-                                    .ToListAsync();
-
-                            var smsResponseLogs = smsResponseLogsAsc.Concat(smsResponseLogsDesc).Distinct().ToList();
-                            _logManager.LogInformation("Sms Count : " + smsResponseLogs.Count);
-
-                            var taskList = new List<Task>();
-                            ConcurrentBag<SmsEntitiesToBeProcessed> concurrentBag = new();
-                            smsResponseLogs.ForEach(smsResponseLog =>
+                            try
                             {
-                                taskList.Add(GetDeliveryStatus(smsResponseLog, concurrentBag));
-                            });
+                                var endDate = DateTime.Now.AddHours(-6);
+                                var startDate = endDate.AddHours(-7);
+                                var smsResponseLogs = await _dbContext.SmsResponseLog.
+                                FromSqlRaw("Select SmsRequestLogId,StatusQueryId,Operator from SmsResponseLog (NOLOCK) WHERE OperatorResponseCode = 0 AND AND CreatedAt Between {0} AND {1} AND (status is null OR status = '')", startDate.ToString("yyyy-MM-dd HH:mm"), endDate.ToString("yyyy-MM-dd HH:mm"))
+                                .AsNoTracking().ToListAsync();
 
-                            await Task.WhenAll(taskList);
+                                _logManager.LogInformation("Sms Count : " + smsResponseLogs.Count);
 
-                            foreach (var entities in concurrentBag)
-                            {
-                                if (entities.smsTrackingLog != null)
+                                ConcurrentBag<SmsEntitiesToBeProcessed> concurrentBag = new();
+
+                                smsResponseLogs.DivideListIntoParts(50).ForEach(async smsResponseLogsParts =>
                                 {
-                                    await _dbContext.SmsTrackingLog.AddAsync(entities.smsTrackingLog);
+                                    _logManager.LogInformation("Part Count : " + smsResponseLogsParts.Count);
+                                    var taskList = new List<Task>();
+                                    smsResponseLogsParts.ForEach(smsResponseLog =>
+                                    {
+                                        taskList.Add(GetDeliveryStatus(smsResponseLog, concurrentBag));
+                                    });
+                                    await Task.WhenAll(taskList);
+                                });
+
+                                int counter = 0;
+                                foreach (var entities in concurrentBag)
+                                {
+                                    if (entities.smsTrackingLog != null)
+                                    {
+                                        await _dbContext.SmsTrackingLog.AddAsync(entities.smsTrackingLog);
+                                        counter++;
+                                    }
+                                    if (entities.smsResponseLog != null)
+                                    {
+                                        _dbContext.SmsResponseLog.Update(entities.smsResponseLog);
+                                    }
+                                    if (counter != 0 && counter % 100 == 0)
+                                    {
+                                        await _dbContext.SaveChangesAsync();
+                                    }
                                 }
-                                if (entities.smsResponseLog != null)
+                                if (counter != 0 && counter % 100 != 0)
                                 {
-                                    _dbContext.SmsResponseLog.Update(entities.smsResponseLog);
+                                    await _dbContext.SaveChangesAsync();
                                 }
                             }
-                            await _dbContext.SaveChangesAsync();
-                        }
-                        catch (Exception ex)
-                        {
-                            await _dbContext.DisposeAsync();
-                            _logManager.LogError(ex.ToString());
-                            _tracer.CaptureException(ex);
-                            await StopAsync(new CancellationToken(true));
-                        }
-                        
-                    });
+                            catch (Exception ex)
+                            {
+                                await _dbContext.DisposeAsync();
+                                _logManager.LogError(ex.ToString());
+                                _tracer.CaptureException(ex);
+                                await StopAsync(new CancellationToken(true));
+                            }
 
-                    
+                        });
+
+
+                    }
+                    catch (Exception ex)
+                    {
+                        _logManager.LogError(ex.ToString());
+                        await _dbContext.DisposeAsync();
+                        await StopAsync(new CancellationToken(true));
+                    }
+                    _logManager.LogInformation("Sms Tracking Finished");
                 }
-                catch (Exception ex)
-                {
-                    _logManager.LogError(ex.ToString());
-                    await _dbContext.DisposeAsync();
-                    await StopAsync(new CancellationToken(true));
-                }
-                await Task.Delay(1000 * 60 * 1, stoppingToken);
+                await Task.Delay(1000 * 60 * 60);
             }
         }
 

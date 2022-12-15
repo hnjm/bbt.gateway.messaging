@@ -12,7 +12,6 @@ IHost host = Host.CreateDefaultBuilder(args)
     .UseSeriLog("entegrasyon")
     .ConfigureServices((context, services) =>
     {
-        Console.WriteLine($"dEngage Base Address : {context.Configuration["Api:dEngage:BaseAddress"]}");
         services.AddDaprClient(builder =>
                    builder.UseJsonSerializationOptions(
                        new JsonSerializerOptions()
@@ -32,7 +31,7 @@ IHost host = Host.CreateDefaultBuilder(args)
                .ConfigureHttpClient(c => c.BaseAddress = new Uri(context.Configuration["Api:dEngage:BaseAddress"]));
         services.AddHostedService<TemplateWorker>();
         //services.AddHostedService<OtpWorker>();
-        //services.AddHostedService<SmsWorker>();
+        services.AddHostedService<SmsWorker>();
         services.AddSingleton<DbContextOptions<DatabaseContext>>(new DbContextOptionsBuilder<DatabaseContext>()
                 .UseSqlServer(context.Configuration.GetConnectionString("DefaultConnection")).UseLoggerFactory(LoggerFactory.Create(b => b.AddConsole()))
                 .Options);
