@@ -29,6 +29,8 @@ IHost host = Host.CreateDefaultBuilder(args)
                 )
         })
                .ConfigureHttpClient(c => c.BaseAddress = new Uri(context.Configuration["Api:dEngage:BaseAddress"]));
+        services.AddRefitClient<IMessagingGatewayApi>()
+            .ConfigureHttpClient(c => c.BaseAddress = new Uri(context.Configuration["Api:ServiceUrl"]));
         services.AddHostedService<TemplateWorker>();
         //services.AddHostedService<OtpWorker>();
         services.AddHostedService<SmsWorker>();
