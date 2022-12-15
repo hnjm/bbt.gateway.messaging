@@ -186,7 +186,7 @@ namespace bbt.gateway.messaging.Workers.OperatorGateway
             return mailResponseLog;
         }
 
-        public async Task<PushNotificationResponseLog> SendPush(string contactId, string template, string templateParams, string customParameters, common.Models.v2.InboxParams? inboxParams, string[] tags)
+        public async Task<PushNotificationResponseLog> SendPush(string contactId, string template, string templateParams, string customParameters, bool? saveInbox, string[] tags)
         {
             await Auth();
             PushNotificationResponseLog pushNotificationResponseLog = new()

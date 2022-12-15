@@ -121,6 +121,7 @@ namespace bbt.gateway.messaging
             //services.AddDbContext<DodgeDatabaseContext>(o => o.UseSqlServer(Configuration.GetConnectionString("DodgeConnection")));
             services.AddDbContext<SmsBankingDatabaseContext>(o => o.UseSqlServer(Configuration.GetConnectionString("SmsBankingConnection")));
             services.Configure<UserSettings>(Configuration.GetSection(nameof(UserSettings)));
+            services.Configure<common.Models.v2.InboxExpireSettings>(Configuration.GetSection(nameof(common.Models.v2.InboxExpireSettings)));
             services.AddScoped<IRepositoryManager, RepositoryManager>();
 
 

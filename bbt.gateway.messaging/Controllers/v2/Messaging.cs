@@ -498,7 +498,9 @@ namespace bbt.gateway.messaging.Controllers.v2
             + "<div>Content Field Will Be Logged After This Method Called. If You Need To Masking Critical Information You Should Surround"
             + " Critical Information with &lt;Mask&gt;&lt;/Mask&gt; . "
             + "<br />Example : \"Content\" : \"Your password is &lt;Mask&gt;1000&lt;/Mask&gt;.\"</div>"
-            + "",
+            + "<br />"
+             + "<div>saveInbox parameter is used to save to inbox</div>"
+             + "",
             Tags = new[] { "Push Notification" }
            )]
         [HttpPost("push-notification/message")]
@@ -530,7 +532,9 @@ namespace bbt.gateway.messaging.Controllers.v2
             + "<div>TemplateParams Field Will Be Logged After This Method Called. If You Need To Masking Critical Information You Should Surround"
             + " Critical Information with &lt;Mask&gt;&lt;/Mask&gt; . "
             + "<br />Example : {\"Password\",\"&lt;Mask&gt;123456&lt;/Mask&gt;\"}</div>"
-            + "",
+            + "<br />"
+             + "<div>saveInbox parameter is used to save to inbox</div>"
+             + "",
            Tags = new[] { "Push Notification" }
            )]
         [HttpPost("push-notification/templated")]
