@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "bbt.gateway.messaging.ui", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "bbt.gateway.messaging.test", "bbt.gateway.messaging.test\bbt.gateway.messaging.test.csproj", "{BFFE7AF4-0B8C-44FD-8313-0A81BE83E33A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "bbt.gateway.worker.SmsReports", "bbt.gateway.worker.SmsReports\bbt.gateway.worker.SmsReports.csproj", "{DF72D609-97DA-4A9B-815B-A24D216886F1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{BFFE7AF4-0B8C-44FD-8313-0A81BE83E33A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BFFE7AF4-0B8C-44FD-8313-0A81BE83E33A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BFFE7AF4-0B8C-44FD-8313-0A81BE83E33A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DF72D609-97DA-4A9B-815B-A24D216886F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DF72D609-97DA-4A9B-815B-A24D216886F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DF72D609-97DA-4A9B-815B-A24D216886F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DF72D609-97DA-4A9B-815B-A24D216886F1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

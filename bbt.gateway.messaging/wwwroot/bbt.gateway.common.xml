@@ -30,7 +30,7 @@
             System uses header configuration to set sender automatically.
             </remarks>
         </member>
-        <member name="M:bbt.gateway.common.CoreExtensions.UseConsulSettings(Microsoft.Extensions.Hosting.IHostBuilder,System.Type)">
+        <member name="M:bbt.gateway.common.CoreExtensions.UseConsulSettings(Microsoft.Extensions.Hosting.IHostBuilder,System.Type,System.String)">
             <summary>
             Read Appsettings From Consule<br />
             ConsulHost and ConsulToken have to be set in appsettings
@@ -149,6 +149,45 @@
             <inheritdoc />
         </member>
         <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApidEngageIdEngageClient.bbt#gateway#common#Api#dEngage#IdEngageClient#GetPushContent(System.String,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="T:Refit.Implementation.Generated.bbtgatewaycommonApiMessagingGatewayIMessagingGatewayApi">
+            <inheritdoc />
+        </member>
+        <member name="P:Refit.Implementation.Generated.bbtgatewaycommonApiMessagingGatewayIMessagingGatewayApi.Client">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApiMessagingGatewayIMessagingGatewayApi.#ctor(System.Net.Http.HttpClient,Refit.IRequestBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApiMessagingGatewayIMessagingGatewayApi.CheckOtpStatus(bbt.gateway.common.Models.CheckSmsRequest)">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApiMessagingGatewayIMessagingGatewayApi.CheckSmsStatus(bbt.gateway.common.Models.v2.CheckFastSmsRequest)">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApiMessagingGatewayIMessagingGatewayApi.SetSmsTemplates">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApiMessagingGatewayIMessagingGatewayApi.SetMailTemplates">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApiMessagingGatewayIMessagingGatewayApi.SetPushTemplates">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApiMessagingGatewayIMessagingGatewayApi.bbt#gateway#common#Api#MessagingGateway#IMessagingGatewayApi#CheckOtpStatus(bbt.gateway.common.Models.CheckSmsRequest)">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApiMessagingGatewayIMessagingGatewayApi.bbt#gateway#common#Api#MessagingGateway#IMessagingGatewayApi#CheckSmsStatus(bbt.gateway.common.Models.v2.CheckFastSmsRequest)">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApiMessagingGatewayIMessagingGatewayApi.bbt#gateway#common#Api#MessagingGateway#IMessagingGatewayApi#SetSmsTemplates">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApiMessagingGatewayIMessagingGatewayApi.bbt#gateway#common#Api#MessagingGateway#IMessagingGatewayApi#SetMailTemplates">
+            <inheritdoc />
+        </member>
+        <member name="M:Refit.Implementation.Generated.bbtgatewaycommonApiMessagingGatewayIMessagingGatewayApi.bbt#gateway#common#Api#MessagingGateway#IMessagingGatewayApi#SetPushTemplates">
             <inheritdoc />
         </member>
     </members>

@@ -1,12 +1,7 @@
 ﻿using bbt.gateway.common.Models;
 using Refit;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace bbt.gateway.worker
+namespace bbt.gateway.common.Api.MessagingGateway
 {
     public interface IMessagingGatewayApi
     {

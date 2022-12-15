@@ -19,13 +19,13 @@ namespace bbt.gateway.common
         /// <param name="host"></param>
         /// <param name="type">Type of Main | usage : typeof(Program)</param>
         /// <returns></returns>
-        public static IHostBuilder UseConsulSettings(this IHostBuilder host,Type type)
+        public static IHostBuilder UseConsulSettings(this IHostBuilder host,Type type,string fullPath = null)
         {
             
 
             return host.ConfigureAppConfiguration((context, builder) =>
             {
-                string applicationName = context.HostingEnvironment.ApplicationName;
+                string applicationName = fullPath ?? context.HostingEnvironment.ApplicationName;
                 string environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
 
                 builder.AddJsonFile($"appsettings.{environmentName}.json", false, true)

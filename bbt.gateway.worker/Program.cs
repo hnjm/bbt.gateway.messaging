@@ -1,5 +1,6 @@
 using bbt.gateway.common;
 using bbt.gateway.common.Api.dEngage;
+using bbt.gateway.common.Helpers;
 using bbt.gateway.worker;
 using Elastic.Apm.NetCoreAll;
 using Microsoft.EntityFrameworkCore;
@@ -29,11 +30,9 @@ IHost host = Host.CreateDefaultBuilder(args)
                 )
         })
                .ConfigureHttpClient(c => c.BaseAddress = new Uri(context.Configuration["Api:dEngage:BaseAddress"]));
-        services.AddRefitClient<IMessagingGatewayApi>()
-            .ConfigureHttpClient(c => c.BaseAddress = new Uri(context.Configuration["Api:ServiceUrl"]));
+
         services.AddHostedService<TemplateWorker>();
-        //services.AddHostedService<OtpWorker>();
-        services.AddHostedService<SmsWorker>();
+
         services.AddSingleton<DbContextOptions<DatabaseContext>>(new DbContextOptionsBuilder<DatabaseContext>()
                 .UseSqlServer(context.Configuration.GetConnectionString("DefaultConnection")).UseLoggerFactory(LoggerFactory.Create(b => b.AddConsole()))
                 .Options);
