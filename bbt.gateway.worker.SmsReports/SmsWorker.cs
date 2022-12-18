@@ -38,7 +38,7 @@ namespace bbt.gateway.worker.SmsReports
                         var endDate = DateTime.Now.AddHours(-6);
                         var startDate = endDate.AddHours(-8);
                         var smsResponseLogs = await _dbContext.SmsResponseLog.
-                        FromSqlRaw("Select SmsRequestLogId,StatusQueryId,Operator from SmsResponseLog (NOLOCK) WHERE OperatorResponseCode = 0 AND CreatedAt Between {0} AND {1} AND (status is null OR status = '')", startDate.ToString("yyyy-MM-dd HH:mm"), endDate.ToString("yyyy-MM-dd HH:mm"))
+                        FromSqlRaw("Select Id,SmsRequestLogId,StatusQueryId,Operator from SmsResponseLog (NOLOCK) WHERE OperatorResponseCode = 0 AND CreatedAt Between {0} AND {1} AND (status is null OR status = '')", startDate.ToString("yyyy-MM-dd HH:mm"), endDate.ToString("yyyy-MM-dd HH:mm"))
                         .AsNoTracking().ToListAsync();
 
                         _logManager.LogInformation("Sms Count : " + smsResponseLogs.Count);
