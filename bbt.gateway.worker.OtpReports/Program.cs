@@ -1,7 +1,7 @@
 using bbt.gateway.common;
 using bbt.gateway.common.Api.MessagingGateway;
 using bbt.gateway.common.Helpers;
-using bbt.gateway.worker.SmsReports;
+using bbt.gateway.worker.OtpReports;
 using Elastic.Apm.NetCoreAll;
 using Microsoft.EntityFrameworkCore;
 using Refit;
@@ -13,7 +13,7 @@ IHost host = Host.CreateDefaultBuilder(args)
     {
         services.AddRefitClient<IMessagingGatewayApi>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(context.Configuration["Api:ServiceUrl"]));
-        services.AddHostedService<SmsWorker>();
+        services.AddHostedService<OtpWorker>();
         services.AddSingleton<DbContextOptions<DatabaseContext>>(new DbContextOptionsBuilder<DatabaseContext>()
                 .UseSqlServer(context.Configuration.GetConnectionString("DefaultConnection"))
                 .Options);
@@ -24,4 +24,3 @@ IHost host = Host.CreateDefaultBuilder(args)
     .Build();
 
 await host.RunAsync();
-

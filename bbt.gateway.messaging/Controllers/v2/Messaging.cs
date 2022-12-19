@@ -400,7 +400,21 @@ namespace bbt.gateway.messaging.Controllers.v2
                 }
                 else
                 {
-                    return Ok(await _dEngageSender.SendSmsV2(_data));
+                    var codecOperator = await _repositoryManager.Operators.GetOperatorAsNoTracking(common.Models.OperatorType.Codec);
+                    if (codecOperator.Status == common.Models.OperatorStatus.Active)
+                    {
+                        return await _tracer.CaptureTransaction("SmsSendingCodec", ApiConstants.TypeRequest, async () =>
+                        {
+                            return Ok(await _codecSender.SendSmsV2(_data));
+                        });
+                    }
+                    else
+                    {
+                        return await _tracer.CaptureTransaction("SmsSendingdEngage", ApiConstants.TypeRequest, async () =>
+                        {
+                            return Ok(await _dEngageSender.SendSmsV2(_data));
+                        });
+                    }
                 }
             }
             else
