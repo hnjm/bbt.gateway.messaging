@@ -1,4 +1,3 @@
-
 using bbt.gateway.common;
 using bbt.gateway.common.Api.MessagingGateway;
 using bbt.gateway.common.Extensions;
@@ -9,16 +8,16 @@ using Microsoft.EntityFrameworkCore;
 using Refit;
 using System.Collections.Concurrent;
 
-namespace bbt.gateway.worker.SmsReports
+namespace bbt.gateway.worker.OtpReports
 {
-    public class SmsWorker : BackgroundService
+    public class OtpWorker : BackgroundService
     {
         private readonly IMessagingGatewayApi _messagingGatewayApi;
         private readonly ITracer _tracer;
         private readonly LogManager _logManager;
         private readonly DatabaseContext _dbContext;
         private IHostApplicationLifetime _hostApplicationLifetime;
-        public SmsWorker(LogManager logManager, ITracer tracer,
+        public OtpWorker(LogManager logManager, ITracer tracer,
             IMessagingGatewayApi messagingGatewayApi, DbContextOptions<DatabaseContext> dbContextOptions,
             IHostApplicationLifetime hostApplicationLifetime)
         {
@@ -29,56 +28,55 @@ namespace bbt.gateway.worker.SmsReports
             _hostApplicationLifetime = hostApplicationLifetime;
         }
 
-
         public override async Task StopAsync(CancellationToken stoppingToken)
         {
-            await Task.Delay(5000);
+            await Task.Delay(30000);
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logManager.LogInformation("Sms Tracking Triggered");
+            _logManager.LogInformation("Otp Tracking Triggered");
             try
             {
-                await _tracer.CaptureTransaction("Sms Tracking", ApiConstants.TypeRequest, async () =>
+                await _tracer.CaptureTransaction("Otp Tracking", ApiConstants.TypeRequest, async () =>
                 {
                     try
                     {
-                        var endDate = DateTime.Now.AddHours(-6);
-                        var startDate = endDate.AddHours(-2);
-                        var smsResponseLogs = await _dbContext.SmsResponseLog.
-                        FromSqlRaw("Select * from SmsResponseLog (NOLOCK) WHERE OperatorResponseCode = 0 AND CreatedAt Between {0} AND {1} AND (status is null OR status = '')", startDate.ToString("yyyy-MM-dd HH:mm"), endDate.ToString("yyyy-MM-dd HH:mm"))
+                        var endDate = DateTime.Now.AddMinutes(-5);
+                        var startDate = endDate.AddHours(-1.5);
+                        var otpResponseLogs = await _dbContext.OtpResponseLog.
+                        FromSqlRaw("Select * from OtpResponseLog (NOLOCK) WHERE ResponseCode = 200 AND CreatedAt Between {0} AND {1} AND TrackingStatus = 462", startDate.ToString("yyyy-MM-dd HH:mm"), endDate.ToString("yyyy-MM-dd HH:mm"))
                         .AsNoTracking().ToListAsync();
 
-                        _logManager.LogInformation("Sms Count : " + smsResponseLogs.Count);
+                        _logManager.LogInformation("Otp Count : " + otpResponseLogs.Count);
 
-                        ConcurrentBag<SmsEntitiesToBeProcessed> concurrentBag = new();
+                        ConcurrentBag<OtpEntitiesToBeProcessed> concurrentBag = new();
 
-                        var dividedList = smsResponseLogs.DivideListIntoParts(50);
-                        foreach (List<SmsResponseLog> smsResponseLogsParts in dividedList)
+                        var dividedList = otpResponseLogs.DivideListIntoParts(50);
+                        foreach (List<OtpResponseLog> otpResponseLogsParts in dividedList)
                         {
-                            _logManager.LogInformation("Part Count : " + smsResponseLogsParts.Count);
+                            _logManager.LogInformation("Part Count : " + otpResponseLogsParts.Count);
                             var taskList = new List<Task>();
-                            smsResponseLogsParts.ForEach(smsResponseLog =>
+                            otpResponseLogsParts.ForEach(otpResponseLog =>
                             {
-                                taskList.Add(GetDeliveryStatus(smsResponseLog, concurrentBag));
+                                taskList.Add(GetDeliveryStatus(otpResponseLog, concurrentBag));
                             });
                             await Task.WhenAll(taskList);
                         }
-                       
+
                         foreach (var entities in concurrentBag)
                         {
-                            if (entities.smsTrackingLog != null)
+                            if (entities.otpTrackingLog != null)
                             {
-                                await _dbContext.SmsTrackingLog.AddAsync(entities.smsTrackingLog);
+                                await _dbContext.OtpTrackingLog.AddAsync(entities.otpTrackingLog);
                             }
-                            if (entities.smsResponseLog != null)
+                            if (entities.otpResponseLog != null)
                             {
-                                _dbContext.SmsResponseLog.Update(entities.smsResponseLog);
+                                _dbContext.OtpResponseLog.Update(entities.otpResponseLog);
                             }
                             await _dbContext.SaveChangesAsync();
                         }
-                     
+
                     }
                     catch (Exception ex)
                     {
@@ -98,35 +96,35 @@ namespace bbt.gateway.worker.SmsReports
                 await _dbContext.DisposeAsync();
                 _hostApplicationLifetime.StopApplication();
             }
-            _logManager.LogInformation("Sms Tracking Finished");
+            _logManager.LogInformation("Otp Tracking Finished");
             _hostApplicationLifetime.StopApplication();
         }
 
-        private async Task GetDeliveryStatus(SmsResponseLog smsResponseLog, ConcurrentBag<SmsEntitiesToBeProcessed> concurrentBag)
+        private async Task GetDeliveryStatus(OtpResponseLog otpResponseLog, ConcurrentBag<OtpEntitiesToBeProcessed> concurrentBag)
         {
             try
             {
-                SmsEntitiesToBeProcessed entitiesToBeProcessed = new();
-                var response = await _messagingGatewayApi.CheckSmsStatus(new common.Models.v2.CheckFastSmsRequest
+                OtpEntitiesToBeProcessed entitiesToBeProcessed = new();
+                var response = await _messagingGatewayApi.CheckOtpStatus(new CheckSmsRequest
                 {
-                    Operator = smsResponseLog.Operator,
-                    SmsRequestLogId = smsResponseLog.Id,
-                    StatusQueryId = smsResponseLog.StatusQueryId
+                    Operator = otpResponseLog.Operator,
+                    OtpRequestLogId = otpResponseLog.Id,
+                    StatusQueryId = otpResponseLog.StatusQueryId
                 });
 
-                entitiesToBeProcessed.smsTrackingLog = response;
+                entitiesToBeProcessed.otpTrackingLog = response;
 
                 if (response.Status != SmsTrackingStatus.Pending)
                 {
-                    smsResponseLog.Status = response.Status.ToString();
-                    entitiesToBeProcessed.smsResponseLog = smsResponseLog;
+                    otpResponseLog.TrackingStatus = response.Status;
+                    entitiesToBeProcessed.otpResponseLog = otpResponseLog;
                 }
 
                 concurrentBag.Add(entitiesToBeProcessed);
             }
             catch (ApiException ex)
             {
-                _logManager.LogError($"Messaging Gateway Api Error | Status Code : {ex.StatusCode} | Detail : Operator => {smsResponseLog.Operator}, SmsResponseLogId => {smsResponseLog.Id}, StatusQueryId => {smsResponseLog.StatusQueryId}");
+                _logManager.LogError($"Messaging Gateway Api Error | Status Code : {ex.StatusCode} | Detail : Operator => {otpResponseLog.Operator}, SmsResponseLogId => {otpResponseLog.Id}, StatusQueryId => {otpResponseLog.StatusQueryId}");
             }
             catch (Exception ex)
             {
@@ -135,10 +133,9 @@ namespace bbt.gateway.worker.SmsReports
         }
     }
 
-    public class SmsEntitiesToBeProcessed
+    public class OtpEntitiesToBeProcessed
     {
-        public SmsResponseLog smsResponseLog { get; set; }
-        public SmsTrackingLog smsTrackingLog { get; set; }
+        public OtpResponseLog otpResponseLog { get; set; }
+        public OtpTrackingLog otpTrackingLog { get; set; }
     }
-
 }
