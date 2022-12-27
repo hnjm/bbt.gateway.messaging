@@ -292,9 +292,9 @@ namespace bbt.gateway.messaging.Controllers.v2
                 return BadRequest("Phone Number Field Is Mandatory");
             }
 
-            if ((await _repositoryManager.Whitelist.FindAsync(w => (w.Phone.CountryCode == data.Phone.CountryCode)
-             && (w.Phone.Prefix == data.Phone.Prefix)
-             && (w.Phone.Number == data.Phone.Number))).FirstOrDefault() != null)
+            if ((await _repositoryManager.Whitelist.FindAsync(w => (w.Phone.CountryCode == Convert.ToInt32(data.Phone.CountryCode))
+             && (w.Phone.Prefix == Convert.ToInt32(data.Phone.Prefix))
+             && (w.Phone.Number == Convert.ToInt32(data.Phone.Number)))).FirstOrDefault() != null)
                 return BadRequest("Phone Number Is Already Exist");
 
             var whitelistRecord = new WhiteList()
@@ -377,11 +377,11 @@ namespace bbt.gateway.messaging.Controllers.v2
             Tags = new[] { "Whitelist Management" })]
         [HttpDelete("whitelist/phone")]
         [SwaggerResponse(200, "Whitelist record is deleted successfully", typeof(void))]
-        public async Task<IActionResult> DeletePhoneFromWhitelist(common.Models.v2.Phone phone)
+        public async Task<IActionResult> DeletePhoneFromWhitelist(PhoneString phone)
         {
-            var recordsToDelete = await _repositoryManager.Whitelist.FindAsync(w => (w.Phone.CountryCode == phone.CountryCode)
-              && (w.Phone.Prefix == phone.Prefix)
-              && (w.Phone.Number == phone.Number));
+            var recordsToDelete = await _repositoryManager.Whitelist.FindAsync(w => (w.Phone.CountryCode == Convert.ToInt32(phone.CountryCode))
+              && (w.Phone.Prefix == Convert.ToInt32(phone.Prefix))
+              && (w.Phone.Number == Convert.ToInt32(phone.Number)));
 
             if(!recordsToDelete.Any())
                 return BadRequest("There is no record for given phone number");
@@ -441,11 +441,11 @@ namespace bbt.gateway.messaging.Controllers.v2
         [HttpGet("whitelist/check/phone")]
         [SwaggerResponse(200, "Phone is in whitelist", typeof(void))]
         [SwaggerResponse(404, "Phone is not in whitelist", typeof(void))]
-        public async Task<IActionResult> CheckPhone(int CountryCode,int Prefix,int Number)
+        public async Task<IActionResult> CheckPhone(string CountryCode,string Prefix,string Number)
         {
-            if ((await _repositoryManager.Whitelist.FindAsync(w => (w.Phone.CountryCode == CountryCode)
-               && (w.Phone.Prefix == Prefix)
-               && (w.Phone.Number == Number))).FirstOrDefault() != null)
+            if ((await _repositoryManager.Whitelist.FindAsync(w => (w.Phone.CountryCode == Convert.ToInt32(CountryCode))
+               && (w.Phone.Prefix == Convert.ToInt32(Prefix))
+               && (w.Phone.Number == Convert.ToInt32(Number)))).FirstOrDefault() != null)
                 return Ok();
             else
                 return NotFound();
