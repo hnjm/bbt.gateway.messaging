@@ -2,7 +2,7 @@
 {
     public class AddPhoneToWhitelistRequest
     {
-        public Phone Phone { get; set; }
+        public PhoneString Phone { get; set; }
         public Process CreatedBy { get; set; }
     }
 }
