@@ -302,7 +302,11 @@ namespace bbt.gateway.messaging.Controllers.v2
                 CreatedBy = data.CreatedBy.MapTo<common.Models.Process>(),
                 IpAddress = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault()
                     ?? HttpContext.Connection.RemoteIpAddress.ToString(),
-                Phone = data.Phone.MapTo<common.Models.Phone>()
+                Phone = new common.Models.Phone() { 
+                    CountryCode = Convert.ToInt32(data.Phone.CountryCode),
+                    Prefix = Convert.ToInt32(data.Phone.Prefix),
+                    Number = Convert.ToInt32(data.Phone.Number)
+                }
             };
 
             await _repositoryManager.Whitelist.AddAsync(whitelistRecord);
@@ -475,6 +479,104 @@ namespace bbt.gateway.messaging.Controllers.v2
                 return Ok();
             else
                 return NotFound();
+        }
+
+        [SwaggerOperation(
+           Summary = "Check Transaction Status",
+           Description = "Check Transactional Delivery Status."
+           )]
+        [HttpGet("transaction/check")]
+
+        public async Task<IActionResult> CheckSmsStatus(System.Guid TxnId)
+        {
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Mock")
+            {
+                return Ok(new CheckTransactionStatusResponse()
+                {
+                    status = TransactionStatus.Delivered
+                });
+            }
+
+            CheckSmsStatusRequest request = new();
+
+            var transaction = await _repositoryManager.Transactions.GetWithIdAsNoTrackingAsync(TxnId);
+            if (transaction == null)
+                return NotFound("Transaction not found");
+
+            if (transaction.TransactionType == TransactionType.TransactionalTemplatedSms
+                || transaction.TransactionType == TransactionType.TransactionalSms)
+            {
+                if (transaction.SmsRequestLog?.ResponseLogs == null)
+                {
+                    return Ok(new CheckTransactionStatusResponse
+                    {
+                        status = TransactionStatus.NotDelivered
+                    }); 
+                }
+                var responseLog = transaction.SmsRequestLog.ResponseLogs.FirstOrDefault();
+                if (responseLog == null)
+                {
+                    return Ok(new CheckTransactionStatusResponse
+                    {
+                        status = TransactionStatus.NotDelivered
+                    });
+                }
+
+                if (responseLog.Status == "Delivered")
+                {
+                    return Ok(new CheckTransactionStatusResponse
+                    {
+                        status = TransactionStatus.Delivered
+                    });
+                }
+                else
+                {
+                    return Ok(new CheckTransactionStatusResponse
+                    {
+                        status = TransactionStatus.NotDelivered
+                    });
+                }
+            }
+            if (transaction.TransactionType == TransactionType.Otp)
+            {
+
+            }
+            if(transaction.TransactionType == TransactionType.TransactionalMail ||
+                transaction.TransactionType == TransactionType.TransactionalMail)
+            {
+                if (transaction.MailRequestLog?.ResponseLogs == null)
+                {
+                    return Ok(new CheckTransactionStatusResponse
+                    {
+                        status = TransactionStatus.NotDelivered
+                    });
+                }
+                var responseLog = transaction.MailRequestLog.ResponseLogs.FirstOrDefault();
+                if (responseLog == null)
+                {
+                    return Ok(new CheckTransactionStatusResponse
+                    {
+                        status = TransactionStatus.NotDelivered
+                    });
+                }
+
+                if (responseLog.Status == "Delivered")
+                {
+                    return Ok(new CheckTransactionStatusResponse
+                    {
+                        status = TransactionStatus.Delivered
+                    });
+                }
+                else
+                {
+                    return Ok(new CheckTransactionStatusResponse
+                    {
+                        status = TransactionStatus.NotDelivered
+                    });
+                }
+            }
+
+            return BadRequest("Should pass valid request");
         }
 
         [SwaggerOperation(Summary = "Returns phones otp sending logs",
