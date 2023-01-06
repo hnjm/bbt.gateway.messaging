@@ -20,6 +20,7 @@ namespace bbt.gateway.messaging.ui.Pages
         void SelectionChanged(int i)
         {
             searchModel.SelectedSearchType = i;
+            searchModel.FilterValue = string.Empty;
         }
 
         protected override async Task OnInitializedAsync()
@@ -53,7 +54,7 @@ namespace bbt.gateway.messaging.ui.Pages
 
         }
 
-        public bool CheckSmsStatus(Transaction txn)
+        public EnumBasari CheckSmsStatus(Transaction txn)
         {
             if (txn.TransactionType == TransactionType.Otp)
             {
@@ -61,7 +62,16 @@ namespace bbt.gateway.messaging.ui.Pages
                 {
                     if (txn.OtpRequestLog.ResponseLogs != null)
                     {
-                        return txn.OtpRequestLog.ResponseLogs.Any(l => l.TrackingStatus == SmsTrackingStatus.Delivered);
+                        if (txn.OtpRequestLog.ResponseLogs.Any(l => l.TrackingStatus == SmsTrackingStatus.Delivered))
+                            return EnumBasari.Basarili;
+                        else if (txn.OtpRequestLog.ResponseLogs.Any(l => l.TrackingStatus == SmsTrackingStatus.Pending))
+                        {
+                            return EnumBasari.SmsKontrolGerekli;
+                        }
+                        else
+                        {
+                            return EnumBasari.Basarisiz;
+                        }
                     }
                 }
             }
@@ -71,7 +81,12 @@ namespace bbt.gateway.messaging.ui.Pages
                 {
                     if (txn.MailRequestLog.ResponseLogs != null)
                     {
-                        return txn.MailRequestLog.ResponseLogs.Any(l => l.ResponseCode == "0");
+                        if( txn.MailRequestLog.ResponseLogs.Any(l => l.ResponseCode == "0"))
+                            return EnumBasari.Basarili;
+                        else
+                        {
+                            return EnumBasari.Basarisiz;
+                        }
                     }
                 }
             }
@@ -81,7 +96,12 @@ namespace bbt.gateway.messaging.ui.Pages
                 {
                     if (txn.SmsRequestLog.ResponseLogs != null)
                     {
-                        return txn.SmsRequestLog.ResponseLogs.Any(l => l.OperatorResponseCode == 0);
+                        if( txn.SmsRequestLog.ResponseLogs.Any(l => l.OperatorResponseCode == 0))
+                            return EnumBasari.Basarili;
+                        else
+                        {
+                            return EnumBasari.Basarisiz;
+                        }
                     }
                 }
             }
@@ -91,12 +111,17 @@ namespace bbt.gateway.messaging.ui.Pages
                 {
                     if (txn.PushNotificationRequestLog.ResponseLogs != null)
                     {
-                        return txn.PushNotificationRequestLog.ResponseLogs.Any(l => l.ResponseCode == "0");
+                        if( txn.PushNotificationRequestLog.ResponseLogs.Any(l => l.ResponseCode == "0"))
+                                  return EnumBasari.Basarili;
+                        else
+                        {
+                            return EnumBasari.Basarisiz;
+                        }
                     }
                 }
             }
 
-            return false;
+            return EnumBasari.Basarisiz; ;
         }
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -148,7 +173,7 @@ namespace bbt.gateway.messaging.ui.Pages
                         {
                             useSpinner = false;
                             if (!IsFirstLoad)
-                                OpenModal("Başlangıç Tarihi Bitiş tarihinden büyük veya eşit olamaz");
+                                OpenModal("Başlangıç Tarihi Bitiş tarihinden büyük  olamaz");
                         }
                         else
                     {

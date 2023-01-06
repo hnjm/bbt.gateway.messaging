@@ -84,7 +84,7 @@
 
 <div class="row mb-2">
     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-        <RadzenButton Click=@(args => SearchTransactions()) Text="Sorgula" ButtonStyle="ButtonStyle.Primary" />
+        <RadzenButton Click=@(args => SearchTransactions()) Text="Sorgula" ButtonStyle="ButtonStyle.Primary" Disabled="@useSpinner" />
     </div>
 </div>
 @if (rowsCount > 0)
@@ -123,15 +123,19 @@
             }
             <RadzenDataGridColumn TItem="Transaction" Title="Durumu" Sortable="true">
                 <Template Context="data">
-                @if (CheckSmsStatus(data))
+                @if (CheckSmsStatus(data)==EnumBasari.Basarili)
                 {
                     <span class="text-success fw-bold">Başarılı</span>
                 }
-                else
+                else if(CheckSmsStatus(data)==EnumBasari.Basarisiz)
                 {
                     <span class="text-danger fw-bold">Başarısız</span>
                 }
-                </Template>
+                else if(CheckSmsStatus(data)==EnumBasari.SmsKontrolGerekli)
+                {
+                     <span class="text-danger fw-bold">Operatör Sorgulama Gerekli</span>
+                }
+            </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="Transaction" Title="İşlemler" OrderIndex="15" Width="25px">
                 <Template Context="data">
