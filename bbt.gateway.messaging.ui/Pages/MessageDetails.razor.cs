@@ -1,5 +1,7 @@
 ﻿using bbt.gateway.common.Models;
+using bbt.gateway.messaging.ui.Pages.Base;
 using Microsoft.AspNetCore.Components;
+using Radzen;
 
 namespace bbt.gateway.messaging.ui.Pages
 {
@@ -127,6 +129,58 @@ namespace bbt.gateway.messaging.ui.Pages
             }
 
             return "unknown";
+        }
+        async Task CheckSmsStatus(Radzen.LoadDataArgs args = null)
+        {
+            string MessageSmsStatus = string.Empty;
+            try
+            {
+                OtpResponseLog? responseLog = responseLogs.FirstOrDefault(f =>! string.IsNullOrEmpty(f.StatusQueryId));
+              
+                if (responseLog != null)
+                {
+                    if (Txn.TransactionType == TransactionType.Otp)
+                    {
+                        common.Models.v2.CheckSmsRequest checkSmsRequest = new common.Models.v2.CheckSmsRequest();
+                        if (Txn.OtpRequestLog != null && Txn.OtpRequestLog.PhoneConfiguration.Operator != null)
+                        {
+                            checkSmsRequest.Operator = Txn.OtpRequestLog.PhoneConfiguration.Operator.Value;
+                            checkSmsRequest.OtpRequestLogId = Txn.OtpRequestLog.Id;
+                        }
+                        else
+                        {
+                            MessageSmsStatus = "Operator bulunamadı";
+                        }
+                        checkSmsRequest.StatusQueryId = responseLog.StatusQueryId;
+
+                        var res = MessagingGateway.CheckOtpSmsStatus(checkSmsRequest).Result;
+                       
+                        if(res != null)
+                        {
+                            MessageSmsStatus = res.Status.ToString() + " : " + res.ResponseMessage;
+                        }
+                    }
+
+                }
+                else
+                {
+                    MessageSmsStatus = "Herhangi bir Sorgulama için gereken Operator Response id değeri bulunamadı ";
+                    
+                }
+            }
+            catch(Exception ex)
+            {
+                MessageSmsStatus = "Sms Sorgulamasında beklenmedik bir hata oluştu";
+            }
+            if(!string.IsNullOrEmpty(MessageSmsStatus))
+            {
+                
+                dialogService.Open<BaseMessageDialog>("",
+           new Dictionary<string, object>() { { "Message", MessageSmsStatus } },
+           new DialogOptions() { CloseDialogOnOverlayClick = true });
+            }
+           
+
         }
     }
 }

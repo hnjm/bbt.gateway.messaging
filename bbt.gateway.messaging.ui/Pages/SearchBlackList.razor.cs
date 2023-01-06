@@ -26,6 +26,7 @@ namespace bbt.gateway.messaging.ui.Pages
         {
          
             searchModel.SelectedSearchType = i;
+            searchModel.FilterValue = string.Empty;
         }
 
         protected override async Task OnInitializedAsync()

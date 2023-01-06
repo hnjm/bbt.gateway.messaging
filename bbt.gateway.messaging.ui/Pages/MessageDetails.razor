@@ -1,7 +1,8 @@
 ﻿@page "/dialogcard/{Txn}"
 
-
+@using bbt.gateway.messaging.ui.Data
 @inject Radzen.DialogService dialogService
+@inject IMessagingGatewayService MessagingGateway
 @using bbt.gateway.common.Models
 
 <RadzenFieldset AllowCollapse="true">
@@ -33,17 +34,24 @@
             @foreach (var responseLog in responseLogs)
             {
                 <div class="row">
-                    <div class="col-6">
+                    <div class="col-4">
                         <RadzenCard>
                             <span>Operator Cevap Kodu</span>
                             <RadzenTextBox ReadOnly Value="@responseLog.ResponseCode.ToString()" />
                         </RadzenCard>
                     </div>
                  
-                     <div class="col-6">
+                     <div class="col-4">
                         <RadzenCard>
                             <span>Response ID</span>
                             <RadzenTextBox ReadOnly Value="@responseLog.StatusQueryId" />
+                        </RadzenCard>
+                    </div>
+
+                      <div class="col-4">
+                        <RadzenCard>
+                            <span>Tracking Status</span>
+                            <RadzenTextBox ReadOnly Value="@responseLog.TrackingStatus.ToString()" />
                         </RadzenCard>
                     </div>
                 </div>
@@ -80,7 +88,7 @@
             </span>
         </HeaderTemplate>
         <ChildContent>
-            @if (trackingsLogs.Count > 0)
+       @*     @if (trackingsLogs.Count > 0)
             {
                 @foreach (var trackingLog in trackingsLogs)
                 {
@@ -101,13 +109,20 @@
                 }
             }
             else
-            {
+            {*@
                 <div class="col-12">
                     <RadzenCard>
-                        <span>Tracking Log Bulunamadı.</span>
+                       @* <span>Tracking Log Bulunamadı.</span>*@
+                        @if (responseLogs.Count > 0&& (Txn.TransactionType == TransactionType.Otp||Txn.TransactionType == TransactionType.TransactionalSms))
+            {
+                       
+                              <RadzenButton Click=@(args => CheckSmsStatus()) Text="Operatör Sorgula" ButtonStyle="ButtonStyle.Primary" />
+                        
+                      
+            }
                     </RadzenCard>
                 </div>
-            }
+           @* }*@
         </ChildContent>
         <SummaryTemplate>
             <RadzenCard class="mt-3">
