@@ -157,7 +157,14 @@ namespace bbt.gateway.messaging.ui.Pages
                        
                         if(res != null)
                         {
-                            MessageSmsStatus = res.Status.ToString() + " : " + res.ResponseMessage;
+                            if(res.OtpResponseLog==null)
+                            {
+                                MessageSmsStatus = "Status:" + res.Status.ToString() + " " + Environment.NewLine + "  ResponseMessage:" + res.ResponseMessage;
+                            }
+                            else
+                            {
+                                MessageSmsStatus = "Status:" + res.Status.ToString() + " " + Environment.NewLine+ "  ResponseMessage:" + res.OtpResponseLog.ResponseMessage;
+                            }
                         }
                     }
 
@@ -175,7 +182,7 @@ namespace bbt.gateway.messaging.ui.Pages
             if(!string.IsNullOrEmpty(MessageSmsStatus))
             {
                 
-                dialogService.Open<BaseMessageDialog>("",
+                dialogService.Open<BaseMessageDialog>("Bilgilendirme",
            new Dictionary<string, object>() { { "Message", MessageSmsStatus } },
            new DialogOptions() { CloseDialogOnOverlayClick = true });
             }
