@@ -10,13 +10,13 @@ namespace bbt.gateway.messaging.ui.Pages.Base
         public bool IsFirstLoad { get; set; } = false;
         public void OpenModal(string Message)
         {
-            dialogService.Open<BaseMessageDialog>("",
+            dialogService.Open<BaseMessageDialog>("Bilgilendirme",
               new Dictionary<string, object>() { { "Message", Message } },
               new DialogOptions() { CloseDialogOnOverlayClick = true });
         }
         public async void OpenModalAsync(string Message)
         {
-            await dialogService.OpenAsync<BaseMessageDialog>("",
+            await dialogService.OpenAsync<BaseMessageDialog>("Bilgilendirme",
                  new Dictionary<string, object>() { { "Message", Message } },
                  new DialogOptions() { CloseDialogOnOverlayClick = true });
         }
