@@ -48,7 +48,7 @@
             <param name="indexFormat">Index Format for Elastic Search</param>
             <returns></returns>
         </member>
-        <member name="M:bbt.gateway.common.CoreExtensions.UseVaultSecrets(Microsoft.Extensions.Hosting.IHostBuilder,System.String)">
+        <member name="M:bbt.gateway.common.CoreExtensions.UseVaultSecretsAsync(Microsoft.Extensions.Configuration.IConfigurationBuilder,System.Type,System.String,System.String)">
             <summary>
             Read Appsettings/Secret From Vault<br />
             </summary>

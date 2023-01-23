@@ -7,6 +7,10 @@ using Serilog.Sinks.Elasticsearch;
 using Winton.Extensions.Configuration.Consul;
 using Dapr.Client;
 using Dapr.Extensions.Configuration;
+using System.Text;
+using VaultSharp.V1.AuthMethods;
+using VaultSharp.V1.AuthMethods.Token;
+using VaultSharp;
 
 namespace bbt.gateway.common
 {
@@ -43,7 +47,7 @@ namespace bbt.gateway.common
                     configuration.Token = context.Configuration["ConsulToken"];
                     configuration.Address = new Uri(consulHost);
                 }
-
+                
                 builder.AddConsul($"{applicationName}/appsettings.json",
                     source =>
                     {
@@ -101,20 +105,26 @@ namespace bbt.gateway.common
         /// </summary>
         /// <param name="string">Dapr Secret Store Component Name</param>
         /// <returns></returns>
-        public static IHostBuilder UseVaultSecrets(this IHostBuilder host, string secretStoreName)
+        public static async Task<IConfigurationBuilder> UseVaultSecretsAsync(this IConfigurationBuilder builder, Type type, string secretPath, string secretStoreName = null)
         {
-            return host.ConfigureAppConfiguration((context, builder) =>
-            {
-                string applicationName = context.HostingEnvironment.ApplicationName;
-                string environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+            string environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
 
-                var daprClient = new DaprClientBuilder().Build();
-                var secretDescriptors = new List<DaprSecretDescriptor>
-                    {
-                        new DaprSecretDescriptor($"{applicationName}/appsettings.{environmentName}.json")
-                    };
-                builder.AddDaprSecretStore(secretStoreName, secretDescriptors, daprClient);
-            });
+            builder.AddJsonFile($"appsettings.{environmentName}.json", false, true)
+            .AddUserSecrets(type.Assembly).AddEnvironmentVariables();
+
+            var configuration = builder.Build();
+
+            IAuthMethodInfo authMethod = new TokenAuthMethodInfo(configuration["VaultToken"]);
+            var vaultSettings = new VaultClientSettings(configuration["VaultHost"],authMethod);
+            IVaultClient vaultClient = new VaultClient(vaultSettings);
+
+            var appsettings = await vaultClient.V1.Secrets.KeyValue.V2.ReadSecretAsync(secretPath);
+           
+            var daprClient = new DaprClientBuilder().Build();
+                
+            builder.AddJsonStream(new MemoryStream(Encoding.UTF8.GetBytes(appsettings.Data.Data.FirstOrDefault().Value.ToString())));
+
+            return builder;
 
         }
     }

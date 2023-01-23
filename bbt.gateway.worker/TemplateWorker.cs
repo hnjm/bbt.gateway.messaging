@@ -3,6 +3,7 @@ using bbt.gateway.common.Api.dEngage;
 using bbt.gateway.common.Api.dEngage.Model.Contents;
 using bbt.gateway.common.Api.dEngage.Model.Login;
 using bbt.gateway.common.GlobalConstants;
+using bbt.gateway.common.Helpers;
 using bbt.gateway.common.Models;
 using Dapr.Client;
 using Elastic.Apm.Api;
