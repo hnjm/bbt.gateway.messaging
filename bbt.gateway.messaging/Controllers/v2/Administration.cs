@@ -217,6 +217,8 @@ namespace bbt.gateway.messaging.Controllers.v2
 
             await _repositoryManager.BlackListEntries.AddAsync(newOtpBlackListEntry);
 
+            await _repositoryManager.SaveChangesAsync();
+
             return Created("", newOtpBlackListEntryId);
         }
 
