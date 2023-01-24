@@ -64,6 +64,10 @@
                                         Data=@choice.Value.SmsTypes
                                         Change=@(args => SelectSmsType(args, "DropDown")) />
                     </RadzenCard>
+                     <RadzenCard class="col-2" Style="flex: 1" >
+                        <h6 class="mb-1">Gönderen Sistem Bilgisi</h6>
+                           <RadzenTextBox Placeholder="Gönderen Sistem" @bind-Value="searchModel.CreatedBy" Class="w-100" />
+                    </RadzenCard>
                
             }
            
@@ -121,6 +125,11 @@
             {
                 <RadzenDataGridColumn TItem="Transaction" Property="Mail" Title="E-Mail" Sortable="true" />
             }
+            <RadzenDataGridColumn TItem="Transaction" Title="Gönderen Sistem" Sortable="true"  Width="25px">
+                <Template Context="data">
+                   @data.CreatedBy.Name
+                </Template>
+            </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="Transaction" Title="Durumu" Sortable="true">
                 <Template Context="data">
                 @if (CheckSmsStatus(data)==EnumBasari.Basarili)
