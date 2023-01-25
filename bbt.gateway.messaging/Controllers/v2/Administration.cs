@@ -653,6 +653,26 @@ namespace bbt.gateway.messaging.Controllers.v2
             return Ok(new TransactionsDto());
         }
 
+        [SwaggerOperation(Summary = "Returns transactions info by createdName",
+            Tags = new[] { "Transaction Management" })]
+        [HttpGet("transactions/createdName/phone/{createdName}/{countryCode}/{prefix}/{number}")]
+        [SwaggerResponse(200, "Records was returned successfully", typeof(Transaction[]))]
+        public async Task<IActionResult> GetTransactionsWithPhoneByCreatedName(string createdName,int countryCode, int prefix, int number, int smsType, DateTime startDate, DateTime endDate, [Range(0, 100)] int page = 0, [Range(1, 100)] int pageSize = 20)
+        {
+            if (smsType == 1)
+            {
+                var res = await _repositoryManager.Transactions.GetOtpMessagesWithPhoneByCreatedNameAsync(createdName,countryCode, prefix, number, startDate, endDate, page, pageSize);
+                return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
+            }
+            if (smsType == 2)
+            {
+                var res = await _repositoryManager.Transactions.GetTransactionalSmsMessagesWithPhoneByCreatedNameAsync(createdName,countryCode, prefix, number, startDate, endDate, page, pageSize);
+                return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
+            }
+
+            return Ok(new TransactionsDto());
+        }
+
         [SwaggerOperation(Summary = "Returns transactions info",
             Tags = new[] { "Transaction Management" })]
         [HttpGet("transactions/mail/{email}")]
@@ -697,7 +717,29 @@ namespace bbt.gateway.messaging.Controllers.v2
 
             return Ok(new TransactionsDto());
         }
+        [SwaggerOperation(Summary = "Returns transactions info by created name",
+      Tags = new[] { "Transaction Management" })]
+        [HttpGet("transactions/createdName/customer/{createdName}/{customerNo}/{messageType}")]
+        [SwaggerResponse(200, "Records was returned successfully", typeof(Transaction[]))]
+        public async Task<IActionResult> GetTransactionsWithCustomerNoByCreatedName(string createdName,ulong customerNo, int messageType, int smsType, DateTime startDate, DateTime endDate, [Range(0, 100)] int page = 0, [Range(1, 100)] int pageSize = 20)
+        {
+            if (messageType == 1)
+            {
+                if (smsType == 1)
+                {
+                    var res = await _repositoryManager.Transactions.GetOtpMessagesWithCustomerNoByCreatedNameAsync(createdName,customerNo, startDate, endDate, page, pageSize);
+                    return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
+                }
+                if (smsType == 2)
+                {
+                    var res = await _repositoryManager.Transactions.GetTransactionalSmsMessagesWithCustomerNoByCreatedNameAsync(createdName,customerNo, startDate, endDate, page, pageSize);
+                    return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
+                }
 
+                return Ok(new TransactionsDto());
+            }
+            return Ok(new TransactionsDto());
+        }
         [SwaggerOperation(Summary = "Returns transactions info",
             Tags = new[] { "Transaction Management" })]
         [HttpGet("transactions/citizen/{citizenshipNo}/{messageType}")]
@@ -731,6 +773,29 @@ namespace bbt.gateway.messaging.Controllers.v2
             }
 
             return Ok(new List<Transaction>());
+        }
+       
+        [SwaggerOperation(Summary = "Returns transactions info by created name",
+    Tags = new[] { "Transaction Management" })]
+        [HttpGet("transactions/createdName/citizen/{createdName}/{citizenshipNo}/{messageType}")]
+        [SwaggerResponse(200, "Records was returned successfully", typeof(Transaction[]))]
+        public async Task<IActionResult> GetTransactionsWithCitizenshipNoByCreatedName(string createdName, string citizenshipNo, int messageType, int smsType, DateTime startDate, DateTime endDate, [Range(0, 100)] int page = 0, [Range(1, 100)] int pageSize = 20)
+        {
+
+                if (smsType == 1)
+                {
+                    var res = await _repositoryManager.Transactions.GetOtpMessagesWithCitizenshipNoByCreatedNameAsync(createdName,citizenshipNo, startDate, endDate, page, pageSize);
+                    return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
+                }
+
+                if (smsType == 2)
+                {
+                    var res = await _repositoryManager.Transactions.GetTransactionalSmsMessagesWithCitizenshipNoByCreatedNameAsync(createdName,citizenshipNo, startDate, endDate, page, pageSize);
+                    return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
+                }
+                return Ok(new TransactionsDto());
+
+          
         }
 
         [SwaggerOperation(Summary = "Returns report for CreditReport",

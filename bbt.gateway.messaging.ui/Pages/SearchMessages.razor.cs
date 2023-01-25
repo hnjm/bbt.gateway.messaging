@@ -163,6 +163,7 @@ namespace bbt.gateway.messaging.ui.Pages
                 }
                 else
                 {
+                  
                     if((searchModel.SelectedSearchType==1|| searchModel.SelectedSearchType == 2)&&searchModel.MessageType == MessageTypeEnum.Unselected)
                     {
                         useSpinner = false;
@@ -207,9 +208,21 @@ namespace bbt.gateway.messaging.ui.Pages
 
         async Task SearchWithPhone()
         {
-            var res = await MessagingGateway.GetTransactionsByPhone(new Phone(searchModel.FilterValue), CreateQueryParams());
-            transactions = res.Transactions.AsODataEnumerable();
-            rowsCount = res.Count;
+
+            if (((searchModel.SelectedSearchType != 4 && searchModel.MessageType == MessageTypeEnum.Sms) || searchModel.SelectedSearchType == 3)
+                &&!string.IsNullOrEmpty(searchModel.CreatedBy))
+            {
+                var res = await MessagingGateway.GetTransactionsByPhoneCreatedName(new Phone(searchModel.FilterValue),searchModel.CreatedBy ,CreateQueryParams());
+                transactions = res.Transactions.AsODataEnumerable();
+                rowsCount = res.Count;
+            }
+            else
+            {
+                var res = await MessagingGateway.GetTransactionsByPhone(new Phone(searchModel.FilterValue), CreateQueryParams());
+                transactions = res.Transactions.AsODataEnumerable();
+                rowsCount = res.Count;
+               
+            }
             if (rowsCount > 0)
             {
                 transactionFirst = transactions.FirstOrDefault();
@@ -218,6 +231,7 @@ namespace bbt.gateway.messaging.ui.Pages
             {
                 transactionFirst = new Transaction();
             }
+
         }
 
         async Task SearchWithMail()
@@ -239,9 +253,20 @@ namespace bbt.gateway.messaging.ui.Pages
         {
             try
             {
-                var res = await MessagingGateway.GetTransactionsByCustomerNo(Convert.ToUInt64(searchModel.FilterValue), Constants.MessageTypeMap[searchModel.MessageType], CreateQueryParams());
-                transactions = res.Transactions;
-                rowsCount = res.Count;
+                if (((searchModel.SelectedSearchType != 4 && searchModel.MessageType == MessageTypeEnum.Sms) || searchModel.SelectedSearchType == 3)
+               && !string.IsNullOrEmpty(searchModel.CreatedBy))
+                {
+                    var res = await MessagingGateway.GetTransactionsByCustomerNoCreatedName(Convert.ToUInt64(searchModel.FilterValue),searchModel.CreatedBy ,Constants.MessageTypeMap[searchModel.MessageType], CreateQueryParams());
+                    transactions = res.Transactions;
+                    rowsCount = res.Count;
+                }
+                else
+                {
+
+                    var res = await MessagingGateway.GetTransactionsByCustomerNo(Convert.ToUInt64(searchModel.FilterValue), Constants.MessageTypeMap[searchModel.MessageType], CreateQueryParams());
+                    transactions = res.Transactions;
+                    rowsCount = res.Count;
+                }
                 if (rowsCount > 0)
                 {
                     transactionFirst = transactions.FirstOrDefault();
@@ -261,9 +286,20 @@ namespace bbt.gateway.messaging.ui.Pages
 
         async Task SearchWithCitizenshipNo()
         {
-            var res = await MessagingGateway.GetTransactionsByCitizenshipNo(searchModel.FilterValue, Constants.MessageTypeMap[searchModel.MessageType], CreateQueryParams());
-            transactions = res.Transactions;
-            rowsCount = res.Count;
+            if (((searchModel.SelectedSearchType != 4 && searchModel.MessageType == MessageTypeEnum.Sms) || searchModel.SelectedSearchType == 3)
+              && !string.IsNullOrEmpty(searchModel.CreatedBy))
+            {
+                var res = await MessagingGateway.GetTransactionsByCitizenshipNoCreatedName(searchModel.FilterValue,searchModel.CreatedBy ,Constants.MessageTypeMap[searchModel.MessageType], CreateQueryParams());
+                transactions = res.Transactions;
+                rowsCount = res.Count;
+            }
+            else
+            {
+                var res = await MessagingGateway.GetTransactionsByCitizenshipNo(searchModel.FilterValue, Constants.MessageTypeMap[searchModel.MessageType], CreateQueryParams());
+                transactions = res.Transactions;
+                rowsCount = res.Count;
+            }
+               
             if (rowsCount > 0)
             {
                 transactionFirst = transactions.FirstOrDefault();
