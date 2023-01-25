@@ -55,7 +55,7 @@ namespace bbt.gateway.common.Repositories
             IEnumerable<Transaction> list = await Context.Transactions
                .Where(t => t.Phone.CountryCode == countryCode && t.Phone.Prefix == prefix && t.Phone.Number == number &&
                 t.TransactionType == TransactionType.Otp && t.CreatedAt >= startDate && t.CreatedAt <= endDate
-                 && t.CreatedBy.Name == createdbyName)
+                 && t.CreatedBy.Name.Contains(createdbyName))
                .Include(t => t.OtpRequestLog).ThenInclude(o => o.ResponseLogs).ThenInclude(o => o.TrackingLogs)
                .Include(t => t.OtpRequestLog.PhoneConfiguration)
                .OrderByDescending(t => t.CreatedAt)
@@ -66,7 +66,7 @@ namespace bbt.gateway.common.Repositories
             int count = await Context.Transactions
                .CountAsync(t => t.Phone.CountryCode == countryCode && t.Phone.Prefix == prefix && t.Phone.Number == number &&
                 t.TransactionType == TransactionType.Otp && t.CreatedAt >= startDate && t.CreatedAt <= endDate
-                 && t.CreatedBy.Name == createdbyName);
+                 && t.CreatedBy.Name.Contains(createdbyName));
 
             return (list, count);
 
@@ -95,7 +95,7 @@ namespace bbt.gateway.common.Repositories
             IEnumerable<Transaction> list = await Context.Transactions
                 .Where(t => t.CustomerNo == customerNo && t.TransactionType == TransactionType.Otp
                  && t.CreatedAt >= startDate && t.CreatedAt <= endDate
-                  && t.CreatedBy.Name == createdbyName)
+                  && t.CreatedBy.Name.Contains(createdbyName))
                 .Include(t => t.OtpRequestLog).ThenInclude(o => o.ResponseLogs).ThenInclude(o => o.TrackingLogs)
                 .Include(t => t.OtpRequestLog.PhoneConfiguration)
                 .OrderByDescending(t => t.CreatedAt)
@@ -106,7 +106,7 @@ namespace bbt.gateway.common.Repositories
             int count = await Context.Transactions
                 .CountAsync(t => t.CustomerNo == customerNo && t.TransactionType == TransactionType.Otp
                  && t.CreatedAt >= startDate && t.CreatedAt <= endDate
-                  && t.CreatedBy.Name == createdbyName);
+                  && t.CreatedBy.Name.Contains(createdbyName));
 
             return (list, count);
 
@@ -136,7 +136,7 @@ namespace bbt.gateway.common.Repositories
             IEnumerable<Transaction> list = await Context.Transactions
                 .Where(t => t.CitizenshipNo == citizenshipNo && t.TransactionType == TransactionType.Otp
                  && t.CreatedAt >= startDate && t.CreatedAt <= endDate
-                 && t.CreatedBy.Name == createdbyName)
+                 && t.CreatedBy.Name.Contains(createdbyName))
                 .Include(t => t.OtpRequestLog).ThenInclude(o => o.ResponseLogs).ThenInclude(o => o.TrackingLogs)
                 .Include(t => t.OtpRequestLog.PhoneConfiguration)
                 .OrderByDescending(t => t.CreatedAt)
@@ -147,7 +147,7 @@ namespace bbt.gateway.common.Repositories
             int count = await Context.Transactions
                 .CountAsync(t => t.CitizenshipNo == citizenshipNo && t.TransactionType == TransactionType.Otp
                  && t.CreatedAt >= startDate && t.CreatedAt <= endDate
-                 && t.CreatedBy.Name == createdbyName);
+                 && t.CreatedBy.Name.Contains(createdbyName));
 
             return (list, count);
         }
@@ -177,7 +177,7 @@ namespace bbt.gateway.common.Repositories
                 .Where(t => t.Phone.CountryCode == countryCode && t.Phone.Prefix == prefix && t.Phone.Number == number && (t.TransactionType == TransactionType.TransactionalSms
                 || t.TransactionType == TransactionType.TransactionalTemplatedSms)
                 && t.CreatedAt >= startDate && t.CreatedAt < endDate
-                &&t.CreatedBy.Name== createdbyName)
+                && t.CreatedBy.Name.Contains(createdbyName))
                 .Include(t => t.SmsRequestLog).ThenInclude(s => s.ResponseLogs)
                 .OrderByDescending(t => t.CreatedAt)
                 .Skip(page * pageSize)
@@ -188,7 +188,7 @@ namespace bbt.gateway.common.Repositories
                 .CountAsync(t => t.Phone.CountryCode == countryCode && t.Phone.Prefix == prefix && t.Phone.Number == number && (t.TransactionType == TransactionType.TransactionalSms
                 || t.TransactionType == TransactionType.TransactionalTemplatedSms)
                 && t.CreatedAt >= startDate && t.CreatedAt < endDate
-                && t.CreatedBy.Name == createdbyName);
+                && t.CreatedBy.Name.Contains(createdbyName));
 
             return (list, count);
         }
@@ -220,7 +220,7 @@ namespace bbt.gateway.common.Repositories
                 (t.TransactionType == TransactionType.TransactionalSms
                 || t.TransactionType == TransactionType.TransactionalTemplatedSms)
                 && t.CreatedAt >= startDate && t.CreatedAt < endDate
-                  && t.CreatedBy.Name == createdbyName)
+                  && t.CreatedBy.Name.Contains(createdbyName))
                 .Include(t => t.SmsRequestLog).ThenInclude(s => s.ResponseLogs)
                 .OrderByDescending(t => t.CreatedAt)
                 .Skip(page * pageSize)
@@ -232,7 +232,7 @@ namespace bbt.gateway.common.Repositories
                 (t.TransactionType == TransactionType.TransactionalSms
                 || t.TransactionType == TransactionType.TransactionalTemplatedSms)
                 && t.CreatedAt >= startDate && t.CreatedAt < endDate
-                  && t.CreatedBy.Name == createdbyName);
+                  && t.CreatedBy.Name.Contains(createdbyName));
 
             return (list, count);
         }
@@ -265,7 +265,7 @@ namespace bbt.gateway.common.Repositories
                 (t.TransactionType == TransactionType.TransactionalSms
                 || t.TransactionType == TransactionType.TransactionalTemplatedSms)
                 && t.CreatedAt >= startDate && t.CreatedAt < endDate
-                 && t.CreatedBy.Name == createdbyName)
+                 && t.CreatedBy.Name.Contains(createdbyName))
                 .Include(t => t.SmsRequestLog).ThenInclude(s => s.ResponseLogs)
                 .OrderByDescending(t => t.CreatedAt)
                 .Skip(page * pageSize)
@@ -278,7 +278,7 @@ namespace bbt.gateway.common.Repositories
                 (t.TransactionType == TransactionType.TransactionalSms
                 || t.TransactionType == TransactionType.TransactionalTemplatedSms)
                 && t.CreatedAt >= startDate && t.CreatedAt < endDate
-                 && t.CreatedBy.Name == createdbyName);
+                 && t.CreatedBy.Name.Contains(createdbyName));
 
             return (list, count);
         }
