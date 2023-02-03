@@ -2,6 +2,7 @@
 using bbt.gateway.messaging.ui.Data;
 using bbt.gateway.messaging.ui.Pages.Base;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using Radzen;
 using Radzen.Blazor;
 
@@ -15,7 +16,9 @@ namespace bbt.gateway.messaging.ui.Pages
         private int pageCount = 10;
         private int rowsCount = 0;
         private bool useSpinner;
+        private bool closeExcel=false;
         private RadzenDataGrid<Transaction> grid;
+        private string base64Value = string.Empty;
         Transaction transactionFirst = new Transaction();
         void SelectionChanged(int i)
         {
@@ -209,20 +212,21 @@ namespace bbt.gateway.messaging.ui.Pages
         async Task SearchWithPhone()
         {
 
-            if (((searchModel.SelectedSearchType != 4 && searchModel.MessageType == MessageTypeEnum.Sms) || searchModel.SelectedSearchType == 3)
-                &&!string.IsNullOrEmpty(searchModel.CreatedBy))
-            {
-                var res = await MessagingGateway.GetTransactionsByPhoneCreatedName(new Phone(searchModel.FilterValue),searchModel.CreatedBy ,CreateQueryParams());
-                transactions = res.Transactions.AsODataEnumerable();
-                rowsCount = res.Count;
-            }
-            else
-            {
+            //if (((searchModel.SelectedSearchType != 4 && searchModel.MessageType == MessageTypeEnum.Sms) || searchModel.SelectedSearchType == 3)
+            //    &&!string.IsNullOrEmpty(searchModel.CreatedBy))
+            //{
+            //    var res = await MessagingGateway.GetTransactionsByPhoneCreatedName(new Phone(searchModel.FilterValue),searchModel.CreatedBy ,CreateQueryParams());
+
+            //     transactions = res.Transactions.AsODataEnumerable();
+            //    rowsCount = res.Count;
+            //}
+            //else
+            //{
                 var res = await MessagingGateway.GetTransactionsByPhone(new Phone(searchModel.FilterValue), CreateQueryParams());
                 transactions = res.Transactions.AsODataEnumerable();
                 rowsCount = res.Count;
                
-            }
+            //}
             if (rowsCount > 0)
             {
                 transactionFirst = transactions.FirstOrDefault();
@@ -253,20 +257,20 @@ namespace bbt.gateway.messaging.ui.Pages
         {
             try
             {
-                if (((searchModel.SelectedSearchType != 4 && searchModel.MessageType == MessageTypeEnum.Sms) || searchModel.SelectedSearchType == 3)
-               && !string.IsNullOrEmpty(searchModel.CreatedBy))
-                {
-                    var res = await MessagingGateway.GetTransactionsByCustomerNoCreatedName(Convert.ToUInt64(searchModel.FilterValue),searchModel.CreatedBy ,Constants.MessageTypeMap[searchModel.MessageType], CreateQueryParams());
-                    transactions = res.Transactions;
-                    rowsCount = res.Count;
-                }
-                else
-                {
+               // if (((searchModel.SelectedSearchType != 4 && searchModel.MessageType == MessageTypeEnum.Sms) || searchModel.SelectedSearchType == 3)
+               //&& !string.IsNullOrEmpty(searchModel.CreatedBy))
+               // {
+               //     var res = await MessagingGateway.GetTransactionsByCustomerNoCreatedName(Convert.ToUInt64(searchModel.FilterValue),searchModel.CreatedBy ,Constants.MessageTypeMap[searchModel.MessageType], CreateQueryParams());
+               //     transactions = res.Transactions;
+               //     rowsCount = res.Count;
+               // }
+               // else
+               // {
 
                     var res = await MessagingGateway.GetTransactionsByCustomerNo(Convert.ToUInt64(searchModel.FilterValue), Constants.MessageTypeMap[searchModel.MessageType], CreateQueryParams());
                     transactions = res.Transactions;
                     rowsCount = res.Count;
-                }
+                //}
                 if (rowsCount > 0)
                 {
                     transactionFirst = transactions.FirstOrDefault();
@@ -286,19 +290,19 @@ namespace bbt.gateway.messaging.ui.Pages
 
         async Task SearchWithCitizenshipNo()
         {
-            if (((searchModel.SelectedSearchType != 4 && searchModel.MessageType == MessageTypeEnum.Sms) || searchModel.SelectedSearchType == 3)
-              && !string.IsNullOrEmpty(searchModel.CreatedBy))
-            {
-                var res = await MessagingGateway.GetTransactionsByCitizenshipNoCreatedName(searchModel.FilterValue,searchModel.CreatedBy ,Constants.MessageTypeMap[searchModel.MessageType], CreateQueryParams());
-                transactions = res.Transactions;
-                rowsCount = res.Count;
-            }
-            else
-            {
+            //if (((searchModel.SelectedSearchType != 4 && searchModel.MessageType == MessageTypeEnum.Sms) || searchModel.SelectedSearchType == 3)
+            //  && !string.IsNullOrEmpty(searchModel.CreatedBy))
+            //{
+            //    var res = await MessagingGateway.GetTransactionsByCitizenshipNoCreatedName(searchModel.FilterValue,searchModel.CreatedBy ,Constants.MessageTypeMap[searchModel.MessageType], CreateQueryParams());
+            //    transactions = res.Transactions;
+            //    rowsCount = res.Count;
+            //}
+            //else
+            //{
                 var res = await MessagingGateway.GetTransactionsByCitizenshipNo(searchModel.FilterValue, Constants.MessageTypeMap[searchModel.MessageType], CreateQueryParams());
                 transactions = res.Transactions;
                 rowsCount = res.Count;
-            }
+            //}
                
             if (rowsCount > 0)
             {
@@ -314,7 +318,36 @@ namespace bbt.gateway.messaging.ui.Pages
         {
 
         }
+        public async void ExcelDownload()
+        {
 
+            closeExcel = true;
+            StateHasChanged();
+            switch (searchModel.SelectedSearchType)
+            {
+                case 1:
+                    base64Value = await MessagingGateway.GetTransactionsExcelReportWithCustomer(Convert.ToUInt64(searchModel.FilterValue), Constants.MessageTypeMap[searchModel.MessageType], CreateExcelQueryParams());
+                    await JS.InvokeAsync<object>("JSInteropExt.saveAsFile", "Rapor.xlsx", "application/vdn.ms-excel", base64Value);
+                    break;
+                case 2:
+                    base64Value = await MessagingGateway.GetTransactionsExcelReportWithCitizenshipNo(searchModel.FilterValue, Constants.MessageTypeMap[searchModel.MessageType], CreateExcelQueryParams());
+                    await JS.InvokeAsync<object>("JSInteropExt.saveAsFile", "Rapor.xlsx", "application/vdn.ms-excel", base64Value);
+
+                    break;
+                case 3:
+                    base64Value = await MessagingGateway.GetTransactionsExcelReportWithPhone(new Phone(searchModel.FilterValue), CreateExcelQueryParams());
+                    await JS.InvokeAsync<object>("JSInteropExt.saveAsFile", "Rapor.xlsx", "application/vdn.ms-excel", base64Value);
+                    break;
+                case 4:
+                    base64Value = await MessagingGateway.GetTransactionsExcelReportWithMail(searchModel.FilterValue, CreateExcelQueryParams());
+                    await JS.InvokeAsync<object>("JSInteropExt.saveAsFile", "Rapor.xlsx", "application/vdn.ms-excel", base64Value);
+                    break;
+                default:
+                    throw new Exception();
+            }
+            closeExcel = false;
+            StateHasChanged();
+        }
         void SelectMessageType(object value, string name)
         {
             if (value == null)
@@ -355,7 +388,20 @@ namespace bbt.gateway.messaging.ui.Pages
                 EndDate = searchModel.EndDate.Date.AddDays(1),
                 page = searchModel.Skip,
                 pageSize = searchModel.Take,
-                smsType = Constants.SmsTypeMap[searchModel.SmsType]
+                smsType = Constants.SmsTypeMap[searchModel.SmsType],
+                createdName = searchModel.CreatedBy==null?"": searchModel.CreatedBy,
+            };
+        }
+        QueryParams CreateExcelQueryParams()
+        {
+            return new QueryParams()
+            {
+                StartDate = searchModel.StartDate.Date,
+                EndDate = searchModel.EndDate.Date.AddDays(1),
+                page = 0,
+                pageSize = rowsCount+1,
+                smsType = Constants.SmsTypeMap[searchModel.SmsType],
+                createdName = searchModel.CreatedBy == null ? "" : searchModel.CreatedBy,
             };
         }
     }

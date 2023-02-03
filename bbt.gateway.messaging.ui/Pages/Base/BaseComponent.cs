@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using Radzen;
 
 namespace bbt.gateway.messaging.ui.Pages.Base
@@ -7,6 +8,8 @@ namespace bbt.gateway.messaging.ui.Pages.Base
     {
         [Inject]
         public DialogService dialogService { get; set; }
+        [Inject]
+        public IJSRuntime JS { get; set; }
         public bool IsFirstLoad { get; set; } = false;
         public void OpenModal(string Message)
         {

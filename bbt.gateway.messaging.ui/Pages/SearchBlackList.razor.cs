@@ -139,6 +139,6 @@ namespace bbt.gateway.messaging.ui.Pages
                 pageSize = searchModel.Take,
             };
         }
-
+       
     }
 }

@@ -93,6 +93,9 @@
 </div>
 @if (rowsCount > 0)
 {
+
+        <RadzenButton Click=@(args => ExcelDownload()) Text="Excel (xlsx)" ButtonStyle="ButtonStyle.Primary" Disabled="@closeExcel" />
+    
     <div class="row mb-2"  Style="display:flex; gap: 3%;">
       <RadzenCard class="col-2 p-3" Style="flex: 1;" >
           <span>Müşteri No</span>
