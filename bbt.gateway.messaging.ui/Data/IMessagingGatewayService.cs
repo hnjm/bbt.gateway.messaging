@@ -34,6 +34,15 @@ namespace bbt.gateway.messaging.ui.Data
         Task<TransactionsDto> GetTransactionsByCustomerNoCreatedName(ulong customerNo, string createdName, int messageType, QueryParams queryParams);
         [Get("/api/v2/Administration/transactions/createdName/citizen/{createdName}/{citizenshipNo}/{messageType}")]
         Task<TransactionsDto> GetTransactionsByCitizenshipNoCreatedName(string citizenshipNo, string createdName, int messageType, QueryParams queryParams);
+        [Get("/api/v2/Administration/report/phone/{phone.CountryCode}/{phone.Prefix}/{phone.Number}")]
+        Task<string> GetTransactionsExcelReportWithPhone(Phone phone,  QueryParams queryParams);
+        [Get("/api/v2/Administration/report/customer/{customerNo}/{messageType}")]
+        Task<string> GetTransactionsExcelReportWithCustomer(ulong customerNo, int messageType, QueryParams queryParams);
+        [Get("/api/v2/Administration/report/citizen/{citizenshipNo}/{messageType}")]
+        Task<string> GetTransactionsExcelReportWithCitizenshipNo(string citizenshipNo, int messageType, QueryParams queryParams);
+        [Get("/api/v2/Administration/report/mail/{mail}")]
+        Task<string> GetTransactionsExcelReportWithMail(string mail, QueryParams queryParams);
+
 
 
     }

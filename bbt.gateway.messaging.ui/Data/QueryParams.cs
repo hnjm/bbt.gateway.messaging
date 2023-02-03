@@ -8,6 +8,7 @@
         public int pageSize { get; set; }
         public int smsType { get; set; }
         public string orderBy { get; set; }
+        public string createdName { get; set; }=string.Empty;
 
     }
 }

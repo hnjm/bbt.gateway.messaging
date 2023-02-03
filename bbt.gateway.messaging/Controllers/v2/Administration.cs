@@ -5,11 +5,13 @@ using bbt.gateway.common.Repositories;
 using bbt.gateway.messaging.Workers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using OfficeOpenXml;
 using Swashbuckle.AspNetCore.Annotations;
 using Swashbuckle.AspNetCore.Filters;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -31,7 +33,7 @@ namespace bbt.gateway.messaging.Controllers.v2
         private readonly OtpSender _otpSender;
         public Administration(HeaderManager headerManager, OperatorManager operatorManager,
             IRepositoryManager repositoryManager, ITransactionManager transactionManager,
-            CodecSender codecSender,dEngageSender dEngageSender,OtpSender otpSender)
+            CodecSender codecSender, dEngageSender dEngageSender, OtpSender otpSender)
         {
             _headerManager = headerManager;
             _operatorManager = operatorManager;
@@ -182,7 +184,7 @@ namespace bbt.gateway.messaging.Controllers.v2
             var config = (await _repositoryManager.PhoneConfigurations
                 .FindAsync(c => c.Phone.CountryCode == data.Phone.CountryCode && c.Phone.Prefix == data.Phone.Prefix && c.Phone.Number == data.Phone.Number))
                 .FirstOrDefault();
-                
+
 
             if (config == null)
             {
@@ -277,7 +279,7 @@ namespace bbt.gateway.messaging.Controllers.v2
 
                 return NoContent();
             }
-            return Forbid();   
+            return Forbid();
         }
 
         [SwaggerOperation(Summary = "Adds phone to whitelist",
@@ -304,7 +306,8 @@ namespace bbt.gateway.messaging.Controllers.v2
                 CreatedBy = data.CreatedBy.MapTo<common.Models.Process>(),
                 IpAddress = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault()
                     ?? HttpContext.Connection.RemoteIpAddress.ToString(),
-                Phone = new common.Models.Phone() { 
+                Phone = new common.Models.Phone()
+                {
                     CountryCode = Convert.ToInt32(data.Phone.CountryCode),
                     Prefix = Convert.ToInt32(data.Phone.Prefix),
                     Number = Convert.ToInt32(data.Phone.Number)
@@ -313,7 +316,7 @@ namespace bbt.gateway.messaging.Controllers.v2
 
             await _repositoryManager.Whitelist.AddAsync(whitelistRecord);
             await _repositoryManager.SaveChangesAsync();
-            
+
             return Created("", whitelistRecord.Id);
         }
 
@@ -389,7 +392,7 @@ namespace bbt.gateway.messaging.Controllers.v2
               && (w.Phone.Prefix == Convert.ToInt32(phone.Prefix))
               && (w.Phone.Number == Convert.ToInt32(phone.Number)));
 
-            if(!recordsToDelete.Any())
+            if (!recordsToDelete.Any())
                 return BadRequest("There is no record for given phone number");
 
             foreach (WhiteList whitelist in recordsToDelete)
@@ -447,7 +450,7 @@ namespace bbt.gateway.messaging.Controllers.v2
         [HttpGet("whitelist/check/phone")]
         [SwaggerResponse(200, "Phone is in whitelist", typeof(void))]
         [SwaggerResponse(404, "Phone is not in whitelist", typeof(void))]
-        public async Task<IActionResult> CheckPhone(string CountryCode,string Prefix,string Number)
+        public async Task<IActionResult> CheckPhone(string CountryCode, string Prefix, string Number)
         {
             if ((await _repositoryManager.Whitelist.FindAsync(w => (w.Phone.CountryCode == Convert.ToInt32(CountryCode))
                && (w.Phone.Prefix == Convert.ToInt32(Prefix))
@@ -513,7 +516,7 @@ namespace bbt.gateway.messaging.Controllers.v2
                     return Ok(new CheckTransactionStatusResponse
                     {
                         status = TransactionStatus.NotDelivered
-                    }); 
+                    });
                 }
                 var responseLog = transaction.SmsRequestLog.ResponseLogs.FirstOrDefault();
                 if (responseLog == null)
@@ -543,7 +546,7 @@ namespace bbt.gateway.messaging.Controllers.v2
             {
 
             }
-            if(transaction.TransactionType == TransactionType.TransactionalMail ||
+            if (transaction.TransactionType == TransactionType.TransactionalMail ||
                 transaction.TransactionType == TransactionType.TransactionalMail)
             {
                 if (transaction.MailRequestLog?.ResponseLogs == null)
@@ -637,16 +640,18 @@ namespace bbt.gateway.messaging.Controllers.v2
             Tags = new[] { "Transaction Management" })]
         [HttpGet("transactions/phone/{countryCode}/{prefix}/{number}")]
         [SwaggerResponse(200, "Records was returned successfully", typeof(Transaction[]))]
-        public async Task<IActionResult> GetTransactionsWithPhone(int countryCode, int prefix, int number, int smsType,DateTime startDate,DateTime endDate, [Range(0, 100)] int page = 0, [Range(1, 100)] int pageSize = 20)
+        public async Task<IActionResult> GetTransactionsWithPhone(int countryCode, int prefix, int number, string createdName, int smsType, DateTime startDate, DateTime endDate, [Range(0, 100)] int page = 0, [Range(1, 100)] int pageSize = 20)
         {
+            if (createdName == null)
+                createdName = string.Empty;
             if (smsType == 1)
             {
-                var res = await _repositoryManager.Transactions.GetOtpMessagesWithPhoneAsync(countryCode, prefix, number, startDate, endDate, page, pageSize);
+                var res = await _repositoryManager.Transactions.GetOtpMessagesWithPhoneByCreatedNameAsync(createdName, countryCode, prefix, number, startDate, endDate, page, pageSize);
                 return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
             }
             if (smsType == 2)
             {
-                var res = await _repositoryManager.Transactions.GetTransactionalSmsMessagesWithPhoneAsync(countryCode, prefix, number, startDate, endDate, page, pageSize);
+                var res = await _repositoryManager.Transactions.GetTransactionalSmsMessagesWithPhoneByCreatedNameAsync(createdName, countryCode, prefix, number, startDate, endDate, page, pageSize);
                 return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
             }
 
@@ -657,16 +662,16 @@ namespace bbt.gateway.messaging.Controllers.v2
             Tags = new[] { "Transaction Management" })]
         [HttpGet("transactions/createdName/phone/{createdName}/{countryCode}/{prefix}/{number}")]
         [SwaggerResponse(200, "Records was returned successfully", typeof(Transaction[]))]
-        public async Task<IActionResult> GetTransactionsWithPhoneByCreatedName(string createdName,int countryCode, int prefix, int number, int smsType, DateTime startDate, DateTime endDate, [Range(0, 100)] int page = 0, [Range(1, 100)] int pageSize = 20)
+        public async Task<IActionResult> GetTransactionsWithPhoneByCreatedName(string createdName, int countryCode, int prefix, int number, int smsType, DateTime startDate, DateTime endDate, [Range(0, 100)] int page = 0, [Range(1, 100)] int pageSize = 20)
         {
             if (smsType == 1)
             {
-                var res = await _repositoryManager.Transactions.GetOtpMessagesWithPhoneByCreatedNameAsync(createdName,countryCode, prefix, number, startDate, endDate, page, pageSize);
+                var res = await _repositoryManager.Transactions.GetOtpMessagesWithPhoneByCreatedNameAsync(createdName, countryCode, prefix, number, startDate, endDate, page, pageSize);
                 return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
             }
             if (smsType == 2)
             {
-                var res = await _repositoryManager.Transactions.GetTransactionalSmsMessagesWithPhoneByCreatedNameAsync(createdName,countryCode, prefix, number, startDate, endDate, page, pageSize);
+                var res = await _repositoryManager.Transactions.GetTransactionalSmsMessagesWithPhoneByCreatedNameAsync(createdName, countryCode, prefix, number, startDate, endDate, page, pageSize);
                 return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
             }
 
@@ -677,41 +682,45 @@ namespace bbt.gateway.messaging.Controllers.v2
             Tags = new[] { "Transaction Management" })]
         [HttpGet("transactions/mail/{email}")]
         [SwaggerResponse(200, "Records was returned successfully", typeof(Transaction[]))]
-        public async Task<IActionResult> GetTransactionsWithEmail(string mail, DateTime startDate, DateTime endDate, [Range(0, 100)] int page = 0, [Range(1, 100)] int pageSize = 20)
+        public async Task<IActionResult> GetTransactionsWithEmail(string mail, string createdName, DateTime startDate, DateTime endDate, [Range(0, 100)] int page = 0, [Range(1, 100)] int pageSize = 20)
         {
-            var res = await _repositoryManager.Transactions.GetMailMessagesWithMailAsync(mail, startDate, endDate, page, pageSize);
-            return Ok(new TransactionsDto { Transactions = res.Item1 ,Count = res.Item2});
+            if (createdName == null)
+                createdName = string.Empty;
+            var res = await _repositoryManager.Transactions.GetMailMessagesWithMailAsync(createdName, mail, startDate, endDate, page, pageSize);
+            return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
         }
 
         [SwaggerOperation(Summary = "Returns transactions info",
             Tags = new[] { "Transaction Management" })]
         [HttpGet("transactions/customer/{customerNo}/{messageType}")]
         [SwaggerResponse(200, "Records was returned successfully", typeof(Transaction[]))]
-        public async Task<IActionResult> GetTransactionsWithCustomerNo(ulong customerNo,int messageType,int smsType, DateTime startDate, DateTime endDate, [Range(0, 100)] int page = 0, [Range(1, 100)] int pageSize = 20)
+        public async Task<IActionResult> GetTransactionsWithCustomerNo(ulong customerNo, string createdName, int messageType, int smsType, DateTime startDate, DateTime endDate, [Range(0, 100)] int page = 0, [Range(1, 100)] int pageSize = 20)
         {
+            if (createdName == null)
+                createdName = string.Empty;
             if (messageType == 1)
             {
                 if (smsType == 1)
                 {
                     var res = await _repositoryManager.Transactions.GetOtpMessagesWithCustomerNoAsync(customerNo, startDate, endDate, page, pageSize);
-                    return Ok(new TransactionsDto { Transactions = res.Item1,Count = res.Item2});
+                    return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
                 }
                 if (smsType == 2)
                 {
                     var res = await _repositoryManager.Transactions.GetTransactionalSmsMessagesWithCustomerNoAsync(customerNo, startDate, endDate, page, pageSize);
                     return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
                 }
-                    
+
                 return Ok(new TransactionsDto());
             }
             if (messageType == 2)
             {
-                var res = await _repositoryManager.Transactions.GetMailMessagesWithCustomerNoAsync(customerNo, startDate, endDate, page, pageSize);
+                var res = await _repositoryManager.Transactions.GetMailMessagesWithCustomerNoAsync(createdName, customerNo, startDate, endDate, page, pageSize);
                 return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
             }
             if (messageType == 3)
             {
-                var res = await _repositoryManager.Transactions.GetPushMessagesWithCustomerNoAsync(customerNo, startDate, endDate, page, pageSize);
+                var res = await _repositoryManager.Transactions.GetPushMessagesWithCustomerNoAsync(createdName, customerNo, startDate, endDate, page, pageSize);
                 return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
             }
 
@@ -721,18 +730,18 @@ namespace bbt.gateway.messaging.Controllers.v2
       Tags = new[] { "Transaction Management" })]
         [HttpGet("transactions/createdName/customer/{createdName}/{customerNo}/{messageType}")]
         [SwaggerResponse(200, "Records was returned successfully", typeof(Transaction[]))]
-        public async Task<IActionResult> GetTransactionsWithCustomerNoByCreatedName(string createdName,ulong customerNo, int messageType, int smsType, DateTime startDate, DateTime endDate, [Range(0, 100)] int page = 0, [Range(1, 100)] int pageSize = 20)
+        public async Task<IActionResult> GetTransactionsWithCustomerNoByCreatedName(string createdName, ulong customerNo, int messageType, int smsType, DateTime startDate, DateTime endDate, [Range(0, 100)] int page = 0, [Range(1, 100)] int pageSize = 20)
         {
             if (messageType == 1)
             {
                 if (smsType == 1)
                 {
-                    var res = await _repositoryManager.Transactions.GetOtpMessagesWithCustomerNoByCreatedNameAsync(createdName,customerNo, startDate, endDate, page, pageSize);
+                    var res = await _repositoryManager.Transactions.GetOtpMessagesWithCustomerNoByCreatedNameAsync(createdName, customerNo, startDate, endDate, page, pageSize);
                     return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
                 }
                 if (smsType == 2)
                 {
-                    var res = await _repositoryManager.Transactions.GetTransactionalSmsMessagesWithCustomerNoByCreatedNameAsync(createdName,customerNo, startDate, endDate, page, pageSize);
+                    var res = await _repositoryManager.Transactions.GetTransactionalSmsMessagesWithCustomerNoByCreatedNameAsync(createdName, customerNo, startDate, endDate, page, pageSize);
                     return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
                 }
 
@@ -744,37 +753,39 @@ namespace bbt.gateway.messaging.Controllers.v2
             Tags = new[] { "Transaction Management" })]
         [HttpGet("transactions/citizen/{citizenshipNo}/{messageType}")]
         [SwaggerResponse(200, "Records was returned successfully", typeof(Transaction[]))]
-        public async Task<IActionResult> GetTransactionsWithCitizenshipNo(string citizenshipNo, int messageType, int smsType, DateTime startDate, DateTime endDate, [Range(0, 100)] int page = 0, [Range(1, 100)] int pageSize = 20)
+        public async Task<IActionResult> GetTransactionsWithCitizenshipNo(string citizenshipNo, string createdName, int messageType, int smsType, DateTime startDate, DateTime endDate, [Range(0, 100)] int page = 0, [Range(1, 100)] int pageSize = 20)
         {
+            if (createdName == null)
+                createdName = string.Empty;
             if (messageType == 1)
             {
                 if (smsType == 1)
                 {
-                    var res = await _repositoryManager.Transactions.GetOtpMessagesWithCitizenshipNoAsync(citizenshipNo, startDate, endDate, page, pageSize);
+                    var res = await _repositoryManager.Transactions.GetOtpMessagesWithCitizenshipNoByCreatedNameAsync(createdName, citizenshipNo, startDate, endDate, page, pageSize);
                     return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
                 }
-                    
+
                 if (smsType == 2)
                 {
-                    var res = await _repositoryManager.Transactions.GetTransactionalSmsMessagesWithCitizenshipNoAsync(citizenshipNo, startDate, endDate, page, pageSize);
+                    var res = await _repositoryManager.Transactions.GetTransactionalSmsMessagesWithCitizenshipNoByCreatedNameAsync(createdName, citizenshipNo, startDate, endDate, page, pageSize);
                     return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
                 }
                 return Ok(new TransactionsDto());
             }
             if (messageType == 2)
             {
-                var res = await _repositoryManager.Transactions.GetMailMessagesWithCitizenshipNoAsync(citizenshipNo, startDate, endDate, page, pageSize);
+                var res = await _repositoryManager.Transactions.GetMailMessagesWithCitizenshipNoAsync(createdName, citizenshipNo, startDate, endDate, page, pageSize);
                 return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
             }
             if (messageType == 3)
             {
-                var res = await _repositoryManager.Transactions.GetPushMessagesWithCitizenshipNoAsync(citizenshipNo, startDate, endDate, page, pageSize);
+                var res = await _repositoryManager.Transactions.GetPushMessagesWithCitizenshipNoAsync(createdName, citizenshipNo, startDate, endDate, page, pageSize);
                 return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
             }
 
             return Ok(new List<Transaction>());
         }
-       
+
         [SwaggerOperation(Summary = "Returns transactions info by created name",
     Tags = new[] { "Transaction Management" })]
         [HttpGet("transactions/createdName/citizen/{createdName}/{citizenshipNo}/{messageType}")]
@@ -782,20 +793,20 @@ namespace bbt.gateway.messaging.Controllers.v2
         public async Task<IActionResult> GetTransactionsWithCitizenshipNoByCreatedName(string createdName, string citizenshipNo, int messageType, int smsType, DateTime startDate, DateTime endDate, [Range(0, 100)] int page = 0, [Range(1, 100)] int pageSize = 20)
         {
 
-                if (smsType == 1)
-                {
-                    var res = await _repositoryManager.Transactions.GetOtpMessagesWithCitizenshipNoByCreatedNameAsync(createdName,citizenshipNo, startDate, endDate, page, pageSize);
-                    return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
-                }
+            if (smsType == 1)
+            {
+                var res = await _repositoryManager.Transactions.GetOtpMessagesWithCitizenshipNoByCreatedNameAsync(createdName, citizenshipNo, startDate, endDate, page, pageSize);
+                return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
+            }
 
-                if (smsType == 2)
-                {
-                    var res = await _repositoryManager.Transactions.GetTransactionalSmsMessagesWithCitizenshipNoByCreatedNameAsync(createdName,citizenshipNo, startDate, endDate, page, pageSize);
-                    return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
-                }
-                return Ok(new TransactionsDto());
+            if (smsType == 2)
+            {
+                var res = await _repositoryManager.Transactions.GetTransactionalSmsMessagesWithCitizenshipNoByCreatedNameAsync(createdName, citizenshipNo, startDate, endDate, page, pageSize);
+                return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
+            }
+            return Ok(new TransactionsDto());
 
-          
+
         }
 
         [SwaggerOperation(Summary = "Returns report for CreditReport",
@@ -815,7 +826,7 @@ namespace bbt.gateway.messaging.Controllers.v2
 
             string resultContent = String.Empty;
             resultContent += reportDate + "\r\n";
-            
+
             string? line = await stringReader.ReadLineAsync();
             while (line != null)
             {
@@ -845,16 +856,16 @@ namespace bbt.gateway.messaging.Controllers.v2
                     reportDate,
                     lineArray[2]
                 );
-                
+
                 if (transactions == null || transactions?.Count() == 0)
                 {
-                    resultContent += line+"|Rapor Bulunamadı\r\n";
+                    resultContent += line + "|Rapor Bulunamadı\r\n";
                 }
                 if (transactions?.Count() == 1)
                 {
                     var smsResponseLog = GetSmsResponseLog(transactions.FirstOrDefault());
-                    
-                    resultContent += line+
+
+                    resultContent += line +
                         await GetReportLine(
                             GetSmsResponseLog(transactions.FirstOrDefault()),
                             transactions.FirstOrDefault().SmsRequestLog);
@@ -872,7 +883,7 @@ namespace bbt.gateway.messaging.Controllers.v2
             }
 
 
-            return File(Encoding.UTF8.GetBytes(resultContent), "application/octet-stream","rapor.csv");
+            return File(Encoding.UTF8.GetBytes(resultContent), "application/octet-stream", "rapor.csv");
         }
 
         private SmsResponseLog? GetSmsResponseLog(Transaction transaction)
@@ -891,11 +902,11 @@ namespace bbt.gateway.messaging.Controllers.v2
             return $"{array[1].Trim()}_{array[2].Trim()}".Trim();
         }
 
-        private async Task<string> GetReportLine(SmsResponseLog smsResponseLog,SmsRequestLog smsRequestLog)
+        private async Task<string> GetReportLine(SmsResponseLog smsResponseLog, SmsRequestLog smsRequestLog)
         {
             if (smsResponseLog != null)
             {
-                SmsTrackingLog? trackingLog  = null;
+                SmsTrackingLog? trackingLog = null;
                 if (smsResponseLog.Operator == OperatorType.Codec)
                 {
                     trackingLog = await _codecSender.CheckSms(new CheckFastSmsRequest
@@ -918,15 +929,361 @@ namespace bbt.gateway.messaging.Controllers.v2
 
                 if (trackingLog != null)
                 {
-                        return $"|{smsResponseLog?.CreatedAt.ToString(new System.Globalization.CultureInfo("tr-TR"))}|{trackingLog.Status}|{trackingLog.StatusReason}\r\n";
+                    return $"|{smsResponseLog?.CreatedAt.ToString(new System.Globalization.CultureInfo("tr-TR"))}|{trackingLog.Status}|{trackingLog.StatusReason}\r\n";
 
                 }
-                
+
                 return $"|{smsResponseLog?.CreatedAt.ToString(new System.Globalization.CultureInfo("tr-TR"))}|Rapor Bulunamadı\r\n";
             }
 
             return $"|{smsResponseLog?.CreatedAt.ToString(new System.Globalization.CultureInfo("tr-TR"))}|Rapor Bulunamadı\r\n";
-            
+
+        }
+
+        [SwaggerOperation(Summary = "Returns report for SmsExcelRapor with Phone",
+           Tags = new[] { "Report Management" })]
+        [HttpGet("report/phone/{countryCode}/{prefix}/{number}")]
+        [SwaggerResponse(200, "Report is returned successfully", typeof(byte[]))]
+        public async Task<string> GetTransactionsExcelReportWithPhone(string createdName, int countryCode, int prefix, int number, int smsType, DateTime startDate, DateTime endDate, int pageSize)
+        {
+
+            if (createdName == null)
+                createdName = string.Empty;
+            TransactionsDto dto = new TransactionsDto();
+            string response = string.Empty;
+            if (smsType == 1)
+            {
+                var res = await _repositoryManager.Transactions.GetOtpMessagesWithPhoneByCreatedNameAsync(createdName, countryCode, prefix, number, startDate, endDate, 0, pageSize);
+                dto = new TransactionsDto { Transactions = res.Item1, Count = res.Item2 };
+            }
+            if (smsType == 2)
+            {
+                var res = await _repositoryManager.Transactions.GetTransactionalSmsMessagesWithPhoneByCreatedNameAsync(createdName, countryCode, prefix, number, startDate, endDate, 0, pageSize);
+                dto = new TransactionsDto { Transactions = res.Item1, Count = res.Item2 };
+            }
+            response = ExcelCreate(dto.Transactions, 1);
+
+            return response;
+        }
+        [SwaggerOperation(Summary = "Returns report for SmsExcelRapor with Phone",
+        Tags = new[] { "Report Management" })]
+        [HttpGet("report/mail/{mail}")]
+        [SwaggerResponse(200, "Report is returned successfully", typeof(byte[]))]
+        public async Task<string> GetTransactionsExcelReportWithMail(string mail, string createdName, DateTime startDate, DateTime endDate, int pageSize)
+        {
+
+            if (createdName == null)
+                createdName = string.Empty;
+            string response = string.Empty;
+
+            var res = await _repositoryManager.Transactions.GetMailMessagesWithMailAsync(createdName, mail, startDate, endDate, 0, pageSize);
+            TransactionsDto dto = new TransactionsDto { Transactions = res.Item1, Count = res.Item2 };
+
+
+            response = ExcelCreate(dto.Transactions, 2);
+
+
+            return response;
+        }
+
+        [SwaggerOperation(Summary = "Returns report for SmsExcelRapor with CustomerNo",
+      Tags = new[] { "Report Management" })]
+        [HttpGet("report/customer/{customerNo}/{messageType}")]
+        [SwaggerResponse(200, "Report is returned successfully", typeof(byte[]))]
+        public async Task<string> GetTransactionsExcelReportWithCustomer(string createdName, ulong customerNo, int messageType, int smsType, DateTime startDate, DateTime endDate, int pageSize)
+        {
+
+
+            string response = string.Empty;
+            TransactionsDto dto = new TransactionsDto();
+            if (createdName == null)
+                createdName = string.Empty;
+            if (messageType == 1)
+            {
+                if (smsType == 1)
+                {
+                    var res = await _repositoryManager.Transactions.GetOtpMessagesWithCustomerNoByCreatedNameAsync(createdName, customerNo, startDate, endDate, 0, pageSize);
+                    dto = new TransactionsDto { Transactions = res.Item1, Count = res.Item2 };
+                }
+                if (smsType == 2)
+                {
+                    var res = await _repositoryManager.Transactions.GetTransactionalSmsMessagesWithCustomerNoByCreatedNameAsync(createdName, customerNo, startDate, endDate, 0, pageSize);
+                    dto = new TransactionsDto { Transactions = res.Item1, Count = res.Item2 };
+                }
+
+
+            }
+            if (messageType == 2)
+            {
+                var res = await _repositoryManager.Transactions.GetMailMessagesWithCustomerNoAsync(createdName, customerNo, startDate, endDate, 0, pageSize);
+                dto = new TransactionsDto { Transactions = res.Item1, Count = res.Item2 };
+            }
+            if (messageType == 3)
+            {
+                var res = await _repositoryManager.Transactions.GetPushMessagesWithCustomerNoAsync(createdName, customerNo, startDate, endDate, 0, pageSize);
+                dto = new TransactionsDto { Transactions = res.Item1, Count = res.Item2 };
+            }
+
+
+            response = ExcelCreate(dto.Transactions, messageType);
+            return response;
+        }
+
+
+        [SwaggerOperation(Summary = "Returns report for SmsExcelRapor with CitizenshipNo",
+      Tags = new[] { "Report Management" })]
+        [HttpGet("report/citizen/{citizenshipNo}/{messageType}")]
+        [SwaggerResponse(200, "Report is returned successfully", typeof(byte[]))]
+        public async Task<string> GetTransactionsExcelReportWithCitizenshipNo(string citizenshipNo, string createdName, int messageType, int smsType, DateTime startDate, DateTime endDate, int pageSize = 20)
+        {
+
+            TransactionsDto dto = new TransactionsDto();
+            string response = string.Empty;
+            if (createdName == null)
+                createdName = string.Empty;
+            if (messageType == 1)
+            {
+                if (smsType == 1)
+                {
+                    var res = await _repositoryManager.Transactions.GetOtpMessagesWithCitizenshipNoByCreatedNameAsync(createdName, citizenshipNo, startDate, endDate, 0, pageSize);
+                    dto = new TransactionsDto { Transactions = res.Item1, Count = res.Item2 };
+                }
+
+                if (smsType == 2)
+                {
+                    var res = await _repositoryManager.Transactions.GetTransactionalSmsMessagesWithCitizenshipNoByCreatedNameAsync(createdName, citizenshipNo, startDate, endDate, 0, pageSize);
+                    dto = new TransactionsDto { Transactions = res.Item1, Count = res.Item2 };
+                }
+
+            }
+            if (messageType == 2)
+            {
+                var res = await _repositoryManager.Transactions.GetMailMessagesWithCitizenshipNoAsync(createdName, citizenshipNo, startDate, endDate, 0, pageSize);
+                dto = new TransactionsDto { Transactions = res.Item1, Count = res.Item2 };
+            }
+            if (messageType == 3)
+            {
+                var res = await _repositoryManager.Transactions.GetPushMessagesWithCitizenshipNoAsync(createdName, citizenshipNo, startDate, endDate, 0, pageSize);
+                dto = new TransactionsDto { Transactions = res.Item1, Count = res.Item2 };
+            }
+
+
+
+            response = ExcelCreate(dto.Transactions, messageType);
+            return response;
+        }
+
+        private string ExcelCreate(IEnumerable<Transaction> transactions, int messageType)
+        {
+            var stream = new System.IO.MemoryStream();
+            string response = string.Empty;
+            using (ExcelPackage package = new ExcelPackage(stream))
+            {
+                try
+                {
+
+                    var worksheet = package.Workbook.Worksheets.Add("SmsExcelRapor");
+                    worksheet.Protection.AllowAutoFilter = false;
+                    worksheet.Protection.AllowDeleteColumns = false;
+                    worksheet.Protection.AllowInsertRows = false;
+                    worksheet.Protection.AllowEditObject = true;
+                    worksheet.Protection.AllowEditScenarios = false;
+                    worksheet.Protection.AllowFormatCells = false;
+                    worksheet.Protection.AllowFormatColumns = false;
+                    worksheet.Protection.AllowDeleteRows = false;
+                    worksheet.Protection.AllowInsertColumns = false;
+                    worksheet.Protection.AllowInsertHyperlinks = false;
+
+                    worksheet.Cells[1, 2].Value = "Müşteri Numarası";
+                    worksheet.Cells[1, 3].Value = "Kimlik No";
+                    worksheet.Cells[1, 4].Value = "Gönderim Zamanı";
+                    worksheet.Cells[1, 5].Value = "İşlem Türü";
+                    if (messageType == 1 || messageType == 3)
+                        worksheet.Cells[1, 6].Value = "Telefon";
+                    else if (messageType == 2)
+                        worksheet.Cells[1, 6].Value = "Mail";
+                    worksheet.Cells[1, 7].Value = "Durum";
+                    worksheet.Cells[1, 8].Value = "Gönderen Sistem Bilgisi";
+                    worksheet.Cells[1, 9].Value = "Response Message";
+                    Color BaslikRengi = ColorTranslator.FromHtml("#ed7c31");
+                    for (int i = 1; i < 10; i++)
+                    {
+
+                        worksheet.Cells[1, i].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                        worksheet.Cells[1, i].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                        worksheet.Cells[1, i].Style.Fill.BackgroundColor.SetColor(BaslikRengi);
+                        worksheet.Cells[1, i].Style.Font.Color.SetColor(Color.White);
+                        worksheet.Column(i).AutoFit();
+                        worksheet.Cells[1, i].Style.Font.Bold = true;
+                    }
+                    int Index = 2;
+                    foreach (Transaction transaction in transactions)
+                    {
+
+                        worksheet.Cells[Index, 2].Value = transaction.CustomerNo;
+                        worksheet.Cells[Index, 3].Value = transaction.CitizenshipNo;
+                        worksheet.Cells[Index, 4].Value = transaction.CreatedAt.ToString();
+                        worksheet.Cells[Index, 5].Value = transaction.TransactionType.ToString();
+                        string Basari = CheckSmsStatus(transaction);
+                        if (messageType == 1 )
+                        {
+                            if (transaction.Phone!=null)
+                            worksheet.Cells[Index, 6].Value = transaction.Phone.ToString();
+                            if (Basari != "Basarili" && transaction.OtpRequestLog != null && transaction.OtpRequestLog.ResponseLogs != null && transaction.OtpRequestLog.ResponseLogs.Count() > 0)
+                            {
+
+
+
+                                worksheet.Cells[Index, 10].Value = transaction.OtpRequestLog.ResponseLogs.FirstOrDefault().StatusQueryId;
+
+
+                                if (transaction.OtpRequestLog.ResponseLogs.FirstOrDefault().TrackingLogs != null && transaction.OtpRequestLog.ResponseLogs.FirstOrDefault().TrackingLogs.Count() > 0)
+                                {
+                                    worksheet.Cells[Index, 9].Value = transaction.OtpRequestLog.ResponseLogs.FirstOrDefault().TrackingLogs.FirstOrDefault().ResponseMessage;
+                                }
+                                else
+                                {
+                                    if(!string.IsNullOrEmpty(transaction.OtpRequestLog.ResponseLogs.FirstOrDefault().ResponseMessage))
+                                    worksheet.Cells[Index, 9].Value = transaction.OtpRequestLog.ResponseLogs.FirstOrDefault().ResponseMessage;
+                                    else
+                                    {
+                                        worksheet.Cells[Index, 9].Value = transaction.OtpRequestLog.ResponseLogs.FirstOrDefault().ResponseCode.ToString();
+                                    }
+                                }
+                            }
+                            else if (Basari != "Basarili")
+                            {
+                                worksheet.Cells[Index, 9].Value = "Beklenmedik bir hata oluştu:TransactionId=>" + transaction.Id;
+                            }
+
+                        }
+                        else if (messageType == 2)
+                        {
+                            worksheet.Cells[Index, 6].Value = transaction.Mail.ToString();
+                            if (Basari != "Basarili" && transaction.MailRequestLog != null && transaction.MailRequestLog.ResponseLogs != null && transaction.MailRequestLog.ResponseLogs.Count() > 0)
+                            {
+                                if (transaction.MailRequestLog.ResponseLogs.FirstOrDefault().ResponseMessage.Length < 50)
+                                    worksheet.Cells[Index, 9].Value = transaction.MailRequestLog.ResponseLogs.FirstOrDefault().ResponseMessage;
+                                else
+                                {
+                                    worksheet.Cells[Index, 9].Value = "Beklenmedik bir hata oluştu:TransactionId=>" + transaction.Id;
+                                }
+                                worksheet.Cells[Index, 10].Value = transaction.MailRequestLog.ResponseLogs.FirstOrDefault().StatusQueryId;
+                            }
+                        }
+                        else if(messageType == 3)
+                        {
+                            if (Basari != "Basarili" && transaction.PushNotificationRequestLog!=null&&transaction.PushNotificationRequestLog.ResponseLogs!=null&&transaction.PushNotificationRequestLog.ResponseLogs.Count()>0)
+                            {
+
+
+
+                                worksheet.Cells[Index, 10].Value = transaction.PushNotificationRequestLog.ResponseLogs.FirstOrDefault().StatusQueryId;
+
+
+                              
+                                    worksheet.Cells[Index, 9].Value = transaction.PushNotificationRequestLog.ResponseLogs.FirstOrDefault().ResponseMessage;
+                                
+                            }
+                        }
+                        worksheet.Cells[Index, 7].Value = Basari;
+                        worksheet.Cells[Index, 8].Value = transaction.CreatedBy.Name;
+
+
+                        Index++;
+
+                    }
+
+
+
+
+                    package.Save();
+
+                }
+                catch (Exception ex)
+                {
+
+                }
+            }
+            try
+            {
+                response = Convert.ToBase64String(stream.ToArray());
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return response;
+
+        }
+        private string CheckSmsStatus(Transaction txn)
+        {
+            if (txn.TransactionType == TransactionType.Otp)
+            {
+                if (txn.OtpRequestLog != null)
+                {
+                    if (txn.OtpRequestLog.ResponseLogs != null)
+                    {
+                        if (txn.OtpRequestLog.ResponseLogs.Any(l => l.TrackingStatus == SmsTrackingStatus.Delivered))
+                            return "Basarili";
+                        else if (txn.OtpRequestLog.ResponseLogs.Any(l => l.TrackingStatus == SmsTrackingStatus.Pending))
+                        {
+                            return "Sms Kontrol Gerekli";
+                        }
+                        else
+                        {
+                            return "Başarısız";
+                        }
+                    }
+                }
+            }
+            if (txn.TransactionType == TransactionType.TransactionalMail || txn.TransactionType == TransactionType.TransactionalTemplatedMail)
+            {
+                if (txn.MailRequestLog != null)
+                {
+                    if (txn.MailRequestLog.ResponseLogs != null)
+                    {
+                        if (txn.MailRequestLog.ResponseLogs.Any(l => l.ResponseCode == "0"))
+                            return "Basarili";
+                        else
+                        {
+                            return "Başarısız";
+                        }
+                    }
+                }
+            }
+            if (txn.TransactionType == TransactionType.TransactionalSms || txn.TransactionType == TransactionType.TransactionalTemplatedSms)
+            {
+                if (txn.SmsRequestLog != null)
+                {
+                    if (txn.SmsRequestLog.ResponseLogs != null)
+                    {
+                        if (txn.SmsRequestLog.ResponseLogs.Any(l => l.OperatorResponseCode == 0))
+                            return "Basarili";
+                        else
+                        {
+                            return "Başarısız";
+                        }
+                    }
+                }
+            }
+            if (txn.TransactionType == TransactionType.TransactionalPush || txn.TransactionType == TransactionType.TransactionalTemplatedPush)
+            {
+                if (txn.PushNotificationRequestLog != null)
+                {
+                    if (txn.PushNotificationRequestLog.ResponseLogs != null)
+                    {
+                        if (txn.PushNotificationRequestLog.ResponseLogs.Any(l => l.ResponseCode == "0"))
+                            return "Basarili";
+                        else
+                        {
+                            return "Başarısız";
+                        }
+                    }
+                }
+            }
+
+            return "Başarısız";
         }
 
     }

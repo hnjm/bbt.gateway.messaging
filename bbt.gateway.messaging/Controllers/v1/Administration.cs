@@ -381,7 +381,7 @@ namespace bbt.gateway.messaging.Controllers.v1
         [SwaggerResponse(200, "Records was returned successfully", typeof(Transaction[]))]
         public async Task<IActionResult> GetTransactionsWithEmail(string mail, DateTime startDate, DateTime endDate, [Range(0, 100)] int page = 0, [Range(1, 100)] int pageSize = 20)
         {
-            var res = await _repositoryManager.Transactions.GetMailMessagesWithMailAsync(mail, startDate, endDate, page, pageSize);
+            var res = await _repositoryManager.Transactions.GetMailMessagesWithMailAsync(string.Empty, mail, startDate, endDate, page, pageSize);
             return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
         }
 
@@ -407,12 +407,12 @@ namespace bbt.gateway.messaging.Controllers.v1
             }
             if (messageType == 2)
             {
-                var res = await _repositoryManager.Transactions.GetMailMessagesWithCustomerNoAsync(customerNo, startDate, endDate, page, pageSize);
+                var res = await _repositoryManager.Transactions.GetMailMessagesWithCustomerNoAsync(string.Empty, customerNo, startDate, endDate, page, pageSize);
                 return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
             }
             if (messageType == 3)
             {
-                var res = await _repositoryManager.Transactions.GetPushMessagesWithCustomerNoAsync(customerNo, startDate, endDate, page, pageSize);
+                var res = await _repositoryManager.Transactions.GetPushMessagesWithCustomerNoAsync(string.Empty, customerNo, startDate, endDate, page, pageSize);
                 return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
             }
 
@@ -441,12 +441,12 @@ namespace bbt.gateway.messaging.Controllers.v1
             }
             if (messageType == 2)
             {
-                var res = await _repositoryManager.Transactions.GetMailMessagesWithCitizenshipNoAsync(citizenshipNo, startDate, endDate, page, pageSize);
+                var res = await _repositoryManager.Transactions.GetMailMessagesWithCitizenshipNoAsync(string.Empty,citizenshipNo, startDate, endDate, page, pageSize);
                 return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
             }
             if (messageType == 3)
             {
-                var res = await _repositoryManager.Transactions.GetPushMessagesWithCitizenshipNoAsync(citizenshipNo, startDate, endDate, page, pageSize);
+                var res = await _repositoryManager.Transactions.GetPushMessagesWithCitizenshipNoAsync(string.Empty, citizenshipNo, startDate, endDate, page, pageSize);
                 return Ok(new TransactionsDto { Transactions = res.Item1, Count = res.Item2 });
             }
 
