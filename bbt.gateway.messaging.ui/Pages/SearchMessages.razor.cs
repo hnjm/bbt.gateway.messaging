@@ -320,31 +320,36 @@ namespace bbt.gateway.messaging.ui.Pages
         }
         public async void ExcelDownload()
         {
-
-            closeExcel = true;
-            StateHasChanged();
-            switch (searchModel.SelectedSearchType)
+            try
             {
-                case 1:
-                    base64Value = await MessagingGateway.GetTransactionsExcelReportWithCustomer(Convert.ToUInt64(searchModel.FilterValue), Constants.MessageTypeMap[searchModel.MessageType], CreateExcelQueryParams());
-                    await JS.InvokeAsync<object>("JSInteropExt.saveAsFile", "Rapor.xlsx", "application/vdn.ms-excel", base64Value);
-                    break;
-                case 2:
-                    base64Value = await MessagingGateway.GetTransactionsExcelReportWithCitizenshipNo(searchModel.FilterValue, Constants.MessageTypeMap[searchModel.MessageType], CreateExcelQueryParams());
-                    await JS.InvokeAsync<object>("JSInteropExt.saveAsFile", "Rapor.xlsx", "application/vdn.ms-excel", base64Value);
+                switch (searchModel.SelectedSearchType)
+                {
+                    case 1:
+                        base64Value = await MessagingGateway.GetTransactionsExcelReportWithCustomer(Convert.ToUInt64(searchModel.FilterValue), Constants.MessageTypeMap[searchModel.MessageType], CreateExcelQueryParams());
+                        await JS.InvokeAsync<object>("JSInteropExt.saveAsFile", "Rapor.xlsx", "application/vdn.ms-excel", base64Value);
+                        break;
+                    case 2:
+                        base64Value = await MessagingGateway.GetTransactionsExcelReportWithCitizenshipNo(searchModel.FilterValue, Constants.MessageTypeMap[searchModel.MessageType], CreateExcelQueryParams());
+                        await JS.InvokeAsync<object>("JSInteropExt.saveAsFile", "Rapor.xlsx", "application/vdn.ms-excel", base64Value);
 
-                    break;
-                case 3:
-                    base64Value = await MessagingGateway.GetTransactionsExcelReportWithPhone(new Phone(searchModel.FilterValue), CreateExcelQueryParams());
-                    await JS.InvokeAsync<object>("JSInteropExt.saveAsFile", "Rapor.xlsx", "application/vdn.ms-excel", base64Value);
-                    break;
-                case 4:
-                    base64Value = await MessagingGateway.GetTransactionsExcelReportWithMail(searchModel.FilterValue, CreateExcelQueryParams());
-                    await JS.InvokeAsync<object>("JSInteropExt.saveAsFile", "Rapor.xlsx", "application/vdn.ms-excel", base64Value);
-                    break;
-                default:
-                    throw new Exception();
+                        break;
+                    case 3:
+                        base64Value = await MessagingGateway.GetTransactionsExcelReportWithPhone(new Phone(searchModel.FilterValue), CreateExcelQueryParams());
+                        await JS.InvokeAsync<object>("JSInteropExt.saveAsFile", "Rapor.xlsx", "application/vdn.ms-excel", base64Value);
+                        break;
+                    case 4:
+                        base64Value = await MessagingGateway.GetTransactionsExcelReportWithMail(searchModel.FilterValue, CreateExcelQueryParams());
+                        await JS.InvokeAsync<object>("JSInteropExt.saveAsFile", "Rapor.xlsx", "application/vdn.ms-excel", base64Value);
+                        break;
+                    default:
+                        throw new Exception();
+                }
             }
+            catch (Exception ex)
+            {
+
+            }
+            
             closeExcel = false;
             StateHasChanged();
         }

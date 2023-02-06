@@ -64,13 +64,13 @@
                                         Data=@choice.Value.SmsTypes
                                         Change=@(args => SelectSmsType(args, "DropDown")) />
                     </RadzenCard>
-                     <RadzenCard class="col-2" Style="flex: 1" >
+                 
+               
+            }
+               <RadzenCard class="col-2" Style="flex: 1" >
                         <h6 class="mb-1">Gönderen Sistem Bilgisi</h6>
                            <RadzenTextBox Placeholder="Gönderen Sistem" @bind-Value="searchModel.CreatedBy" Class="w-100" />
                     </RadzenCard>
-               
-            }
-           
                 <RadzenCard class="col-2 p-3" Style="flex: 1;" >
                     <h6 class="mb-1">Başlangıç Tarihi</h6>
                     <RadzenDatePicker @bind-Value=@searchModel.StartDate DateFormat="d" Change=@(args => OnChange(args, "DatePicker", "MM/dd/yyyy")) Class="w-100" />
