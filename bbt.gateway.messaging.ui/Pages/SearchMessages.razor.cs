@@ -320,6 +320,8 @@ namespace bbt.gateway.messaging.ui.Pages
         }
         public async void ExcelDownload()
         {
+            closeExcel = true;
+            StateHasChanged();
             try
             {
                 switch (searchModel.SelectedSearchType)
