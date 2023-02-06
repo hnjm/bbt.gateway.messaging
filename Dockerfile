@@ -2,10 +2,10 @@ FROM mcr.microsoft.com/dotnet/aspnet:6.0-focal AS base
 ENV ASPNETCORE_URLS=http://*:5000
 EXPOSE 5000
 WORKDIR /app
-RUN apt-get update \
- && DEBIAN_FRONTEND=noninteractive \
-    apt-get install --no-install-recommends --assume-yes \
-      libgdiplus
+RUN apt-get update \
+ && DEBIAN_FRONTEND=noninteractive \
+    apt-get install --no-install-recommends --assume-yes \
+      libgdiplus
 RUN adduser -u 5679 --disabled-password --gecos "" smsgatewayuser && chown -R smsgatewayuser:smsgatewayuser /app
 USER smsgatewayuser
 
