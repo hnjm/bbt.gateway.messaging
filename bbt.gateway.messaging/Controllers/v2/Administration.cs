@@ -941,54 +941,69 @@ namespace bbt.gateway.messaging.Controllers.v2
         [SwaggerOperation(Summary = "Returns report for SmsExcelRapor with Phone",
            Tags = new[] { "Report Management" })]
         [HttpGet("report/phone/{countryCode}/{prefix}/{number}")]
-        [SwaggerResponse(200, "Report is returned successfully", typeof(byte[]))]
-        public async Task<string> GetTransactionsExcelReportWithPhone(string createdName, int countryCode, int prefix, int number, int smsType, DateTime startDate, DateTime endDate, int pageSize)
+        [SwaggerResponse(200, "Report is returned successfully", typeof(string))]
+        [SwaggerResponse(400, "Excel oluşturulamadı", typeof(string))]
+        public async Task<IActionResult> GetTransactionsExcelReportWithPhone(string createdName, int countryCode, int prefix, int number, int smsType, DateTime startDate, DateTime endDate, int pageSize)
         {
-
             if (createdName == null)
                 createdName = string.Empty;
-            TransactionsDto dto = new TransactionsDto();
-            string response = string.Empty;
-            if (smsType == 1)
-            {
-                var res = await _repositoryManager.Transactions.GetOtpMessagesWithPhoneByCreatedNameAsync(createdName, countryCode, prefix, number, startDate, endDate, 0, pageSize);
-                dto = new TransactionsDto { Transactions = res.Item1, Count = res.Item2 };
-            }
-            if (smsType == 2)
-            {
-                var res = await _repositoryManager.Transactions.GetTransactionalSmsMessagesWithPhoneByCreatedNameAsync(createdName, countryCode, prefix, number, startDate, endDate, 0, pageSize);
-                dto = new TransactionsDto { Transactions = res.Item1, Count = res.Item2 };
-            }
-            response = ExcelCreate(dto.Transactions, 1);
 
-            return response;
+            string response = string.Empty;
+            try
+            {
+                TransactionsDto dto = new TransactionsDto();
+                if (smsType == 1)
+                {
+                    var res = await _repositoryManager.Transactions.GetOtpMessagesWithPhoneByCreatedNameAsync(createdName, countryCode, prefix, number, startDate, endDate, 0, pageSize);
+                    dto = new TransactionsDto { Transactions = res.Item1, Count = res.Item2 };
+                }
+                if (smsType == 2)
+                {
+                    var res = await _repositoryManager.Transactions.GetTransactionalSmsMessagesWithPhoneByCreatedNameAsync(createdName, countryCode, prefix, number, startDate, endDate, 0, pageSize);
+                    dto = new TransactionsDto { Transactions = res.Item1, Count = res.Item2 };
+                }
+                response = ExcelCreate(dto.Transactions, 1);
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(ex.ToString());
+            }
+
+
+            return Ok(response);
         }
         [SwaggerOperation(Summary = "Returns report for SmsExcelRapor with Phone",
         Tags = new[] { "Report Management" })]
         [HttpGet("report/mail/{mail}")]
         [SwaggerResponse(200, "Report is returned successfully", typeof(byte[]))]
-        public async Task<string> GetTransactionsExcelReportWithMail(string mail, string createdName, DateTime startDate, DateTime endDate, int pageSize)
+        public async Task<IActionResult> GetTransactionsExcelReportWithMail(string mail, string createdName, DateTime startDate, DateTime endDate, int pageSize)
         {
 
             if (createdName == null)
                 createdName = string.Empty;
             string response = string.Empty;
-
-            var res = await _repositoryManager.Transactions.GetMailMessagesWithMailAsync(createdName, mail, startDate, endDate, 0, pageSize);
-            TransactionsDto dto = new TransactionsDto { Transactions = res.Item1, Count = res.Item2 };
-
-
-            response = ExcelCreate(dto.Transactions, 2);
+            try
+            {
+                var res = await _repositoryManager.Transactions.GetMailMessagesWithMailAsync(createdName, mail, startDate, endDate, 0, pageSize);
+                TransactionsDto dto = new TransactionsDto { Transactions = res.Item1, Count = res.Item2 };
 
 
-            return response;
+                response = ExcelCreate(dto.Transactions, 2);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.ToString());
+            }
+
+            return Ok(response);
         }
 
         [SwaggerOperation(Summary = "Returns report for SmsExcelRapor with CustomerNo",
       Tags = new[] { "Report Management" })]
         [HttpGet("report/customer/{customerNo}/{messageType}")]
         [SwaggerResponse(200, "Report is returned successfully", typeof(byte[]))]
-        public async Task<string> GetTransactionsExcelReportWithCustomer(string createdName, ulong customerNo, int messageType, int smsType, DateTime startDate, DateTime endDate, int pageSize)
+        public async Task<IActionResult> GetTransactionsExcelReportWithCustomer(string createdName, ulong customerNo, int messageType, int smsType, DateTime startDate, DateTime endDate, int pageSize)
         {
 
 
@@ -996,35 +1011,43 @@ namespace bbt.gateway.messaging.Controllers.v2
             TransactionsDto dto = new TransactionsDto();
             if (createdName == null)
                 createdName = string.Empty;
-            if (messageType == 1)
+            try
             {
-                if (smsType == 1)
+                if (messageType == 1)
                 {
-                    var res = await _repositoryManager.Transactions.GetOtpMessagesWithCustomerNoByCreatedNameAsync(createdName, customerNo, startDate, endDate, 0, pageSize);
+                    if (smsType == 1)
+                    {
+                        var res = await _repositoryManager.Transactions.GetOtpMessagesWithCustomerNoByCreatedNameAsync(createdName, customerNo, startDate, endDate, 0, pageSize);
+                        dto = new TransactionsDto { Transactions = res.Item1, Count = res.Item2 };
+                    }
+                    if (smsType == 2)
+                    {
+                        var res = await _repositoryManager.Transactions.GetTransactionalSmsMessagesWithCustomerNoByCreatedNameAsync(createdName, customerNo, startDate, endDate, 0, pageSize);
+                        dto = new TransactionsDto { Transactions = res.Item1, Count = res.Item2 };
+                    }
+
+
+                }
+                if (messageType == 2)
+                {
+                    var res = await _repositoryManager.Transactions.GetMailMessagesWithCustomerNoAsync(createdName, customerNo, startDate, endDate, 0, pageSize);
                     dto = new TransactionsDto { Transactions = res.Item1, Count = res.Item2 };
                 }
-                if (smsType == 2)
+                if (messageType == 3)
                 {
-                    var res = await _repositoryManager.Transactions.GetTransactionalSmsMessagesWithCustomerNoByCreatedNameAsync(createdName, customerNo, startDate, endDate, 0, pageSize);
+                    var res = await _repositoryManager.Transactions.GetPushMessagesWithCustomerNoAsync(createdName, customerNo, startDate, endDate, 0, pageSize);
                     dto = new TransactionsDto { Transactions = res.Item1, Count = res.Item2 };
                 }
 
 
+                response = ExcelCreate(dto.Transactions, messageType);
             }
-            if (messageType == 2)
+            catch (Exception ex)
             {
-                var res = await _repositoryManager.Transactions.GetMailMessagesWithCustomerNoAsync(createdName, customerNo, startDate, endDate, 0, pageSize);
-                dto = new TransactionsDto { Transactions = res.Item1, Count = res.Item2 };
-            }
-            if (messageType == 3)
-            {
-                var res = await _repositoryManager.Transactions.GetPushMessagesWithCustomerNoAsync(createdName, customerNo, startDate, endDate, 0, pageSize);
-                dto = new TransactionsDto { Transactions = res.Item1, Count = res.Item2 };
+                return BadRequest(ex.ToString());
             }
 
-
-            response = ExcelCreate(dto.Transactions, messageType);
-            return response;
+            return Ok(response);
         }
 
 
@@ -1032,43 +1055,51 @@ namespace bbt.gateway.messaging.Controllers.v2
       Tags = new[] { "Report Management" })]
         [HttpGet("report/citizen/{citizenshipNo}/{messageType}")]
         [SwaggerResponse(200, "Report is returned successfully", typeof(byte[]))]
-        public async Task<string> GetTransactionsExcelReportWithCitizenshipNo(string citizenshipNo, string createdName, int messageType, int smsType, DateTime startDate, DateTime endDate, int pageSize = 20)
+        public async Task<IActionResult> GetTransactionsExcelReportWithCitizenshipNo(string citizenshipNo, string createdName, int messageType, int smsType, DateTime startDate, DateTime endDate, int pageSize = 20)
         {
 
             TransactionsDto dto = new TransactionsDto();
             string response = string.Empty;
             if (createdName == null)
                 createdName = string.Empty;
-            if (messageType == 1)
+            try
             {
-                if (smsType == 1)
+                if (messageType == 1)
                 {
-                    var res = await _repositoryManager.Transactions.GetOtpMessagesWithCitizenshipNoByCreatedNameAsync(createdName, citizenshipNo, startDate, endDate, 0, pageSize);
+                    if (smsType == 1)
+                    {
+                        var res = await _repositoryManager.Transactions.GetOtpMessagesWithCitizenshipNoByCreatedNameAsync(createdName, citizenshipNo, startDate, endDate, 0, pageSize);
+                        dto = new TransactionsDto { Transactions = res.Item1, Count = res.Item2 };
+                    }
+
+                    if (smsType == 2)
+                    {
+                        var res = await _repositoryManager.Transactions.GetTransactionalSmsMessagesWithCitizenshipNoByCreatedNameAsync(createdName, citizenshipNo, startDate, endDate, 0, pageSize);
+                        dto = new TransactionsDto { Transactions = res.Item1, Count = res.Item2 };
+                    }
+
+                }
+                if (messageType == 2)
+                {
+                    var res = await _repositoryManager.Transactions.GetMailMessagesWithCitizenshipNoAsync(createdName, citizenshipNo, startDate, endDate, 0, pageSize);
+                    dto = new TransactionsDto { Transactions = res.Item1, Count = res.Item2 };
+                }
+                if (messageType == 3)
+                {
+                    var res = await _repositoryManager.Transactions.GetPushMessagesWithCitizenshipNoAsync(createdName, citizenshipNo, startDate, endDate, 0, pageSize);
                     dto = new TransactionsDto { Transactions = res.Item1, Count = res.Item2 };
                 }
 
-                if (smsType == 2)
-                {
-                    var res = await _repositoryManager.Transactions.GetTransactionalSmsMessagesWithCitizenshipNoByCreatedNameAsync(createdName, citizenshipNo, startDate, endDate, 0, pageSize);
-                    dto = new TransactionsDto { Transactions = res.Item1, Count = res.Item2 };
-                }
 
+
+                response = ExcelCreate(dto.Transactions, messageType);
             }
-            if (messageType == 2)
+            catch (Exception ex)
             {
-                var res = await _repositoryManager.Transactions.GetMailMessagesWithCitizenshipNoAsync(createdName, citizenshipNo, startDate, endDate, 0, pageSize);
-                dto = new TransactionsDto { Transactions = res.Item1, Count = res.Item2 };
-            }
-            if (messageType == 3)
-            {
-                var res = await _repositoryManager.Transactions.GetPushMessagesWithCitizenshipNoAsync(createdName, citizenshipNo, startDate, endDate, 0, pageSize);
-                dto = new TransactionsDto { Transactions = res.Item1, Count = res.Item2 };
+                return BadRequest(ex.ToString());
             }
 
-
-
-            response = ExcelCreate(dto.Transactions, messageType);
-            return response;
+            return Ok(response);
         }
 
         private string ExcelCreate(IEnumerable<Transaction> transactions, int messageType)
@@ -1123,10 +1154,10 @@ namespace bbt.gateway.messaging.Controllers.v2
                         worksheet.Cells[Index, 4].Value = transaction.CreatedAt.ToString();
                         worksheet.Cells[Index, 5].Value = transaction.TransactionType.ToString();
                         string Basari = CheckSmsStatus(transaction);
-                        if (messageType == 1 )
+                        if (messageType == 1)
                         {
-                            if (transaction.Phone!=null)
-                            worksheet.Cells[Index, 6].Value = transaction.Phone.ToString();
+                            if (transaction.Phone != null)
+                                worksheet.Cells[Index, 6].Value = transaction.Phone.ToString();
                             if (Basari != "Basarili" && transaction.OtpRequestLog != null && transaction.OtpRequestLog.ResponseLogs != null && transaction.OtpRequestLog.ResponseLogs.Count() > 0)
                             {
 
@@ -1141,8 +1172,8 @@ namespace bbt.gateway.messaging.Controllers.v2
                                 }
                                 else
                                 {
-                                    if(!string.IsNullOrEmpty(transaction.OtpRequestLog.ResponseLogs.FirstOrDefault().ResponseMessage))
-                                    worksheet.Cells[Index, 9].Value = transaction.OtpRequestLog.ResponseLogs.FirstOrDefault().ResponseMessage;
+                                    if (!string.IsNullOrEmpty(transaction.OtpRequestLog.ResponseLogs.FirstOrDefault().ResponseMessage))
+                                        worksheet.Cells[Index, 9].Value = transaction.OtpRequestLog.ResponseLogs.FirstOrDefault().ResponseMessage;
                                     else
                                     {
                                         worksheet.Cells[Index, 9].Value = transaction.OtpRequestLog.ResponseLogs.FirstOrDefault().ResponseCode.ToString();
@@ -1169,9 +1200,9 @@ namespace bbt.gateway.messaging.Controllers.v2
                                 worksheet.Cells[Index, 10].Value = transaction.MailRequestLog.ResponseLogs.FirstOrDefault().StatusQueryId;
                             }
                         }
-                        else if(messageType == 3)
+                        else if (messageType == 3)
                         {
-                            if (Basari != "Basarili" && transaction.PushNotificationRequestLog!=null&&transaction.PushNotificationRequestLog.ResponseLogs!=null&&transaction.PushNotificationRequestLog.ResponseLogs.Count()>0)
+                            if (Basari != "Basarili" && transaction.PushNotificationRequestLog != null && transaction.PushNotificationRequestLog.ResponseLogs != null && transaction.PushNotificationRequestLog.ResponseLogs.Count() > 0)
                             {
 
 
@@ -1179,9 +1210,9 @@ namespace bbt.gateway.messaging.Controllers.v2
                                 worksheet.Cells[Index, 10].Value = transaction.PushNotificationRequestLog.ResponseLogs.FirstOrDefault().StatusQueryId;
 
 
-                              
-                                    worksheet.Cells[Index, 9].Value = transaction.PushNotificationRequestLog.ResponseLogs.FirstOrDefault().ResponseMessage;
-                                
+
+                                worksheet.Cells[Index, 9].Value = transaction.PushNotificationRequestLog.ResponseLogs.FirstOrDefault().ResponseMessage;
+
                             }
                         }
                         worksheet.Cells[Index, 7].Value = Basari;
@@ -1200,7 +1231,7 @@ namespace bbt.gateway.messaging.Controllers.v2
                 }
                 catch (Exception ex)
                 {
-
+                    throw new Exceptions.WorkflowException(ex.ToString(), System.Net.HttpStatusCode.BadRequest);
                 }
             }
             try
