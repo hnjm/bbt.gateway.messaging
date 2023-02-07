@@ -233,46 +233,7 @@ namespace bbt.gateway.messaging.Controllers.v1
         [SwaggerResponse(201, "Record was created successfully", typeof(void))]
         public async Task<IActionResult> AddPhoneToBlacklist([FromBody] AddPhoneToBlacklistRequest data)
         {
-            Guid newOtpBlackListEntryId = Guid.NewGuid();
-
-            var config = (await _repositoryManager.PhoneConfigurations
-                .FindAsync(c => c.Phone.CountryCode == data.Phone.CountryCode && c.Phone.Prefix == data.Phone.Prefix && c.Phone.Number == data.Phone.Number))
-                .FirstOrDefault();
-
-            if (config == null)
-            {
-                config = new PhoneConfiguration
-                {
-                    Phone = data.Phone,
-                    Logs = new List<PhoneConfigurationLog>(),
-                    BlacklistEntries = new List<BlackListEntry>()
-                };
-
-                config.Logs.Add(new PhoneConfigurationLog
-                {
-                    Type = "Initialization",
-                    Action = "Blacklist Entry",
-                    CreatedBy = data.Process,
-                    RelatedId = newOtpBlackListEntryId
-                });
-
-                await _repositoryManager.PhoneConfigurations.AddAsync(config);
-            }
-
-            var newOtpBlackListEntry = new BlackListEntry
-            {
-                Id = newOtpBlackListEntryId,
-                PhoneConfiguration = config,
-                PhoneConfigurationId = config.Id,
-                Reason = data.Reason,
-                Source = data.Source,
-                ValidTo = DateTime.UtcNow.AddDays(data.Days),
-                CreatedBy = data.Process
-            };
-
-            await _repositoryManager.BlackListEntries.AddAsync(newOtpBlackListEntry);
-
-            return Created("", newOtpBlackListEntryId);
+            return Ok();
         }
 
         [SwaggerOperation(Summary = "Resolve blacklist item")]

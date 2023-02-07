@@ -179,10 +179,13 @@ namespace bbt.gateway.messaging.Controllers.v2
         [SwaggerResponse(201, "Record was created successfully", typeof(void))]
         public async Task<IActionResult> AddPhoneToBlacklist([FromBody] AddPhoneToBlacklistRequest data)
         {
+
             Guid newOtpBlackListEntryId = Guid.NewGuid();
 
             var config = (await _repositoryManager.PhoneConfigurations
-                .FindAsync(c => c.Phone.CountryCode == data.Phone.CountryCode && c.Phone.Prefix == data.Phone.Prefix && c.Phone.Number == data.Phone.Number))
+                .FindAsync(c => c.Phone.CountryCode == Convert.ToInt32(data.Phone.CountryCode) && 
+                c.Phone.Prefix == Convert.ToInt32(data.Phone.Prefix) &&
+                c.Phone.Number == Convert.ToInt32(data.Phone.Number)))
                 .FirstOrDefault();
 
 
@@ -190,7 +193,7 @@ namespace bbt.gateway.messaging.Controllers.v2
             {
                 config = new PhoneConfiguration
                 {
-                    Phone = data.Phone,
+                    Phone = data.Phone.MapTo<common.Models.Phone>(),
                     Logs = new List<PhoneConfigurationLog>(),
                     BlacklistEntries = new List<BlackListEntry>()
                 };
@@ -206,6 +209,22 @@ namespace bbt.gateway.messaging.Controllers.v2
                 await _repositoryManager.PhoneConfigurations.AddAsync(config);
             }
 
+            var now = DateTime.Now;
+
+            var oldOtpBlacklistEntry = new SmsDirectBlacklist
+            {
+                GsmNumber = "+" + data.Phone.CountryCode + data.Phone.Prefix + data.Phone.Number,
+                Explanation = "Messaging Gateway tarafından eklendi.",
+                IsVerified = false,
+                RecordDate = now,
+                TryCount = 0,
+                VerifiedBy = null,
+                VerifyDate = null
+            };
+
+            await _repositoryManager.DirectBlacklists.AddAsync(oldOtpBlacklistEntry);
+            await _repositoryManager.SaveSmsBankingChangesAsync();
+
             var newOtpBlackListEntry = new BlackListEntry
             {
                 Id = newOtpBlackListEntryId,
@@ -214,7 +233,9 @@ namespace bbt.gateway.messaging.Controllers.v2
                 Reason = data.Reason,
                 Source = data.Source,
                 ValidTo = DateTime.UtcNow.AddDays(data.Days),
-                CreatedBy = data.Process
+                CreatedBy = data.Process,
+                CreatedAt = now,
+                SmsId = oldOtpBlacklistEntry.SmsId
             };
 
             await _repositoryManager.BlackListEntries.AddAsync(newOtpBlackListEntry);
