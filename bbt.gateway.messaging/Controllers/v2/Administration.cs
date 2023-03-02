@@ -161,6 +161,28 @@ namespace bbt.gateway.messaging.Controllers.v2
             return Ok(await _repositoryManager.PhoneConfigurations.GetWithRelatedLogsAndBlacklistEntriesAsync(countryCode, prefix, number, count));
         }
 
+        [SwaggerOperation(Summary = "Returns phone has active blacklist or not",
+            Tags = new[] { "Phone Management" })]
+        [HttpGet("blacklists/{countryCode}/{prefix}/{number}")]
+        [SwaggerResponse(200, "Phone has active blacklist", typeof(void))]
+        [SwaggerResponse(404, "Phone has not active blacklist", typeof(void))]
+        public async Task<IActionResult> CheckPhoneBlacklistStatus(string countryCode, string prefix, string number)
+        {
+            var blacklistRecord = await _repositoryManager.BlackListEntries.GetLastBlacklistRecord(
+                Convert.ToInt32(countryCode),
+                Convert.ToInt32(prefix),
+                Convert.ToInt32(number)
+            );
+
+            if (blacklistRecord == null)
+                return NotFound();
+            
+
+            if (blacklistRecord.Status == BlacklistStatus.NotResolved)
+                return Ok();
+
+            return NotFound();
+        }
 
         [SwaggerOperation(Summary = "Returns phone blacklist records",
             Tags = new[] { "Phone Management" })]

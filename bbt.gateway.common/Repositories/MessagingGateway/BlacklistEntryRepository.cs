@@ -12,6 +12,17 @@ namespace bbt.gateway.common.Repositories
         
         }
 
+        public async Task<BlackListEntry> GetLastBlacklistRecord(int countryCode, int prefix, int number)
+        {
+            return await Context.BlackListEntries.
+                Where(b => 
+                b.PhoneConfiguration.Phone.CountryCode == countryCode
+                && b.PhoneConfiguration.Phone.Prefix == prefix
+                && b.PhoneConfiguration.Phone.Number == number)
+                .OrderByDescending(b => b.CreatedAt).
+                FirstOrDefaultAsync();
+        }
+
         public async Task<IEnumerable<BlackListEntry>> GetWithLogsAsync(int countryCode, int prefix, int number, int page, int pageSize)
         {
             return await Context.BlackListEntries

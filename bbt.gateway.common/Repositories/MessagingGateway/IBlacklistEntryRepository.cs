@@ -10,5 +10,7 @@ namespace bbt.gateway.common.Repositories
         Task<(IEnumerable<BlackListEntry>, int)> GetBlackListByPhoneAsync(int countryCode, int prefix, int number, int page, int pageSize);
 
         Task<(IEnumerable<BlackListEntry>, int)> GetBlackListByCustomerNoAsync(ulong customerNo, int page, int pageSiz);
+
+        Task<BlackListEntry> GetLastBlacklistRecord(int countryCode, int prefix, int number);
     }
 }

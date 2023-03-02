@@ -103,26 +103,19 @@ namespace bbt.gateway.common
         /// <summary>
         /// Read Appsettings/Secret From Vault<br />
         /// </summary>
-        /// <param name="string">Dapr Secret Store Component Name</param>
+        /// <param name="builder">Configuration Builder</param>
+        /// <param name="secretStoreName">Dapr Secret Store Component Name</param>
+        /// <param name="secretPath">Vault Secret Path</param>
+        /// <param name="key">Secret Key | Default : appsettings</param>
         /// <returns></returns>
-        public static async Task<IConfigurationBuilder> UseVaultSecretsAsync(this IConfigurationBuilder builder, Type type, string secretPath, string secretStoreName = null)
+        public static async Task<IConfigurationBuilder> UseVaultSecretsAsync(this IConfigurationBuilder builder, string secretStoreName,string secretPath, string key = "appsettings")
         {
-            string environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
-
-            builder.AddJsonFile($"appsettings.{environmentName}.json", false, true)
-            .AddUserSecrets(type.Assembly).AddEnvironmentVariables();
-
-            var configuration = builder.Build();
-
-            IAuthMethodInfo authMethod = new TokenAuthMethodInfo(configuration["VaultToken"]);
-            var vaultSettings = new VaultClientSettings(configuration["VaultHost"],authMethod);
-            IVaultClient vaultClient = new VaultClient(vaultSettings);
-
-            var appsettings = await vaultClient.V1.Secrets.KeyValue.V2.ReadSecretAsync(secretPath);
            
             var daprClient = new DaprClientBuilder().Build();
-                
-            builder.AddJsonStream(new MemoryStream(Encoding.UTF8.GetBytes(appsettings.Data.Data.FirstOrDefault().Value.ToString())));
+
+            var secret = await daprClient.GetSecretAsync(secretStoreName, secretPath);
+
+            builder.AddJsonStream(new MemoryStream(Encoding.UTF8.GetBytes(secret[key])));
 
             return builder;
 
