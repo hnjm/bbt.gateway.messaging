@@ -31,6 +31,8 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Threading;
+using System.Globalization;
 
 namespace bbt.gateway.messaging
 {
@@ -38,15 +40,20 @@ namespace bbt.gateway.messaging
     public class Program
     {
 
-        public static void Main(string[] args)
+        public async static Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-            builder.Host.UseConsulSettings(typeof(Program));
+                    
+            await builder.Configuration.UseVaultSecretsAsync("messaginggateway-secretstore","bbt.gateway.messaging");
+            builder.Host.UseSeriLog("entegrasyon");
+
             var startup = new Startup(builder.Configuration);
             startup.ConfigureServices(builder.Services);
+
             var app = builder.Build();
             startup.Configure(app, builder.Environment,app.Services.GetService<IApiVersionDescriptionProvider>());
-            app.Run();
+            await app.RunAsync();
+
         }
 
     }

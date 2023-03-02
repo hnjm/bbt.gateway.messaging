@@ -9,7 +9,7 @@ namespace bbt.gateway.common.Repositories
     {
         public MailResponseLogRepository(DatabaseContext context) : base(context)
         { 
-        
+            
         }
 
     }
