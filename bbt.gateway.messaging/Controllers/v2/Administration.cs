@@ -163,7 +163,7 @@ namespace bbt.gateway.messaging.Controllers.v2
 
         [SwaggerOperation(Summary = "Returns phone has active blacklist or not",
             Tags = new[] { "Phone Management" })]
-        [HttpGet("blacklists/{countryCode}/{prefix}/{number}")]
+        [HttpGet("check-blacklist/{countryCode}/{prefix}/{number}")]
         [SwaggerResponse(200, "Phone has active blacklist", typeof(void))]
         [SwaggerResponse(404, "Phone has not active blacklist", typeof(void))]
         public async Task<IActionResult> CheckPhoneBlacklistStatus(string countryCode, string prefix, string number)
